@@ -1,0 +1,202 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { useLanguage } from '@/components/i18n/LanguageContext';
+import metropolitanaCard from '@/assets/cards/metropolitana.png';
+
+export default function HeroGradient({ onLoginClick }) {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (onLoginClick) {
+      onLoginClick();
+    }
+  };
+
+  return (
+    <div className="relative min-h-[calc(100vh-64px)] lg:min-h-[650px] overflow-hidden flex items-center">
+      {/* Gradient Background - Soft Pastel */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-200/60 via-blue-200/50 to-cyan-100/60">
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-100/40 via-transparent to-emerald-50/30" />
+        {/* Radial glows */}
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-radial from-purple-200/30 to-transparent blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-radial from-cyan-200/30 to-transparent blur-3xl" />
+      </div>
+
+      {/* Diagonal Cut */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-white" 
+           style={{ clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} />
+
+      {/* Content */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 w-full">
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
+          {/* Left Column */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-8 md:mb-6 leading-tight">
+              <span className="text-gray-900">{t('home.hero.title')}</span>
+              <br />
+              <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+                {t('home.hero.titleHighlight')}
+              </span>
+            </h1>
+            <p className="text-base md:text-xl text-gray-600 mb-6 md:mb-6 leading-relaxed max-w-2xl">
+              {t('home.hero.subtitle')}
+            </p>
+            
+            <div>
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 items-stretch">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('home.hero.emailPlaceholder')}
+                  className="flex-1 px-4 py-2.5 rounded-full text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 bg-white shadow-lg h-12 text-sm"
+                />
+                <Button 
+                  type="submit"
+                  size="lg"
+                  className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6 whitespace-nowrap shadow-lg h-12 text-sm"
+                >
+                  {t('home.hero.cta')}
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </form>
+            </div>
+          </motion.div>
+
+          {/* Desktop Mockups - Hidden on mobile */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative h-[550px] hidden lg:block"
+          >
+            {/* Back Mockup - Banco Metropolitano Card */}
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-8 right-0 w-[340px] h-[210px] rounded-2xl shadow-2xl transform rotate-2 overflow-hidden"
+            >
+              <img 
+                src={metropolitanaCard} 
+                alt="Tarjeta Banco Metropolitano" 
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+
+            {/* Front Mockup - Checkout */}
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              className="absolute top-16 left-0 w-[280px] bg-white rounded-2xl shadow-2xl overflow-hidden z-10 transform -rotate-1 border-2 border-gray-100"
+            >
+              <div className="p-5 space-y-3">
+                {/* Product Header */}
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-20 bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 rounded-lg flex items-center justify-center shadow-md flex-shrink-0">
+                    <div className="text-center">
+                      <div className="text-white text-[10px] font-bold mb-0.5">Issue 001</div>
+                      <div className="w-10 h-10 bg-white/90 rounded-lg mx-auto flex items-center justify-center">
+                        <div className="space-y-0.5">
+                          <div className="w-6 h-1.5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full" />
+                          <div className="w-6 h-2 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-gray-900">Abstraction Magazine</div>
+                    <div className="text-[11px] text-gray-500">USD19 al mes</div>
+                  </div>
+                </div>
+
+                {/* Apple Pay Button */}
+                <button className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm">
+                  <span>🍎</span>
+                  <span>Pay</span>
+                </button>
+
+                {/* Divider */}
+                <div className="relative py-1.5">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-white px-2 text-[10px] text-gray-400">{t('checkout.orPayWithCard')}</span>
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="space-y-2.5">
+                  <input
+                    type="email"
+                    placeholder={t('checkout.email')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
+                    disabled
+                  />
+                  
+                  <div>
+                    <div className="text-[10px] text-gray-600 mb-1.5 font-medium">{t('checkout.cardInfo')}</div>
+                    <div className="relative">
+                      <input
+                        placeholder={t('checkout.cardNumber')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-t-lg text-xs"
+                        disabled
+                      />
+                      <div className="absolute right-2 top-2 flex gap-0.5">
+                        <div className="w-5 h-3.5 bg-blue-600 rounded-sm" />
+                        <div className="w-5 h-3.5 bg-red-600 rounded-sm" />
+                        <div className="w-5 h-3.5 bg-blue-500 rounded-sm" />
+                        <div className="w-5 h-3.5 bg-orange-500 rounded-sm" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2">
+                      <input 
+                        placeholder="MM/AA" 
+                        className="px-3 py-2 border-l border-b border-r-0 border-gray-300 rounded-bl-lg text-xs" 
+                        disabled 
+                      />
+                      <input 
+                        placeholder="CVC" 
+                        className="px-3 py-2 border-r border-b border-l border-gray-300 rounded-br-lg text-xs" 
+                        disabled 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-[10px] text-gray-600 mb-1.5 font-medium">{t('checkout.country')}</div>
+                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs text-gray-600" disabled>
+                      <option>United States</option>
+                    </select>
+                  </div>
+
+                  <input
+                    placeholder={t('checkout.postalCode')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs"
+                    disabled
+                  />
+                </div>
+
+                {/* Pay Button */}
+                <button className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-semibold text-xs">
+                  {t('checkout.pay')}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
