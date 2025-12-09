@@ -95,24 +95,23 @@ export default function DeveloperAPISection() {
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-start mb-12 md:mb-20">
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-16 items-center mb-12 md:mb-20">
           {/* Left - Text Content */}
           <motion.div
+            className="text-center lg:text-left"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="lg:pt-8"
-          >
+            transition={{ duration: 0.6 }}          >
             <div className="inline-flex items-center gap-2 text-sm font-semibold mb-6 text-cyan-400">
               {t('home.developerAPI.eyebrow')}
             </div>
             
-            <h2 className="text-3xl lg:text-5xl font-bold mb-4 leading-tight text-white">
+            <h2 className="text-3xl lg:text-5xl font-bold mb-4 leading-tight text-white lg:text-left text-center">
               {t('home.developerAPI.title')}
             </h2>
             
-            <p className="text-base md:text-lg text-slate-300 leading-relaxed mb-6 max-w-xl">
+            <p className="text-base md:text-lg text-slate-300 leading-relaxed mb-6 max-w-xl lg:text-left text-center">
               {t('home.developerAPI.description')}
             </p>
 
@@ -233,7 +232,7 @@ export default function DeveloperAPISection() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 text-center lg:grid-cols-4 gap-4 md:gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
@@ -244,19 +243,15 @@ export default function DeveloperAPISection() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ y: -4 }}
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all group"
+                className="p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/20 transition-all h-full flex flex-col items-center"
               >
                 <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-cyan-500/20 transition-colors">
                   <Icon className="w-6 h-6 text-cyan-400" />
                 </div>
                 
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  {feature.title}
-                </h3>
+                <h3 className="text-lg font-semibold text-white mb-2 text-center">{feature.title}</h3>
                 
-                <p className="text-slate-400 text-sm mb-4 leading-relaxed">
-                  {feature.description}
-                </p>
+                <p className="text-slate-300 text-sm mb-4 text-center">{feature.description}</p>
 
                 {/* Link removed as per request */}
               </motion.div>

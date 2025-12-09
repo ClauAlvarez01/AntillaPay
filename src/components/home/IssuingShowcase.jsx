@@ -140,10 +140,10 @@ export default function IssuingShowcase({ onLoginClick }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="lg:col-span-2 lg:pt-4 px-6 lg:px-8"
+            className="lg:col-span-2 lg:pt-4 px-6 lg:px-8 text-center lg:text-left"
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 mb-4">
+            <div className="inline-flex items-center justify-center lg:justify-start gap-2 text-sm font-semibold text-slate-600 mb-4 w-full lg:w-auto">
               <div className="w-5 h-5 bg-gradient-to-br from-purple-400 to-indigo-500 rounded" style={{ clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)' }} />
               Issuing
             </div>
@@ -154,7 +154,7 @@ export default function IssuingShowcase({ onLoginClick }) {
             </h2>
             
             {/* Subtitle */}
-            <p className="text-base md:text-xl text-slate-600 mb-6 leading-relaxed max-w-lg">
+            <p className="text-base md:text-xl text-slate-600 mb-6 leading-relaxed max-w-lg mx-auto lg:mx-0">
               {t('pages.issuing.content')}
             </p>
 

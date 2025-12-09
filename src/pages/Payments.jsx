@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, ArrowRight, Globe2, Shield, Zap, TrendingUp,
   Smartphone, Check, ChevronDown, ChevronUp, Star, Clock, QrCode,
-  Banknote, Building2, DollarSign, Wallet
+  Banknote, Building2, DollarSign, Wallet, ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/i18n/LanguageContext';
+import { Link } from 'react-router-dom';
 
 export default function Payments() {
   const { t } = useLanguage();
@@ -183,17 +184,37 @@ export default function Payments() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
-      <section className="pt-24 pb-12 bg-gradient-to-b from-blue-50 to-white">
+      <section className="pt-32 pb-8 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-4xl mx-auto"
+            className="text-center mb-8"
           >
-            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Varias formas de aceptar pagos en línea
-            </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            {/* Flecha móvil */}
+            <div className="flex justify-end sm:hidden mb-4">
+              <Link
+                to="/?section=modular&slide=2#soluciones-modulares"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
+                aria-label="Volver a la sección interactiva del inicio"
+              >
+                <ArrowLeft className="w-6 h-6 text-blue-900" />
+              </Link>
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              <h1 className="text-5xl lg:text-6xl font-bold text-blue-900 mb-0 text-center">
+                Varias formas de aceptar pagos en línea
+              </h1>
+              <Link
+                to="/?section=modular&slide=2#soluciones-modulares"
+                className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
+                aria-label="Volver a la sección interactiva del inicio"
+              >
+                <ArrowLeft className="w-6 h-6 text-blue-900" />
+              </Link>
+            </div>
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto mt-6 mb-8">
               Acepta pagos en efectivo, QR, tarjetas nacionales e internacionales. Soluciones adaptadas al mercado cubano.
             </p>
           </motion.div>

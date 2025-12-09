@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building, ChevronDown, ChevronUp, Briefcase, Users, Globe, Home, Heart, Store, ArrowRight, ChevronRight } from 'lucide-react';
+import { Building, ChevronDown, ChevronUp, Briefcase, Users, Globe, Home, Heart, Store, ChevronRight } from 'lucide-react';
 
 // Gradientes para los botones de categoría
 const categoryGradients = {
@@ -81,7 +81,7 @@ const SectorCard = ({ title, subSectors, index, categoryTitle }) => {
         stiffness: 300,
         damping: 20
       }}
-      className={`relative rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border ${borderColor} overflow-hidden group ${bgColor} h-full flex flex-col`}
+      className={`relative rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border ${borderColor} overflow-hidden group ${bgColor} flex flex-col`}
     >
       <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${gradient}`}></div>
       
@@ -140,19 +140,13 @@ const SectorCard = ({ title, subSectors, index, categoryTitle }) => {
         </div>
         
         <div className="mt-auto pt-4">
-          <button 
-            onClick={() => hasSubsectors && setIsExpanded(!isExpanded)}
-            className={`text-sm font-medium flex items-center group/button ${hasSubsectors ? 'text-indigo-600 hover:text-indigo-800' : 'text-gray-400 cursor-default'}`}
-          >
-            {hasSubsectors ? (
-              <>
-                <span>{isExpanded ? 'Ver menos' : 'Ver opciones'}</span>
-                <ArrowRight className="w-4 h-4 ml-1 transform group-hover/button:translate-x-1 transition-transform" />
-              </>
-            ) : (
-              <span>Sin opciones adicionales</span>
-            )}
-          </button>
+          {hasSubsectors ? (
+            <div className="text-sm font-medium text-indigo-600 cursor-default">Ver opciones</div>
+          ) : (
+            <div className="text-sm font-medium text-gray-400 cursor-default">
+              Sin opciones adicionales
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -251,7 +245,7 @@ export default function Companies() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start"
         >
           {sectorCategories[activeCategory].sectors.map((sector, index) => {
             const subSectors = sectors[sector] || [];

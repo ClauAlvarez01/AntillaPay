@@ -91,12 +91,12 @@ export default function UseCasesCarousel() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-6">
+        <div className="flex flex-col items-center justify-center mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="flex-1"
+            className="text-center w-full max-w-3xl mx-auto"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               {t('home.useCases.title')}
@@ -107,20 +107,20 @@ export default function UseCasesCarousel() {
           </motion.div>
 
           {/* Navigation Arrows */}
-          <div className="flex gap-2 mt-4 sm:mt-0">
+          <div className="flex gap-2 mt-8 justify-center">
             <button
               onClick={prev}
-              className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
               aria-label="Previous slide"
             >
-              <ChevronLeft className="w-3 h-3 text-violet-600" />
+              <ChevronLeft className="w-4 h-4 text-violet-600" />
             </button>
             <button
               onClick={next}
-              className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
               aria-label="Next slide"
             >
-              <ChevronRight className="w-3 h-3 text-violet-600" />
+              <ChevronRight className="w-4 h-4 text-violet-600" />
             </button>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function UseCasesCarousel() {
                     minHeight: '320px',
                   }}
                   >
-                    <div className="p-6 flex flex-col h-full">
+                    <div className="p-6 flex flex-col h-full text-center">
                       <h3 className="text-xl font-bold text-gray-900 mb-3">
                         {useCase.title}
                       </h3>
@@ -157,10 +157,8 @@ export default function UseCasesCarousel() {
                         {useCase.description}
                       </p>
 
-                      {/* Removed Learn More button */}
-
                       {/* Company Logos */}
-                      <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
+                      <div className="flex flex-wrap justify-center gap-4 pt-6 border-t border-gray-100">
                         {useCase.companies.map((company) => (
                           <div key={company} className="text-gray-400 font-semibold text-sm">
                             {company}

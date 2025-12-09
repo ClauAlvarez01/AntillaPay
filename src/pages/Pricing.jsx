@@ -16,11 +16,11 @@ const standardFeatures = [
 
 const pricingDetails = [
   {
-    category: 'Pagos en MLC',
+    category: 'Pagos en USD',
     items: [
-      { name: 'Tarjetas MLC', rate: '3.5%', note: 'por transacción exitosa' },
-      { name: 'Transferencias MLC', rate: '2.0%', note: 'mínimo $1 USD' },
-      { name: 'Pagos en efectivo MLC', rate: '1.5%', note: 'en puntos autorizados' },
+      { name: 'Tarjetas USD', rate: '3.5%', note: 'por transacción exitosa' },
+      { name: 'Transferencias USD', rate: '2.0%', note: 'mínimo $1 USD' },
+      { name: 'Pagos en efectivo USD', rate: '1.5%', note: 'en puntos autorizados' },
     ]
   },
   {
@@ -60,11 +60,11 @@ const customPricingFeatures = [
 const faqs = [
   {
     q: '¿Qué métodos de pago están disponibles en Cuba?',
-    a: 'Aceptamos Transfermóvil, EnZona, tarjetas MLC, transferencias bancarias en CUP y MLC, y pagos en efectivo en bancos nacionales.'
+    a: 'Aceptamos Transfermóvil, EnZona, tarjetas clásicas, transferencias bancarias en CUP y MLC, y pagos en efectivo en bancos nacionales.'
   },
   {
-    q: '¿Cómo se manejan los pagos en MLC?',
-    a: 'Los pagos en MLC se procesan a través de canales autorizados por el Banco Central de Cuba, con conversión automática según el tipo de cambio oficial.'
+    q: '¿Cómo se manejan los pagos en USD?',
+    a: 'Los pagos en USD se procesan a través de canales autorizados por el Banco Central de Cuba, con conversión automática según el tipo de cambio oficial.'
   },
   {
     q: '¿Ofrecen soporte técnico local?',
@@ -87,7 +87,7 @@ export default function Pricing() {
   return (
     <div className="min-h-screen">
       {/* Hero with gradient background like AntillaPay */}
-      <section className="relative pt-24 pb-16 overflow-hidden">
+      <section className="relative pt-16 md:pt-24 pb-12 md:pb-16 overflow-hidden px-4">
         <div className="absolute inset-0">
           <div 
             className="absolute inset-0"
@@ -108,25 +108,25 @@ export default function Pricing() {
           <div className="absolute bottom-0 left-0 w-[50%] h-[60%]" style={{ background: 'radial-gradient(ellipse at 20% 80%, rgba(251, 191, 36, 0.15) 0%, transparent 50%)' }} />
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-6xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              Soluciones de pago<br />para el sector empresarial cubano
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-4 leading-tight">
+              Soluciones de pago<br className="hidden sm:block" /> para el sector empresarial cubano
             </h1>
           </motion.div>
 
           {/* Pricing Cards */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="mt-8 md:mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-md sm:max-w-2xl lg:max-w-4xl mx-auto">
             {/* Standard */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100"
+              className="bg-white rounded-2xl p-5 sm:p-6 md:p-8 shadow-xl border border-gray-100 w-full"
             >
               <h2 className="text-2xl font-bold text-gray-900 mb-3">Solución Básica</h2>
               <p className="text-gray-600 mb-6">
@@ -147,10 +147,10 @@ export default function Pricing() {
 
             {/* Custom */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gray-900 rounded-2xl p-8 shadow-xl text-white"
+              className="bg-gray-900 rounded-2xl p-5 sm:p-6 md:p-8 shadow-xl text-white mt-6 sm:mt-0 w-full"
             >
               <h2 className="text-2xl font-bold mb-3">Empresarial</h2>
               <p className="text-gray-300 mb-6">
@@ -177,12 +177,12 @@ export default function Pricing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">
+      <section className="py-10 md:py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-8 md:mb-12 px-4 sm:px-0">
             Funcionalidades disponibles para su uso inmediato:
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 sm:px-0">
             {standardFeatures.map((feature, i) => (
               <motion.div
                 key={i}
@@ -204,21 +204,40 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="py-8 bg-white border-b sticky top-16 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-gray-100 rounded-full p-1">
-              <TabsTrigger value="standard" className="rounded-full px-6 data-[state=active]:bg-white">
-                Nuestras tarifas
-              </TabsTrigger>
-              <TabsTrigger value="custom" className="rounded-full px-6 data-[state=active]:bg-white">
-                Soluciones empresariales
-              </TabsTrigger>
-              <TabsTrigger value="faq" className="rounded-full px-6 data-[state=active]:bg-white">
-                Preguntas frecuentes
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+      {/* Title for Mobile */}
+      <section className="sm:hidden pt-10 pb-3 bg-gradient-to-r from-violet-50 to-white">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <h2 className="text-xl font-bold text-violet-600">Nuestras tarifas</h2>
+        </div>
+      </section>
+
+      {/* Tabs Section - Sticky below features - Only for desktop */}
+      <section className="hidden sm:block sticky top-0 z-40 bg-white border-b">
+        <div className="max-w-6xl mx-auto px-4 py-2">
+          <div className="flex justify-center">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-3xl">
+              <TabsList className="bg-gray-50 rounded-b-lg p-2.5 flex gap-4 w-full border border-t-0 border-gray-100">
+                <TabsTrigger 
+                  value="standard" 
+                  className="relative rounded-md px-5 py-3.5 text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-600 w-1/3 text-center transition-colors hover:bg-gray-100"
+                >
+                  Nuestras tarifas
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="custom" 
+                  className="relative rounded-md px-5 py-3.5 text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-600 w-1/3 text-center transition-colors hover:bg-gray-100"
+                >
+                  Soluciones empresariales
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="faq" 
+                  className="relative rounded-md px-5 py-3.5 text-base data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-violet-600 w-1/3 text-center transition-colors hover:bg-gray-100"
+                >
+                  Preguntas frecuentes
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </section>
 
@@ -239,7 +258,7 @@ export default function Pricing() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-100">
                     {section.category}
                   </h3>
-                  <div className="space-y-3">
+                  <div className="mt-8 md:mt-12 space-y-4 px-4 sm:px-0">
                     {section.items.map((item, j) => (
                       <div key={j} className="flex justify-between items-start">
                         <div>
@@ -260,9 +279,9 @@ export default function Pricing() {
 
       {/* Custom Pricing Section */}
       {activeTab === 'custom' && (
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <section className="py-10 md:py-16 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-8 md:mb-12 px-4 sm:px-0">
               Tarifas personalizadas para tu negocio
             </h2>
             <p className="text-lg text-gray-600 mb-8">

@@ -149,9 +149,10 @@ export default function ConnectShowcase({ onLoginClick }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="text-center lg:text-left"
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 text-sm font-semibold mb-4" style={{ color: '#06B6D4' }}>
+            <div className="inline-flex items-center justify-center lg:justify-start gap-2 text-sm font-semibold mb-4 w-full lg:w-auto" style={{ color: '#06B6D4' }}>
               Connect
             </div>
             
@@ -161,7 +162,7 @@ export default function ConnectShowcase({ onLoginClick }) {
             </h2>
             
             {/* Subtitle */}
-            <p className="text-base md:text-xl text-slate-600 mb-6 leading-relaxed max-w-lg">
+            <p className="text-base md:text-xl text-slate-600 mb-6 leading-relaxed max-w-lg mx-auto lg:mx-0">
               {t('home.connect.description')}
             </p>
 

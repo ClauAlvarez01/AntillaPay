@@ -6,7 +6,7 @@ import {
   Globe2, Leaf, Building2, PieChart, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-mobile';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/components/i18n/LanguageContext';
 
@@ -71,6 +71,7 @@ export default function ModularProducts() {
   const containerRef = useRef(null);
   const intervalRef = useRef(null);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const location = useLocation();
   
   const slides = createSlides(TILE_CONFIG);
   
@@ -110,6 +111,20 @@ export default function ModularProducts() {
       top: 0
     })
   };
+
+  useEffect(() => {
+    // Set initial slide from URL (e.g. ?section=modular&slide=2)
+    const params = new URLSearchParams(location.search);
+    const section = params.get('section');
+    const slideParam = params.get('slide');
+    if (section === 'modular' && slideParam) {
+      const index = parseInt(slideParam, 10) - 1;
+      if (!Number.isNaN(index)) {
+        const safeIndex = Math.min(Math.max(index, 0), slides.length - 1);
+        setCurrentSlide(safeIndex);
+      }
+    }
+  }, [location.search, slides.length]);
 
   useEffect(() => {
     const calculatePositions = () => {
@@ -191,7 +206,7 @@ export default function ModularProducts() {
   };
 
   return (
-    <section className="py-16 lg:py-28 bg-gray-50 relative overflow-hidden">
+    <section id="soluciones-modulares" className="py-16 lg:py-28 bg-gray-50 relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.015] hidden lg:block" style={{
         backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)',
         backgroundSize: '32px 32px'

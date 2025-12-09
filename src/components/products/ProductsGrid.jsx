@@ -94,16 +94,16 @@ export default function ProductsGrid() {
   };
 
   return (
-    <section className="py-20 lg:py-32 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+    <section className="py-20 lg:py-32 bg-gray-50 w-full">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full grid lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Left Column */}
-          <div>
+          <div className="w-full text-left">
             <motion.span 
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-sm font-semibold text-indigo-600 uppercase tracking-wider"
+              className="text-sm font-semibold text-indigo-600 uppercase tracking-wider inline-block text-left"
             >
               {t('products.eyebrow')}
             </motion.span>

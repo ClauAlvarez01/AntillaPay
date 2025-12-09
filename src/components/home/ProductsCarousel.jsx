@@ -93,14 +93,15 @@ export default function ProductsCarousel() {
   };
 
   return (
-    <section className="py-20 bg-gray-50 overflow-hidden">
+    <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col items-center justify-center mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="text-center w-full max-w-3xl mx-auto"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Productos AntillaPay
@@ -111,16 +112,18 @@ export default function ProductsCarousel() {
           </motion.div>
 
           {/* Navigation Arrows */}
-          <div className="flex gap-2 self-end sm:self-auto">
+          <div className="flex gap-2 mt-8 justify-center">
             <button
               onClick={prev}
               className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              aria-label="Anterior"
             >
               <ChevronLeft className="w-4 h-4 text-violet-600" />
             </button>
             <button
               onClick={next}
               className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              aria-label="Siguiente"
             >
               <ChevronRight className="w-4 h-4 text-violet-600" />
             </button>
@@ -128,49 +131,70 @@ export default function ProductsCarousel() {
         </div>
 
         {/* Carousel */}
-        <div className="relative">
-          <div className="relative overflow-hidden">
-          <motion.div
-            animate={{ x: -currentIndex * (100 / (isMobile ? 1 : visibleCards)) + '%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="flex"
-          >
+        <div className="relative w-full">
+          <div className="w-full overflow-hidden">
+            <motion.div
+              animate={{ x: `-${currentIndex * (100 / (isMobile ? 1 : visibleCards))}%` }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="flex w-full"
+            >
               {products.map((product, i) => {
                 const Icon = product.icon;
+                
+                // Extract gradient colors for the top border
+                const gradientColors = {
+                  'from-blue-500 to-indigo-600': 'rgb(99, 102, 241)',
+                  'from-amber-500 to-orange-600': 'rgb(245, 158, 11)',
+                  'from-emerald-500 to-green-600': 'rgb(16, 185, 129)',
+                  'from-purple-500 to-pink-600': 'rgb(168, 85, 247)',
+                  'from-teal-500 to-cyan-600': 'rgb(20, 184, 166)',
+                  'from-slate-600 to-gray-800': 'rgb(71, 85, 105)',
+                  'from-violet-500 to-purple-600': 'rgb(139, 92, 246)'
+                };
+                
+                const borderColor = gradientColors[product.gradient] || 'rgb(139, 92, 246)';
                 
                 return (
                   <motion.div
                     key={product.id}
-                    className="flex-shrink-0 px-2 md:px-3"
-                    style={{ width: `${100 / visibleCards}%` }}
-                    whileHover={{ y: -8 }}
+                    className="flex-shrink-0 px-2 md:px-0"
+                    style={{ width: `calc(100% / ${visibleCards})` }}
                   >
-                    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-all h-full">
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${product.gradient} flex items-center justify-center mb-4`}>
-                        <Icon className="w-7 h-7 text-white" />
+                    <div 
+                      className={`
+                        relative h-full bg-white rounded-2xl border-t-4 shadow-lg 
+                        transition-all duration-300 overflow-visible flex flex-col
+                        hover:shadow-xl hover:-translate-y-1 mx-3
+                      `}
+                      style={{
+                        borderTopColor: borderColor,
+                        minHeight: '320px',
+                      }}
+                    >
+                      <div className="p-6 flex flex-col h-full">
+                        <div className="flex items-center justify-center mb-4">
+                          <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${product.gradient} flex items-center justify-center`}>
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                        
+                        <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
+                          {product.name}
+                        </h3>
+                        
+                        <p className="text-gray-600 text-sm leading-relaxed flex-1 text-center">
+                          {product.desc}
+                        </p>
+
+                        <ul className="space-y-2 mt-4">
+                          {product.features.map((feature) => (
+                            <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
+                              <div className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />>
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">
-                        {product.name}
-                      </h3>
-                      
-                      <p className="text-gray-600 mb-4" style={{ minHeight: '72px' }}>
-                        {product.desc}
-                      </p>
-
-                      <ul className="space-y-2 mb-6">
-                        {product.features.map((feature) => (
-                          <li key={feature} className="flex items-center gap-2 text-sm text-gray-500">
-                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* <Button variant="ghost" className="w-full text-gray-700 hover:text-gray-900">
-                        Más información
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </Button> */}
                     </div>
                   </motion.div>
                 );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PieChart, TrendingUp, Clock, Coins, Handshake, CheckCircle } from 'lucide-react';
+import { PieChart, TrendingUp, Clock, Coins, Handshake, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../components/i18n/LanguageContext';
 
 export default function Capital() {
@@ -47,9 +48,29 @@ export default function Capital() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-24"
         >
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-blue-900 mb-8">
-            Capital de Trabajo para Cuba
-          </h1>
+          {/* Flecha móvil */}
+          <div className="flex justify-end sm:hidden mb-4">
+            <Link
+              to="/?section=modular&slide=2#soluciones-modulares"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
+              aria-label="Volver a la sección interactiva del inicio"
+            >
+              <ArrowLeft className="w-6 h-6 text-blue-900" />
+            </Link>
+          </div>
+
+          <div className="relative flex items-center justify-center">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-blue-900 mb-0 text-center">
+              Capital de Trabajo para Cuba
+            </h1>
+            <Link
+              to="/?section=modular&slide=2#soluciones-modulares"
+              className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
+              aria-label="Volver a la sección interactiva del inicio"
+            >
+              <ArrowLeft className="w-6 h-6 text-blue-900" />
+            </Link>
+          </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mt-6">
             Soluciones de financiamiento adaptadas al ecosistema empresarial cubano
           </p>

@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom section spacing for mobile */
+@layer utilities {
+  .section-spacing {
+    @apply py-6 md:py-12;
+  }
+}

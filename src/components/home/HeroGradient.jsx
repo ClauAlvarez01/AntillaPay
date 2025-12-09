@@ -20,7 +20,7 @@ export default function HeroGradient({ onLoginClick }) {
   };
 
   return (
-    <div className="relative min-h-[calc(100vh-64px)] lg:min-h-[650px] overflow-hidden flex items-center">
+    <div className="relative lg:min-h-[650px] pt-10 sm:pt-16 overflow-hidden flex items-center">
       {/* Gradient Background - Soft Pastel */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-200/60 via-blue-200/50 to-cyan-100/60">
         <div className="absolute inset-0 bg-gradient-to-r from-pink-100/40 via-transparent to-emerald-50/30" />
@@ -42,18 +42,18 @@ export default function HeroGradient({ onLoginClick }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-8 md:mb-6 leading-tight">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-8 md:mb-6 leading-tight text-center md:text-left">
               <span className="text-gray-900">{t('home.hero.title')}</span>
               <br />
               <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
                 {t('home.hero.titleHighlight')}
               </span>
             </h1>
-            <p className="text-base md:text-xl text-gray-600 mb-6 md:mb-6 leading-relaxed max-w-2xl">
+            <p className="text-base md:text-xl text-gray-600 mb-6 md:mb-6 leading-relaxed max-w-2xl text-center md:text-left">
               {t('home.hero.subtitle')}
             </p>
             
-            <div>
+            <div className="mt-12 sm:mt-4">
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 items-stretch">
                 <input
                   type="email"

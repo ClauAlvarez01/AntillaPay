@@ -179,13 +179,23 @@ const resourcesMenu = {
 
 function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, resourcesMenu, language, languageNames, changeLanguage, navigate, t }) {
   const [expandedSection, setExpandedSection] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const toggleSection = (sectionId) => {
     setExpandedSection(expandedSection === sectionId ? null : sectionId);
   };
 
+  const handleLinkClick = (e, href) => {
+    e.preventDefault();
+    setIsOpen(false);
+    // Use a small timeout to allow the menu to close before navigation
+    setTimeout(() => {
+      navigate(href);
+    }, 100);
+  };
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild className="lg:hidden">
         <Button variant="ghost" size="icon" className="rounded-full">
           <Menu className="w-6 h-6" />
@@ -212,14 +222,22 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
                     <div key={section.title} className="mb-3">
                       <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2">{section.title}</h4>
                       {section.items.map((item) => (
-                        <Link
-                          key={item.name}
-                          to={item.href}
-                          className="flex items-center gap-2 py-2 text-sm text-gray-700 hover:text-violet-600"
-                        >
-                          {item.icon && <item.icon className={`w-4 h-4 ${item.color}`} />}
-                          <span>{item.name}</span>
-                        </Link>
+                        item.name === 'Payments' ? (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={(e) => handleLinkClick(e, item.href)}
+                            className="flex items-center gap-2 py-2 text-sm text-gray-700 hover:text-violet-600"
+                          >
+                            {item.icon && <item.icon className={`w-4 h-4 ${item.color}`} />}
+                            <span>{item.name}</span>
+                          </Link>
+                        ) : (
+                          <div key={item.name} className="flex items-center gap-2 py-2 text-sm text-gray-500">
+                            {item.icon && <item.icon className={`w-4 h-4 ${item.color}`} />}
+                            <span>{item.name}</span>
+                          </div>
+                        )
                       ))}
                     </div>
                   ))}
@@ -246,6 +264,7 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
                           <Link
                             key={item.name}
                             to={item.href}
+                            onClick={(e) => handleLinkClick(e, item.href)}
                             className="flex items-center gap-2 py-2 text-sm text-gray-700 hover:text-violet-600"
                           >
                             {item.icon && <item.icon className={`w-4 h-4 ${item.color}`} />}
@@ -277,6 +296,7 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
                 <div className="mt-2 pl-4 space-y-2">
                   <Link
                     to={developersMenu.header.href}
+                    onClick={(e) => handleLinkClick(e, developersMenu.header.href)}
                     className="flex items-center gap-2 py-2 text-sm font-medium text-gray-700 hover:text-violet-600"
                   >
                     <BookOpen className="w-4 h-4 text-blue-500" />
@@ -286,9 +306,20 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
                     <div key={section.title} className="mb-3">
                       <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2">{section.title}</h4>
                       {section.items.map((item) => (
-                        <div key={item.name} className="py-1.5 text-sm text-gray-500 pl-2">
-                          {item.name}
-                        </div>
+                        item.name === 'Documentación' ? (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={(e) => handleLinkClick(e, item.href)}
+                            className="py-1.5 text-sm text-gray-700 hover:text-violet-600 block pl-2"
+                          >
+                            {item.name}
+                          </Link>
+                        ) : (
+                          <div key={item.name} className="py-1.5 text-sm text-gray-500 pl-2">
+                            {item.name}
+                          </div>
+                        )
                       ))}
                     </div>
                   ))}
@@ -315,6 +346,7 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
                           <Link
                             key={item.name}
                             to={item.href}
+                            onClick={(e) => handleLinkClick(e, item.href)}
                             className="flex items-center gap-2 py-2 text-sm text-gray-700 hover:text-violet-600"
                           >
                             {item.icon && <item.icon className={`w-4 h-4 ${item.color}`} />}
@@ -337,6 +369,7 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
             <div className="mb-3">
               <Link
                 to={createPageUrl('Pricing')}
+                onClick={(e) => handleLinkClick(e, createPageUrl('Pricing'))}
                 className="block px-3 py-2 text-lg font-medium text-gray-900 hover:text-violet-600 rounded-lg transition-colors"
               >
                 {t('nav.pricing')}
@@ -360,7 +393,10 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
               ))}
             </div>
             <Button 
-              onClick={() => navigate(createPageUrl('Contact'))}
+              onClick={() => {
+                setIsOpen(false);
+                setTimeout(() => navigate(createPageUrl('Contact')), 100);
+              }}
               className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-full"
             >
               {t('nav.contactSales')}

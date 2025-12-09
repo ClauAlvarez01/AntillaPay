@@ -137,9 +137,10 @@ export default function PaymentsShowcase({ onLoginClick }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="text-center lg:text-left"
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 mb-4">
+            <div className="inline-flex items-center justify-center lg:justify-start gap-2 text-sm font-semibold text-slate-600 mb-4 w-full lg:w-auto">
               <div className="w-5 h-5 bg-gradient-to-br from-indigo-400 to-purple-500 rounded" style={{ clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)' }} />
               Payments
             </div>
@@ -150,7 +151,7 @@ export default function PaymentsShowcase({ onLoginClick }) {
             </h2>
             
             {/* Subtitle */}
-            <p className="text-base md:text-xl text-slate-600 mb-6 leading-relaxed max-w-lg">
+            <p className="text-base md:text-xl text-slate-600 mb-6 leading-relaxed max-w-lg mx-auto lg:mx-0">
               {t('home.payments.description')}
             </p>
 

@@ -19,6 +19,16 @@ function LayoutContent({ children }) {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // Scroll to hash targets (e.g. #soluciones-modulares)
+  React.useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.slice(1);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [location.hash]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
