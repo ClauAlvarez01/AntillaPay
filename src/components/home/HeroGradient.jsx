@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Search, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useLanguage } from '@/components/i18n/LanguageContext';
-import metropolitanaCard from '@/assets/cards/metropolitana.png';
 
 export default function HeroGradient({ onLoginClick }) {
   const navigate = useNavigate();
@@ -81,24 +80,99 @@ export default function HeroGradient({ onLoginClick }) {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative h-[550px] hidden lg:block"
           >
-            {/* Back Mockup - Banco Metropolitano Card */}
+            {/* Back Mockup - Dashboard Analytics */}
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-8 right-0 w-[340px] h-[210px] rounded-2xl shadow-2xl transform rotate-2 overflow-hidden"
+              className="absolute top-0 right-[-5.5rem] w-[380px] bg-white rounded-2xl shadow-2xl transform rotate-1 overflow-hidden border border-gray-100"
             >
-              <img 
-                src={metropolitanaCard} 
-                alt="Tarjeta Banco Metropolitano" 
-                className="w-full h-full object-cover"
-              />
+              {/* Dashboard Header */}
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-violet-500 to-purple-600 rounded-md flex items-center justify-center">
+                    <span className="text-white text-[10px] font-bold">A</span>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-700">ANTILLA PAY</span>
+                  <ChevronDown className="w-3 h-3 text-gray-400" />
+                </div>
+                <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-md px-2 py-1.5">
+                  <Search className="w-3 h-3 text-gray-400" />
+                  <span className="text-[10px] text-gray-400">Búsqueda</span>
+                </div>
+              </div>
+
+              {/* Dashboard Content */}
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-slate-800 mb-3">Hoy</h3>
+                
+                {/* Volume Section */}
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] text-gray-500">Volumen neto</span>
+                      <ChevronDown className="w-2.5 h-2.5 text-gray-400" />
+                    </div>
+                    <div className="text-xl font-bold text-slate-800">USD3,528,198.72</div>
+                    <div className="text-[10px] text-gray-400">2:00 p.m.</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-gray-500 mb-1">Ayer</div>
+                    <div className="text-sm text-gray-600">USD2,931,556.34</div>
+                  </div>
+                </div>
+
+                {/* Mini Chart */}
+                <div className="h-12 mb-3 flex items-end gap-0.5">
+                  {[20, 15, 25, 18, 22, 30, 28, 35, 32, 40, 38, 45, 50, 55, 60].map((h, i) => (
+                    <div key={i} className="flex-1 bg-violet-100 rounded-t-sm" style={{ height: `${h}%` }} />
+                  ))}
+                  <div className="flex-1 flex flex-col items-center">
+                    <div className="w-1.5 h-1.5 bg-violet-600 rounded-full mb-0.5" />
+                    <div className="flex-1 bg-violet-600 rounded-t-sm w-full" style={{ height: '70%' }} />
+                  </div>
+                </div>
+                <div className="flex justify-between text-[9px] text-gray-400 mb-4">
+                  <span>12:00 a.m.</span>
+                  <span className="text-violet-600 font-medium">Ahora, 2:00 p.m.</span>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-[10px] text-gray-600">Volumen neto de ventas</span>
+                      <span className="text-[9px] text-emerald-500 font-medium">+32.8%</span>
+                    </div>
+                    <div className="text-sm font-bold text-slate-800">USD39,274.29</div>
+                    <div className="text-[9px] text-gray-400">USD29,573.54</div>
+                    {/* Mini line chart */}
+                    <svg className="w-full h-6 mt-1" viewBox="0 0 80 20">
+                      <polyline fill="none" stroke="#8b5cf6" strokeWidth="1.5" points="0,18 10,15 20,16 30,12 40,14 50,10 60,8 70,6 80,4" />
+                    </svg>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2.5">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-[10px] text-gray-600">Clientes nuevos</span>
+                      <span className="text-[9px] text-emerald-500 font-medium">+32.1%</span>
+                    </div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-sm font-bold text-slate-800">37</span>
+                      <span className="text-[10px] text-gray-400">28</span>
+                    </div>
+                    {/* Mini line chart */}
+                    <svg className="w-full h-6 mt-1" viewBox="0 0 80 20">
+                      <polyline fill="none" stroke="#8b5cf6" strokeWidth="1.5" points="0,16 15,14 25,15 35,12 50,10 60,8 75,5 80,6" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
             {/* Front Mockup - Checkout */}
             <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute top-16 left-0 w-[280px] bg-white rounded-2xl shadow-2xl overflow-hidden z-10 transform -rotate-1 border-2 border-gray-100"
+              className="absolute top-24 left-8 w-[280px] bg-white rounded-2xl shadow-2xl overflow-hidden z-10 transform -rotate-6 border-2 border-gray-100"
             >
               <div className="p-5 space-y-3">
                 {/* Product Header */}
