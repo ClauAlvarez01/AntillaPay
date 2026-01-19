@@ -67,6 +67,7 @@ import Payments from "./Payments";
 import Login from "./Login";
 import Register from "./Register";
 import Dashboard from "./Dashboard";
+import PaymentLinksCreate from "./PaymentLinksCreate";
 
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '../components/i18n/LanguageContext';
@@ -162,7 +163,8 @@ function PagesContent() {
         <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/payment-links/create" element={<PaymentLinksCreate />} />
+            <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/*" element={
                 <Layout currentPageName={currentPage}>
                     <Routes>
