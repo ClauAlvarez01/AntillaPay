@@ -154,6 +154,7 @@ export default function PaymentLinksCreate() {
     const [replaceConfirmationMessage, setReplaceConfirmationMessage] = useState(false);
     const [confirmationMessage, setConfirmationMessage] = useState("");
     const [createPdfInvoice, setCreatePdfInvoice] = useState(false);
+    const [afterPaymentPreviewTab, setAfterPaymentPreviewTab] = useState("confirmation");
     const [currencyCode, setCurrencyCode] = useState("USD");
     const [currencyMenuOpen, setCurrencyMenuOpen] = useState(false);
     const [currencyQuery, setCurrencyQuery] = useState("");
@@ -359,6 +360,12 @@ export default function PaymentLinksCreate() {
             setPreviewTab("checkout");
         }
     }, [customMessage, previewTab]);
+
+    useEffect(() => {
+        if (!createPdfInvoice && afterPaymentPreviewTab !== "confirmation") {
+            setAfterPaymentPreviewTab("confirmation");
+        }
+    }, [createPdfInvoice, afterPaymentPreviewTab]);
 
     const handleImageChange = (event) => {
         const file = event.target.files?.[0];
@@ -1009,7 +1016,30 @@ export default function PaymentLinksCreate() {
                         </div>
                     )}
                     {isAfterPayment && (
-                        <div className="mt-4 text-[14px] font-semibold text-[#635bff]">Página de confirmación</div>
+                        <div className="mt-4 flex items-center gap-6 text-[14px]">
+                            <button
+                                type="button"
+                                onClick={() => setAfterPaymentPreviewTab("confirmation")}
+                                className={`pb-1 border-b-2 transition-colors ${afterPaymentPreviewTab === "confirmation"
+                                    ? "border-[#635bff] text-[#635bff] font-semibold"
+                                    : "border-transparent text-[#8792a2] hover:text-[#32325d]"
+                                    }`}
+                            >
+                                Página de confirmación
+                            </button>
+                            {createPdfInvoice && (
+                                <button
+                                    type="button"
+                                    onClick={() => setAfterPaymentPreviewTab("invoice")}
+                                    className={`pb-1 border-b-2 transition-colors ${afterPaymentPreviewTab === "invoice"
+                                        ? "border-[#635bff] text-[#635bff] font-semibold"
+                                        : "border-transparent text-[#8792a2] hover:text-[#32325d]"
+                                        }`}
+                                >
+                                    Factura posterior al pago
+                                </button>
+                            )}
+                        </div>
                     )}
 
                     <div className="mt-6 flex-1 flex items-start justify-center overflow-auto pb-8">
@@ -1039,7 +1069,75 @@ export default function PaymentLinksCreate() {
                                 </div>
 
                                 {isAfterPayment ? (
-                                    <div className={`grid gap-10 ${previewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
+                                    afterPaymentPreviewTab === "invoice" && createPdfInvoice ? (
+                                        <div className="flex justify-center">
+                                            <div className="w-full max-w-[560px] rounded-2xl border border-gray-200 bg-white shadow-sm p-6 text-[#1a1f36]">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="text-[18px] font-semibold">Factura</div>
+                                                    <div className="text-[12px] text-[#9ca3af] font-semibold">acct_1SrAY7P7MT2okK37</div>
+                                                </div>
+
+                                                <div className="mt-4 grid grid-cols-1 gap-4 text-[12px] text-[#4f5b76] md:grid-cols-2">
+                                                    <div className="space-y-1">
+                                                        <div>
+                                                            <span className="font-semibold text-[#1a1f36]">Número de factura</span> EJEMPLO-0001
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-semibold text-[#1a1f36]">Fecha de emisión</span> 20 de febrero de 2026
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-semibold text-[#1a1f36]">Fecha de vencimiento</span> 20 de febrero de 2026
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <div className="font-semibold text-[#1a1f36]">Facturar a</div>
+                                                        <div>Cliente de ejemplo</div>
+                                                        <div>cliente@ejemplo.com</div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-4 text-[14px] font-semibold">
+                                                    {previewAmount} {currencyPreview} con vencimiento 20 de febrero de 2026
+                                                </div>
+
+                                                <div className="mt-4 border-t border-gray-200 pt-3">
+                                                    <div className="grid grid-cols-[1fr_80px_100px_100px] text-[11px] uppercase tracking-wide text-[#9ca3af]">
+                                                        <span>Descripción</span>
+                                                        <span className="text-right">Cantidad</span>
+                                                        <span className="text-right">Precio unitario</span>
+                                                        <span className="text-right">Importe</span>
+                                                    </div>
+                                                    <div className="mt-2 grid grid-cols-[1fr_80px_100px_100px] text-[12px] text-[#4f5b76]">
+                                                        <span>{title.trim() || "Título"}</span>
+                                                        <span className="text-right">1</span>
+                                                        <span className="text-right">{previewAmount} {currencyPreview}</span>
+                                                        <span className="text-right">{previewAmount} {currencyPreview}</span>
+                                                    </div>
+                                                    <div className="mt-4 flex justify-end">
+                                                        <div className="w-full max-w-[220px] text-[12px] text-[#4f5b76] space-y-1">
+                                                            <div className="flex items-center justify-between">
+                                                                <span>Subtotal</span>
+                                                                <span>{previewAmount} {currencyPreview}</span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <span>Total</span>
+                                                                <span>{previewAmount} {currencyPreview}</span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between font-semibold text-[#1a1f36]">
+                                                                <span>Total pendiente</span>
+                                                                <span>{previewAmount} {currencyPreview}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-6 border-t border-gray-200 pt-3 text-[11px] text-[#9ca3af]">
+                                                    EJEMPLO-0001 · {previewAmount} {currencyPreview} con vencimiento 20 de febrero de 2026
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className={`grid gap-10 ${previewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
                                         <div className="space-y-4">
                                             <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-full">
                                                 TEST MODE
@@ -1094,7 +1192,7 @@ export default function PaymentLinksCreate() {
                                             </div>
                                         </div>
                                     </div>
-                                ) : isInactivePreview ? (
+                                )) : isInactivePreview ? (
                                     <div className="min-h-[420px] flex flex-col items-center justify-center text-center gap-3 text-[#6b7280]">
                                         <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center">
                                             <AlertCircle className="w-5 h-5 text-[#6b7280]" />
