@@ -65,77 +65,80 @@ import Climate from "./Climate";
 
 import Payments from "./Payments";
 import Login from "./Login";
+import Register from "./Register";
+import Dashboard from "./Dashboard";
+import PaymentLinksCreate from "./PaymentLinksCreate";
 
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '../components/i18n/LanguageContext';
 
 const PAGES = {
-    
+
     Home: Home,
-    
+
     Products: Products,
-    
+
     Pricing: Pricing,
-    
+
     Developers: Developers,
-    
+
     Solutions: Solutions,
-    
+
     Company: Company,
-    
+
     Resources: Resources,
-    
+
     Contact: Contact,
-    
+
     Terminal: Terminal,
-    
+
     PaymentLinks: PaymentLinks,
-    
+
     Checkout: Checkout,
-    
+
     Elements: Elements,
-    
+
     Connect: Connect,
     Companies: Companies,
-    
-    
+
+
     GlobalPayouts: GlobalPayouts,
-    
+
     FinancialAccounts: FinancialAccounts,
-    
+
     Capital: Capital,
-    
+
     Issuing: Issuing,
-    
+
     Billing: Billing,
-    
+
     RevenueRecognition: RevenueRecognition,
-    
+
     Tax: Tax,
-    
+
     Sigma: Sigma,
-    
+
     DataPipeline: DataPipeline,
-    
+
     UsageBased: UsageBased,
-    
+
     Invoicing: Invoicing,
-    
-    
+
+
     PaymentMethods: PaymentMethods,
-    
+
     Link: Link,
-    
+
     FinancialConnections: FinancialConnections,
-    
+
     Identity: Identity,
-    
+
     Atlas: Atlas,
-    
+
     Climate: Climate,
-    
+
     Payments: Payments,
-    
+
 }
 
 function _getCurrentPage(url) {
@@ -159,9 +162,12 @@ function PagesContent() {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard/payment-links/create" element={<PaymentLinksCreate />} />
+            <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/*" element={
                 <Layout currentPageName={currentPage}>
-                    <Routes>            
+                    <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/Home" element={<Home />} />
                         <Route path="/Products" element={<Products />} />
