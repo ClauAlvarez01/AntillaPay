@@ -19,8 +19,11 @@ export default function LoginPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => setIsLoading(false), 2000);
+    // Simulate API call then redirect to demo dashboard
+    setTimeout(() => {
+      setIsLoading(false);
+      navigate('/dashboard');
+    }, 800);
   };
 
   return (
