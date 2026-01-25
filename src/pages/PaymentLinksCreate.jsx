@@ -6,6 +6,8 @@ import {
     Check,
     ChevronDown,
     Info,
+    Link,
+    Lock,
     Mail,
     Monitor,
     Smartphone,
@@ -176,6 +178,7 @@ export default function PaymentLinksCreate() {
     const [useLimits, setUseLimits] = useState(false);
     const [minAmount, setMinAmount] = useState("");
     const [maxAmount, setMaxAmount] = useState("");
+    const [showExitConfirm, setShowExitConfirm] = useState(false);
     const fileInputRef = useRef(null);
     const customFieldCounter = useRef(0);
     const currencyMenuRef = useRef(null);
@@ -183,8 +186,35 @@ export default function PaymentLinksCreate() {
     const selectedCurrency = CURRENCIES.find((currency) => currency.code === currencyCode) || CURRENCIES[0];
     const isUsd = selectedCurrency.code === "USD";
     const currencySymbol = getCurrencySymbol(selectedCurrency.code);
-    const currencyPreview = currencySymbol;
+    const currencyPreview = selectedCurrency.code === "USD" ? "US$" : currencySymbol;
     const previewAmount = suggestPresetAmount && presetAmount.trim() ? presetAmount.trim() : "0,00";
+    const previewAmountDisplay = `${currencyPreview} ${previewAmount}`;
+    const previewAmountDisplaySuffix = `${previewAmount} ${currencyPreview}`;
+    const isDirty = Boolean(
+        title ||
+        description ||
+        imageUrl ||
+        replaceConfirmationMessage ||
+        confirmationMessage ||
+        createPdfInvoice ||
+        currencyCode !== "USD" ||
+        callToAction !== "Pagar" ||
+        collectCustomerName ||
+        customerNameOptional ||
+        collectCompanyName ||
+        companyNameOptional ||
+        limitPayments ||
+        paymentsTotal !== "1" ||
+        customMessage ||
+        customMessageText ||
+        customFieldsEnabled ||
+        customFields.length > 0 ||
+        suggestPresetAmount ||
+        presetAmount ||
+        useLimits ||
+        minAmount ||
+        maxAmount
+    );
     const normalizeText = (value) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const normalizedQuery = normalizeText(currencyQuery.trim());
     const filteredCurrencies = normalizedQuery
@@ -195,7 +225,7 @@ export default function PaymentLinksCreate() {
     const confirmationPreviewTitle = replaceConfirmationMessage && confirmationMessage.trim()
         ? confirmationMessage.trim()
         : "Gracias por el pago";
-    const previewDomain = isAfterPayment ? "book.antillapay.com" : "buy.antillapay.com";
+    const previewDomain = "buy.stripe.com";
     const createCustomField = () => ({
         id: `custom-field-${customFieldCounter.current++}`,
         type: "Texto",
@@ -218,47 +248,47 @@ export default function PaymentLinksCreate() {
     const renderContactInfoSection = (showTitle = true) => (
         <div className="space-y-3">
             {showTitle && (
-                <div className="text-[15px] font-semibold text-[#1a1f36]">Información de contacto</div>
+                <div className="text-[14px] font-semibold text-[#1a1f36]">Información de contacto</div>
             )}
-            <div className="text-[13px] text-[#4f5b76]">Datos de contacto</div>
+            <div className="text-[12px] text-[#4f5b76]">Correo electrónico</div>
             <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                <div className={`flex items-center gap-2 px-3 py-2.5 ${collectCustomerName || collectCompanyName ? "border-b border-gray-100" : ""}`}>
-                    <Mail className="w-4 h-4 text-[#9ca3af]" />
+                <div className={`flex items-center gap-2 px-3 py-2 ${collectCustomerName || collectCompanyName ? "border-b border-gray-100" : ""}`}>
+                    <Mail className="w-3.5 h-3.5 text-[#9ca3af]" />
                     <input
                         type="text"
                         placeholder="correoelectrónico@ejemplo.com"
-                        className="flex-1 bg-transparent text-[14px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                        className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
                     />
                 </div>
                 {collectCustomerName && (
-                    <div className={`flex items-center justify-between gap-2 px-3 py-2.5 ${collectCompanyName ? "border-b border-gray-100" : ""}`}>
+                    <div className={`flex items-center justify-between gap-2 px-3 py-2 ${collectCompanyName ? "border-b border-gray-100" : ""}`}>
                         <div className="flex items-center gap-2 flex-1">
-                            <User className="w-4 h-4 text-[#9ca3af]" />
+                            <User className="w-3.5 h-3.5 text-[#9ca3af]" />
                             <input
                                 type="text"
                                 placeholder="Nombre completo"
-                                className="flex-1 bg-transparent text-[14px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                                className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
                             />
                         </div>
                         {customerNameOptional && (
-                            <span className="text-[11px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
                                 Opcional
                             </span>
                         )}
                     </div>
                 )}
                 {collectCompanyName && (
-                    <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2 px-3 py-2">
                         <div className="flex items-center gap-2 flex-1">
-                            <Building2 className="w-4 h-4 text-[#9ca3af]" />
+                            <Building2 className="w-3.5 h-3.5 text-[#9ca3af]" />
                             <input
                                 type="text"
                                 placeholder="Nombre de la empresa"
-                                className="flex-1 bg-transparent text-[14px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                                className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
                             />
                         </div>
                         {companyNameOptional && (
-                            <span className="text-[11px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
                                 Opcional
                             </span>
                         )}
@@ -275,10 +305,10 @@ export default function PaymentLinksCreate() {
                             : undefined;
                         return (
                             <div key={field.id} className="space-y-2">
-                                <div className="flex items-center justify-between text-[13px] text-[#4f5b76]">
+                                <div className="flex items-center justify-between text-[12px] text-[#4f5b76]">
                                     <span>{labelText}</span>
                                     {field.isOptional && (
-                                        <span className="text-[11px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
+                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
                                             Opcional
                                         </span>
                                     )}
@@ -287,7 +317,7 @@ export default function PaymentLinksCreate() {
                                     <div className="relative">
                                         <select
                                             defaultValue=""
-                                            className="w-full appearance-none rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                            className="w-full appearance-none rounded-lg border border-gray-200 px-2.5 py-1.5 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                         >
                                             <option>
                                                 {field.hasDefault && field.defaultValue.trim()
@@ -295,7 +325,7 @@ export default function PaymentLinksCreate() {
                                                     : "Selecciona una opción"}
                                             </option>
                                         </select>
-                                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-gray-400" />
+                                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
                                     </div>
                                 ) : (
                                     <input
@@ -310,7 +340,7 @@ export default function PaymentLinksCreate() {
                                                     ? "Solo números"
                                                     : ""
                                         }
-                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                        className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                     />
                                 )}
                             </div>
@@ -382,48 +412,60 @@ export default function PaymentLinksCreate() {
         });
     };
 
+    const handleCreateLink = () => {
+        const now = new Date();
+        const id = `pl_${now.getTime()}_${Math.random().toString(36).slice(2, 8)}`;
+        const newLink = {
+            id,
+            name: title.trim() || "Sin título",
+            currencyCode: selectedCurrency.code,
+            priceType: "customer_choice",
+            status: "Desactivado",
+            createdAt: now.toISOString()
+        };
+        navigate("/dashboard/payment-links", { state: { newPaymentLink: newLink } });
+    };
+
+    const handleCloseClick = () => {
+        if (isDirty) {
+            setShowExitConfirm(true);
+            return;
+        }
+        navigate("/dashboard/payment-links");
+    };
+
     return (
         <div className="w-full min-h-screen bg-white">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-b border-gray-200 bg-white">
                 <div className="flex items-center gap-3">
                     <button
                         type="button"
-                        onClick={() => navigate("/dashboard/payment-links")}
+                        onClick={handleCloseClick}
                         className="text-[#8792a2] hover:text-[#32325d] transition-colors"
                         aria-label="Cerrar creación de enlace"
                     >
                         <X className="w-4 h-4" />
                     </button>
                     <div className="w-px h-4 bg-gray-200" />
-                    <span className="text-[15px] font-semibold text-[#32325d]">Crear enlace de pago</span>
+                    <span className="text-[14px] font-semibold text-[#32325d]">Crear enlace de pago</span>
                 </div>
                 <button
                     type="button"
-                    className="inline-flex items-center gap-2 rounded-md bg-[#a7a5ff] px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#8f8dff]"
+                    onClick={handleCreateLink}
+                    className="inline-flex items-center gap-2 rounded-md bg-[#4c43e6] px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-colors hover:bg-[#3f38c8]"
                 >
                     Crear enlace
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3.5 h-3.5" />
                 </button>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-[520px_1fr] min-h-[calc(100vh-72px)]">
-                <div className="p-8 space-y-6">
-                    <div className="space-y-3">
-                        <h2 className="text-[18px] font-semibold text-[#32325d]">Elegir tipo</h2>
-                        <button
-                            type="button"
-                            className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 text-[13px] text-[#32325d] shadow-sm"
-                        >
-                            Los clientes deciden qué pagar
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-6 border-b border-gray-200">
+                <div className="p-7 space-y-5">
+                    <div className="mt-4 flex items-center gap-6 border-b border-gray-200">
                         <button
                             type="button"
                             onClick={() => setActiveSection("payment")}
-                            className={`text-[14px] font-semibold pb-3 border-b-2 transition-colors ${activeSection === "payment"
+                            className={`text-[13px] font-semibold pb-2.5 border-b-2 transition-colors ${activeSection === "payment"
                                 ? "text-[#635bff] border-[#635bff]"
                                 : "text-[#8792a2] border-transparent hover:text-[#32325d]"
                                 }`}
@@ -433,7 +475,7 @@ export default function PaymentLinksCreate() {
                         <button
                             type="button"
                             onClick={() => setActiveSection("after_payment")}
-                            className={`text-[14px] font-semibold pb-3 border-b-2 transition-colors ${activeSection === "after_payment"
+                            className={`text-[13px] font-semibold pb-2.5 border-b-2 transition-colors ${activeSection === "after_payment"
                                 ? "text-[#635bff] border-[#635bff]"
                                 : "text-[#8792a2] border-transparent hover:text-[#32325d]"
                                 }`}
@@ -447,19 +489,19 @@ export default function PaymentLinksCreate() {
                     <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[13px] font-semibold text-[#32325d]">Título</label>
+                                <label className="text-[12px] font-semibold text-[#32325d]">Título</label>
                                 <input
                                     type="text"
                                     placeholder="Nombre del motivo o del servicio"
                                     value={title}
                                     onChange={(event) => setTitle(event.target.value)}
-                                    className="w-full h-10 rounded-md border border-gray-200 px-3 text-[13px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                    className="w-full h-9 rounded-md border border-gray-200 px-3 text-[12px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <label className="text-[13px] font-semibold text-[#32325d]">Descripción</label>
-                                    <span className="text-[11px] text-[#8792a2] border border-gray-200 rounded-full px-2 py-0.5">
+                                    <label className="text-[12px] font-semibold text-[#32325d]">Descripción</label>
+                                    <span className="text-[10px] text-[#8792a2] border border-gray-200 rounded-full px-2 py-0.5">
                                         Opcional
                                     </span>
                                 </div>
@@ -468,18 +510,18 @@ export default function PaymentLinksCreate() {
                                     placeholder="Dales a los clientes más información sobre lo que están pagando."
                                     value={description}
                                     onChange={(event) => setDescription(event.target.value)}
-                                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-[13px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-[12px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <label className="text-[13px] font-semibold text-[#32325d]">Imagen</label>
-                                <span className="text-[11px] text-[#8792a2] border border-gray-200 rounded-full px-2 py-0.5">
+                                <label className="text-[12px] font-semibold text-[#32325d]">Imagen</label>
+                                <span className="text-[10px] text-[#8792a2] border border-gray-200 rounded-full px-2 py-0.5">
                                     Opcional
                                 </span>
                             </div>
-                            <div className="h-[150px] w-full border border-dashed border-gray-200 rounded-xl flex items-center justify-center text-[13px] text-[#635bff] font-semibold overflow-hidden">
+                            <div className="h-[140px] w-full border border-dashed border-gray-200 rounded-xl flex items-center justify-center text-[12px] text-[#635bff] font-semibold overflow-hidden">
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
@@ -493,7 +535,7 @@ export default function PaymentLinksCreate() {
                                         />
                                     ) : (
                                         <>
-                                            <Upload className="w-4 h-4" />
+                                            <Upload className="w-3.5 h-3.5" />
                                             Cargar
                                         </>
                                     )}
@@ -510,37 +552,37 @@ export default function PaymentLinksCreate() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[13px] font-semibold text-[#32325d]">Divisa</label>
+                        <label className="text-[12px] font-semibold text-[#32325d]">Divisa</label>
                         <div className="relative" ref={currencyMenuRef}>
                             <button
                                 type="button"
                                 aria-expanded={currencyMenuOpen}
                                 aria-controls="currency-menu"
                                 onClick={() => setCurrencyMenuOpen((prev) => !prev)}
-                                className="w-full flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-[14px] text-[#32325d] shadow-sm"
+                                className="w-full flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-[13px] text-[#32325d] shadow-sm"
                             >
                                 <span className="truncate">
                                     {selectedCurrency.code} - {selectedCurrency.name}
                                 </span>
-                                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${currencyMenuOpen ? "rotate-180" : ""}`} />
+                                <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${currencyMenuOpen ? "rotate-180" : ""}`} />
                             </button>
                             {currencyMenuOpen && (
                                 <div
                                     id="currency-menu"
                                     className="absolute left-0 right-0 z-20 mt-2 rounded-xl border border-gray-200 bg-white shadow-[0_20px_35px_-20px_rgba(15,23,42,0.45)]"
                                 >
-                                    <div className="border-b border-gray-100 px-4 py-2.5">
+                                    <div className="border-b border-gray-100 px-4 py-2">
                                         <input
                                             ref={currencySearchRef}
                                             value={currencyQuery}
                                             onChange={(event) => setCurrencyQuery(event.target.value)}
                                             placeholder="Busca..."
-                                            className="w-full text-[16px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
+                                            className="w-full text-[14px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
                                         />
                                     </div>
                                     <div className="max-h-72 overflow-auto py-1">
                                         {filteredCurrencies.length === 0 ? (
-                                            <div className="px-4 py-3 text-[13px] text-[#8792a2]">Sin resultados</div>
+                                            <div className="px-4 py-3 text-[12px] text-[#8792a2]">Sin resultados</div>
                                         ) : (
                                             filteredCurrencies.map((currency) => {
                                                 const isSelected = currency.code === currencyCode;
@@ -553,7 +595,7 @@ export default function PaymentLinksCreate() {
                                                             setCurrencyMenuOpen(false);
                                                             setCurrencyQuery("");
                                                         }}
-                                                        className={`w-full text-left px-4 py-2.5 text-[15px] text-[#32325d] transition-colors ${isSelected
+                                                        className={`w-full text-left px-4 py-2 text-[13px] text-[#32325d] transition-colors ${isSelected
                                                             ? "bg-[#f5f6ff] text-[#2f2c73]"
                                                             : "hover:bg-[#f7f7f9]"
                                                             }`}
@@ -570,7 +612,7 @@ export default function PaymentLinksCreate() {
                     </div>
 
                     <div className="space-y-3">
-                        <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
+                        <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
                             <input
                                 type="checkbox"
                                 checked={suggestPresetAmount}
@@ -578,23 +620,23 @@ export default function PaymentLinksCreate() {
                                 className="h-4 w-4 rounded border-gray-300"
                             />
                             <span>Sugerir un importe predefinido</span>
-                            <Info className="w-3.5 h-3.5 text-gray-300" />
+                            <Info className="w-3 h-3 text-gray-300" />
                         </label>
                         {suggestPresetAmount && (
                             <div className="pl-7">
-                                <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-[15px] text-[#32325d] shadow-sm">
+                                <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-[13px] text-[#32325d] shadow-sm">
                                     <span className="text-[#6b7280]">{currencySymbol}</span>
                                     <input
                                         type="text"
                                         value={presetAmount}
                                         onChange={(event) => setPresetAmount(event.target.value)}
                                         placeholder="10,00"
-                                        className="flex-1 bg-transparent text-[15px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
+                                        className="flex-1 bg-transparent text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
                                     />
                                 </div>
                             </div>
                         )}
-                        <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
+                        <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
                             <input
                                 type="checkbox"
                                 checked={useLimits}
@@ -602,33 +644,33 @@ export default function PaymentLinksCreate() {
                                 className="h-4 w-4 rounded border-gray-300"
                             />
                             <span>Establecer límites</span>
-                            <Info className="w-3.5 h-3.5 text-gray-300" />
+                            <Info className="w-3 h-3 text-gray-300" />
                         </label>
                         {useLimits && (
                             <div className="grid grid-cols-1 gap-3 pl-7 sm:grid-cols-2">
                                 <div className="space-y-2">
-                                    <div className="text-[13px] text-[#4f5b76]">Importe mínimo</div>
-                                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-[15px] text-[#32325d] shadow-sm">
+                                    <div className="text-[12px] text-[#4f5b76]">Importe mínimo</div>
+                                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-[13px] text-[#32325d] shadow-sm">
                                         <span className="text-[#6b7280]">{currencySymbol}</span>
                                         <input
                                             type="text"
                                             value={minAmount}
                                             onChange={(event) => setMinAmount(event.target.value)}
                                             placeholder="0,5"
-                                            className="flex-1 bg-transparent text-[15px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
+                                            className="flex-1 bg-transparent text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <div className="text-[13px] text-[#4f5b76]">Importe máximo</div>
-                                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-[15px] text-[#32325d] shadow-sm">
+                                    <div className="text-[12px] text-[#4f5b76]">Importe máximo</div>
+                                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-[13px] text-[#32325d] shadow-sm">
                                         <span className="text-[#6b7280]">{currencySymbol}</span>
                                         <input
                                             type="text"
                                             value={maxAmount}
                                             onChange={(event) => setMaxAmount(event.target.value)}
                                             placeholder="10.000"
-                                            className="flex-1 bg-transparent text-[15px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
+                                            className="flex-1 bg-transparent text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
                                         />
                                     </div>
                                 </div>
@@ -640,31 +682,31 @@ export default function PaymentLinksCreate() {
                         <button
                             type="button"
                             onClick={() => setAdvancedOpen((prev) => !prev)}
-                            className="inline-flex items-center gap-2 text-[16px] font-semibold text-[#32325d]"
+                            className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#32325d]"
                         >
                             Opciones avanzadas
-                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
                         </button>
                         {advancedOpen && (
-                            <div className="space-y-5 rounded-xl border border-gray-200 bg-white p-4">
-                                <div className="flex flex-wrap items-center gap-3 text-[14px] text-[#4f5b76]">
+                            <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-3">
+                                <div className="flex flex-wrap items-center gap-3 text-[13px] text-[#4f5b76]">
                                     <div className="relative">
                                         <select
                                             value={callToAction}
                                             onChange={(event) => setCallToAction(event.target.value)}
-                                            className="w-[150px] appearance-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                            className="w-[140px] appearance-none rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                         >
                                             <option>Pagar</option>
                                             <option>Reservar</option>
                                             <option>Donar</option>
                                         </select>
-                                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-gray-400" />
+                                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
                                     </div>
                                     <span>como la llamada a la acción</span>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                         <input
                                             type="checkbox"
                                             checked={collectCustomerName}
@@ -680,7 +722,7 @@ export default function PaymentLinksCreate() {
                                         <span>Recopilar los nombres de los clientes</span>
                                     </label>
                                     {collectCustomerName && (
-                                        <label className="flex items-center gap-2 pl-7 text-[13px] text-[#4f5b76]">
+                                        <label className="flex items-center gap-2 pl-7 text-[12px] text-[#4f5b76]">
                                             <input
                                                 type="checkbox"
                                                 checked={customerNameOptional}
@@ -693,7 +735,7 @@ export default function PaymentLinksCreate() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                         <input
                                             type="checkbox"
                                             checked={collectCompanyName}
@@ -709,7 +751,7 @@ export default function PaymentLinksCreate() {
                                         <span>Recopilar los nombres de las empresas</span>
                                     </label>
                                     {collectCompanyName && (
-                                        <label className="flex items-center gap-2 pl-7 text-[13px] text-[#4f5b76]">
+                                        <label className="flex items-center gap-2 pl-7 text-[12px] text-[#4f5b76]">
                                             <input
                                                 type="checkbox"
                                                 checked={companyNameOptional}
@@ -722,7 +764,7 @@ export default function PaymentLinksCreate() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                         <input
                                             type="checkbox"
                                             checked={customFieldsEnabled}
@@ -736,7 +778,7 @@ export default function PaymentLinksCreate() {
                                             className="h-4 w-4 rounded border-gray-300"
                                         />
                                         <span>Añadir campos personalizados</span>
-                                        <Info className="w-3.5 h-3.5 text-gray-300" />
+                                        <Info className="w-3 h-3 text-gray-300" />
                                     </label>
                                     {customFieldsEnabled && (
                                         <div className="space-y-4 pl-7">
@@ -747,24 +789,24 @@ export default function PaymentLinksCreate() {
                                                             <select
                                                                 value={field.type}
                                                                 onChange={(event) => updateCustomField(field.id, { type: event.target.value })}
-                                                                className="w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                                                className="w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                                             >
                                                                 <option>Texto</option>
                                                                 <option>Solo números</option>
                                                                 <option>Desplegable</option>
                                                             </select>
-                                                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-gray-400" />
+                                                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
                                                         </div>
                                                         <input
                                                             type="text"
                                                             value={field.label}
                                                             onChange={(event) => updateCustomField(field.id, { label: event.target.value })}
                                                             placeholder="Nombre de la etiqueta"
-                                                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                                            className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                                         />
                                                     </div>
 
-                                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
+                                                    <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
                                                         <input
                                                             type="checkbox"
                                                             checked={field.hasDefault}
@@ -778,7 +820,7 @@ export default function PaymentLinksCreate() {
                                                             className="h-4 w-4 rounded border-gray-300"
                                                         />
                                                         <span>Establece un valor predeterminado</span>
-                                                        <Info className="w-3.5 h-3.5 text-gray-300" />
+                                                        <Info className="w-3 h-3 text-gray-300" />
                                                     </label>
                                                     {field.hasDefault && (
                                                         <div className="pl-7">
@@ -786,12 +828,12 @@ export default function PaymentLinksCreate() {
                                                                 type="text"
                                                                 value={field.defaultValue}
                                                                 onChange={(event) => updateCustomField(field.id, { defaultValue: event.target.value })}
-                                                                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                                                className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                                             />
                                                         </div>
                                                     )}
 
-                                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
+                                                    <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
                                                         <input
                                                             type="checkbox"
                                                             checked={field.hasLimit}
@@ -807,29 +849,29 @@ export default function PaymentLinksCreate() {
                                                         <span>Establecer límites</span>
                                                     </label>
                                                     {field.hasLimit && (
-                                                        <div className="flex flex-wrap items-center gap-3 pl-7 text-[13px] text-[#4f5b76]">
+                                                        <div className="flex flex-wrap items-center gap-3 pl-7 text-[12px] text-[#4f5b76]">
                                                             <div className="relative">
                                                                 <select
                                                                     value={field.limitType}
                                                                     onChange={(event) => updateCustomField(field.id, { limitType: event.target.value })}
-                                                                    className="appearance-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                                                    className="appearance-none rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                                                 >
                                                                     <option>Como maximo</option>
                                                                     <option>Como minimo</option>
                                                                 </select>
-                                                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-gray-400" />
+                                                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
                                                             </div>
                                                             <input
                                                                 type="text"
                                                                 value={field.limitValue}
                                                                 onChange={(event) => updateCustomField(field.id, { limitValue: event.target.value })}
-                                                                className="w-20 rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                                                className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                                             />
                                                             <span>caracteres</span>
                                                         </div>
                                                     )}
 
-                                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
+                                                    <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
                                                         <input
                                                             type="checkbox"
                                                             checked={field.isOptional}
@@ -843,7 +885,7 @@ export default function PaymentLinksCreate() {
                                             <button
                                                 type="button"
                                                 onClick={addCustomField}
-                                                className="text-[14px] font-medium text-[#635bff] hover:text-[#4f46e5]"
+                                                className="text-[13px] font-medium text-[#635bff] hover:text-[#4f46e5]"
                                             >
                                                 Añadir otro campo
                                             </button>
@@ -852,7 +894,7 @@ export default function PaymentLinksCreate() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                         <input
                                             type="checkbox"
                                             checked={limitPayments}
@@ -860,15 +902,15 @@ export default function PaymentLinksCreate() {
                                             className="h-4 w-4 rounded border-gray-300"
                                         />
                                         <span>Limitar la cantidad de pagos</span>
-                                        <Info className="w-3.5 h-3.5 text-gray-300" />
+                                        <Info className="w-3 h-3 text-gray-300" />
                                     </label>
                                     {limitPayments && (
-                                        <div className="flex items-center gap-3 pl-7 text-[14px] text-[#4f5b76]">
+                                        <div className="flex items-center gap-3 pl-7 text-[13px] text-[#4f5b76]">
                                             <input
                                                 type="text"
                                                 value={paymentsTotal}
                                                 onChange={(event) => setPaymentsTotal(event.target.value)}
-                                                className="w-20 rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                                className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                             />
                                             <span>Pagos totales</span>
                                         </div>
@@ -876,7 +918,7 @@ export default function PaymentLinksCreate() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                         <input
                                             type="checkbox"
                                             checked={customMessage}
@@ -901,7 +943,7 @@ export default function PaymentLinksCreate() {
                                                 value={customMessageText}
                                                 onChange={(event) => setCustomMessageText(event.target.value)}
                                                 placeholder="Añade tu mensaje personalizado"
-                                                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-3 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                             />
                                         </div>
                                     )}
@@ -913,12 +955,12 @@ export default function PaymentLinksCreate() {
                     ) : (
                         <div className="space-y-8">
                             <div className="space-y-4">
-                                <h3 className="text-[18px] font-semibold text-[#32325d]">Página de confirmación</h3>
-                                <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                <h3 className="text-[16px] font-semibold text-[#32325d]">Página de confirmación</h3>
+                                <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                     <input type="radio" checked readOnly className="h-4 w-4 text-[#635bff]" />
                                     <span>Mostrar la página de confirmación</span>
                                 </label>
-                                <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                     <input
                                         type="checkbox"
                                         checked={replaceConfirmationMessage}
@@ -933,14 +975,14 @@ export default function PaymentLinksCreate() {
                                         value={confirmationMessage}
                                         onChange={(event) => setConfirmationMessage(event.target.value)}
                                         placeholder="Añade tu mensaje personalizado"
-                                        className="w-full resize-none rounded-xl border border-gray-200 px-3 py-3 text-[14px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                                        className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
                                     />
                                 )}
                             </div>
 
                             <div className="space-y-4 border-t border-gray-200 pt-6">
-                                <h3 className="text-[18px] font-semibold text-[#32325d]">Factura posterior al pago</h3>
-                                <label className="flex items-center gap-2 text-[14px] text-[#4f5b76]">
+                                <h3 className="text-[16px] font-semibold text-[#32325d]">Factura posterior al pago</h3>
+                                <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
                                     <input
                                         type="checkbox"
                                         checked={createPdfInvoice}
@@ -949,11 +991,11 @@ export default function PaymentLinksCreate() {
                                     />
                                     <span>Crear una factura en PDF</span>
                                 </label>
-                                <p className="text-[12px] text-[#8792a2]">
+                                <p className="text-[11px] text-[#8792a2]">
                                     Stripe cobra 0,4 % del total de la transacción, hasta un máximo de 2,00 US$ por factura.
                                     <span className="text-[#635bff]"> Más información.</span>
                                 </p>
-                                <p className="text-[12px] text-[#8792a2] leading-relaxed">
+                                <p className="text-[11px] text-[#8792a2] leading-relaxed">
                                     Las facturas posteriores al pago brindan más información que un recibo normal. Si quieres enviar un recibo normal,
                                     puedes optar por enviar un correo electrónico a los clientes sobre pagos efectuados con éxito en la configuración de
                                     correo electrónico.
@@ -965,7 +1007,7 @@ export default function PaymentLinksCreate() {
 
                 <div className="bg-[#f6f7f9] p-8 flex flex-col">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-[16px] font-semibold text-[#32325d]">Vista previa</h2>
+                        <h2 className="text-[18px] font-semibold text-[#32325d]">Vista previa</h2>
                         <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
                             <button
                                 type="button"
@@ -976,7 +1018,7 @@ export default function PaymentLinksCreate() {
                                     }`}
                                 title="Vista móvil"
                             >
-                                <Smartphone className="w-4 h-4" />
+                                <Smartphone className="w-3.5 h-3.5" />
                             </button>
                             <button
                                 type="button"
@@ -987,12 +1029,12 @@ export default function PaymentLinksCreate() {
                                     }`}
                                 title="Vista de monitor"
                             >
-                                <Monitor className="w-4 h-4" />
+                                <Monitor className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     </div>
                     {customMessage && !isAfterPayment && (
-                        <div className="mt-4 flex items-center gap-6 text-[14px]">
+                        <div className="mt-4 flex items-center gap-6 text-[13px]">
                             <button
                                 type="button"
                                 onClick={() => setPreviewTab("checkout")}
@@ -1016,7 +1058,7 @@ export default function PaymentLinksCreate() {
                         </div>
                     )}
                     {isAfterPayment && (
-                        <div className="mt-4 flex items-center gap-6 text-[14px]">
+                        <div className="mt-4 flex items-center gap-6 text-[13px]">
                             <button
                                 type="button"
                                 onClick={() => setAfterPaymentPreviewTab("confirmation")}
@@ -1046,7 +1088,7 @@ export default function PaymentLinksCreate() {
                         <div
                             className={`w-full transition-all duration-300 bg-white shadow-[0_18px_40px_-20px_rgba(15,23,42,0.3)] border border-gray-100 ${previewMode === "mobile"
                                 ? "max-w-[340px] rounded-[32px] border-[8px] border-gray-800 h-[600px] overflow-y-auto custom-scrollbar"
-                                : "max-w-[780px] max-h-[640px] overflow-y-auto rounded-2xl p-4"
+                                : "max-w-[860px] max-h-[680px] overflow-y-auto rounded-2xl p-6"
                                 }`}
                         >
                             {previewMode === "mobile" && (
@@ -1055,17 +1097,22 @@ export default function PaymentLinksCreate() {
                                 </div>
                             )}
                             <div className={`${previewMode === "mobile" ? "p-6" : ""}`}>
-                                <div className="flex items-center justify-between text-[10px] text-[#aab2c4] mb-6">
+                                <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center text-[10px] text-[#94a3b8]">
                                     <div className="flex items-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-[#e2e8f0]" />
                                         <span className="w-2 h-2 rounded-full bg-[#e2e8f0]" />
                                         <span className="w-2 h-2 rounded-full bg-[#e2e8f0]" />
                                     </div>
-                                    <div className="flex items-center gap-2 text-[#8792a2]">
-                                        <span className="font-semibold">{previewDomain}</span>
-                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-[10px]">Utiliza tu dominio</span>
+                                    <div className="flex items-center gap-2 text-[#64748b]">
+                                        <div className="flex items-center gap-1 font-semibold">
+                                            <Lock className="w-3 h-3 text-[#94a3b8]" />
+                                            <span>{previewDomain}</span>
+                                        </div>
+                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] text-[#64748b]">
+                                            Utiliza tu dominio
+                                        </span>
                                     </div>
-                                    <div className="w-6" />
+                                    <div />
                                 </div>
 
                                 {isAfterPayment ? (
@@ -1097,7 +1144,7 @@ export default function PaymentLinksCreate() {
                                                 </div>
 
                                                 <div className="mt-4 text-[14px] font-semibold">
-                                                    {previewAmount} {currencyPreview} con vencimiento 20 de febrero de 2026
+                                                    {previewAmountDisplay} con vencimiento 20 de febrero de 2026
                                                 </div>
 
                                                 <div className="mt-4 border-t border-gray-200 pt-3">
@@ -1110,49 +1157,56 @@ export default function PaymentLinksCreate() {
                                                     <div className="mt-2 grid grid-cols-[1fr_80px_100px_100px] text-[12px] text-[#4f5b76]">
                                                         <span>{title.trim() || "Título"}</span>
                                                         <span className="text-right">1</span>
-                                                        <span className="text-right">{previewAmount} {currencyPreview}</span>
-                                                        <span className="text-right">{previewAmount} {currencyPreview}</span>
+                                                        <span className="text-right">{previewAmountDisplay}</span>
+                                                        <span className="text-right">{previewAmountDisplay}</span>
                                                     </div>
                                                     <div className="mt-4 flex justify-end">
                                                         <div className="w-full max-w-[220px] text-[12px] text-[#4f5b76] space-y-1">
                                                             <div className="flex items-center justify-between">
                                                                 <span>Subtotal</span>
-                                                                <span>{previewAmount} {currencyPreview}</span>
+                                                                <span>{previewAmountDisplay}</span>
                                                             </div>
                                                             <div className="flex items-center justify-between">
                                                                 <span>Total</span>
-                                                                <span>{previewAmount} {currencyPreview}</span>
+                                                                <span>{previewAmountDisplay}</span>
                                                             </div>
                                                             <div className="flex items-center justify-between font-semibold text-[#1a1f36]">
                                                                 <span>Total pendiente</span>
-                                                                <span>{previewAmount} {currencyPreview}</span>
+                                                                <span>{previewAmountDisplay}</span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="mt-6 border-t border-gray-200 pt-3 text-[11px] text-[#9ca3af]">
-                                                    EJEMPLO-0001 · {previewAmount} {currencyPreview} con vencimiento 20 de febrero de 2026
+                                                    EJEMPLO-0001 · {previewAmountDisplay} con vencimiento 20 de febrero de 2026
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className={`grid gap-10 ${previewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
-                                        <div className="space-y-4">
-                                            <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-full">
-                                                TEST MODE
-                                            </span>
+                                        <div className={`grid gap-8 ${previewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 md:gap-0 md:divide-x md:divide-gray-100"}`}>
+                                        <div className="space-y-5 md:pl-6 md:pr-10">
+                                            <div className="flex items-center gap-2">
+                                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-[#94a3b8]">
+                                                    <Link className="w-3.5 h-3.5" />
+                                                </span>
+                                                <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-full">
+                                                    TEST MODE
+                                                </span>
+                                            </div>
                                             <div>
                                                 <div className="text-[11px] text-[#697386]">Título</div>
-                                                <div className="mt-1 text-[13px] font-semibold text-[#32325d]">
-                                                    {title.trim() || "Nombre del motivo o del servicio"}
-                                                </div>
-                                                <div className="mt-2 h-10 border border-gray-200 rounded-md px-3 flex items-center text-[#697386] text-[13px]">
-                                                    {previewAmount} {currencyPreview}
+                                                {title.trim() && (
+                                                    <div className="mt-1 text-[12px] font-semibold text-[#32325d]">
+                                                        {title.trim()}
+                                                    </div>
+                                                )}
+                                                <div className="mt-2 h-11 border border-gray-200 rounded-lg px-3 flex items-center text-[#6b7280] text-[18px] shadow-sm">
+                                                    {previewAmountDisplaySuffix}
                                                 </div>
                                             </div>
                                             {description.trim() && (
-                                                <div className="text-[12px] text-[#697386] leading-relaxed">
+                                                <div className="text-[11px] text-[#697386] leading-relaxed">
                                                     {description}
                                                 </div>
                                             )}
@@ -1165,24 +1219,24 @@ export default function PaymentLinksCreate() {
                                             )}
                                         </div>
 
-                                        <div className="flex flex-col items-center text-center gap-3">
-                                            <div className="w-12 h-12 rounded-full border border-[#bbf7d0] bg-[#ecfdf3] flex items-center justify-center">
-                                                <Check className="w-6 h-6 text-[#22c55e]" />
+                                        <div className="flex flex-col items-center text-center gap-3 md:pl-10 md:pr-6">
+                                            <div className="w-11 h-11 rounded-full border border-[#bbf7d0] bg-[#ecfdf3] flex items-center justify-center">
+                                                <Check className="w-5 h-5 text-[#22c55e]" />
                                             </div>
-                                            <div className="text-[16px] font-semibold text-[#1a1f36]">
+                                            <div className="text-[15px] font-semibold text-[#1a1f36]">
                                                 {confirmationPreviewTitle}
                                             </div>
-                                            <div className="text-[12px] text-[#8792a2]">
-                                                Aparecerá un pago a AntillaPay en tu extracto.
+                                            <div className="text-[11px] text-[#8792a2]">
+                                                Aparecerá un pago a Stripe en tu extracto.
                                             </div>
-                                            <div className="mt-3 w-full max-w-[280px] border border-gray-200 rounded-lg px-3 py-2 text-[12px] text-[#6b7280] flex items-center justify-between bg-[#f9fafb]">
+                                            <div className="mt-3 w-full max-w-[280px] border border-gray-200 rounded-lg px-3 py-2 text-[11px] text-[#6b7280] flex items-center justify-between bg-[#f9fafb]">
                                                 <span className="font-semibold tracking-[0.2em] text-[#6b7280]">ANTILLAPAY</span>
-                                                <span>{previewAmount} {currencyPreview}</span>
+                                                <span>{previewAmountDisplay}</span>
                                             </div>
-                                            <div className="pt-4 flex items-center gap-3 text-[11px] text-[#aab2c4]">
+                                            <div className="pt-4 flex items-center gap-3 text-[10px] text-[#aab2c4]">
                                                 <div className="flex items-center gap-1.5">
                                                     <span>Powered by</span>
-                                                    <span className="font-semibold text-[#4f5b76]">AntillaPay</span>
+                                                    <span className="font-semibold text-[#4f5b76]">stripe</span>
                                                 </div>
                                                 <div className="h-3 w-px bg-gray-200" />
                                                 <div className="flex items-center gap-3">
@@ -1197,28 +1251,35 @@ export default function PaymentLinksCreate() {
                                         <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center">
                                             <AlertCircle className="w-5 h-5 text-[#6b7280]" />
                                         </div>
-                                        <div className="text-[16px] font-semibold text-[#32325d] whitespace-pre-line">
+                                        <div className="text-[15px] font-semibold text-[#32325d] whitespace-pre-line">
                                             {customMessageText.trim() || "The link is no longer active."}
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className={`grid gap-10 ${previewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
+                                    <div className={`grid gap-8 ${previewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 md:gap-0 md:divide-x md:divide-gray-100"}`}>
                                     {/* Product Section */}
-                                    <div className="space-y-4">
-                                        <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-full">
-                                            TEST MODE
-                                        </span>
+                                    <div className="space-y-5 md:pl-6 md:pr-10">
+                                        <div className="flex items-center gap-2">
+                                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-[#94a3b8]">
+                                                <Link className="w-3.5 h-3.5" />
+                                            </span>
+                                            <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-full">
+                                                TEST MODE
+                                            </span>
+                                        </div>
                                         <div>
                                             <div className="text-[11px] text-[#697386]">Título</div>
-                                            <div className="mt-1 text-[13px] font-semibold text-[#32325d]">
-                                                {title.trim() || "Nombre del motivo o del servicio"}
-                                            </div>
-                                            <div className="mt-2 h-10 border border-gray-200 rounded-md px-3 flex items-center text-[#697386] text-[13px]">
-                                                {previewAmount} {currencyPreview}
+                                            {title.trim() && (
+                                                <div className="mt-1 text-[12px] font-semibold text-[#32325d]">
+                                                    {title.trim()}
+                                                </div>
+                                            )}
+                                            <div className="mt-2 h-11 border border-gray-200 rounded-lg px-3 flex items-center text-[#6b7280] text-[18px] shadow-sm">
+                                                {previewAmountDisplaySuffix}
                                             </div>
                                         </div>
                                         {description.trim() && (
-                                            <div className="text-[12px] text-[#697386] leading-relaxed">
+                                            <div className="text-[11px] text-[#697386] leading-relaxed">
                                                 {description}
                                             </div>
                                         )}
@@ -1233,25 +1294,25 @@ export default function PaymentLinksCreate() {
 
                                     {/* Payment Section */}
                                     {isUsd ? (
-                                        <div className="space-y-6">
+                                        <div className="space-y-6 md:pl-10 md:pr-6 md:max-w-[360px] md:mx-auto">
                                             {/* Apple Pay Button */}
-                                            <button className="w-full h-[44px] bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
+                                            <button className="w-full h-10 bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
                                                 <div className="flex items-center gap-1.5 text-white">
-                                                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                                                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                                                         <path d="M17.057 10.78c.045.068.513.784 1.151 1.72.336.495.632.936.883 1.32.743 1.135.918 2.053.493 2.767-.37.621-1.127 1.09-2.022 1.115-.96.027-1.353-.198-2.315-.198-.958 0-1.442.203-2.35.215-.98.013-1.841-.532-2.227-1.177-.852-1.424-.654-3.56.402-4.994.498-.675 1.25-.992 1.956-.992.68 0 1.235.211 1.722.457.195.1.378.204.55.3.14-.085.318-.184.5-.285.503-.274 1.1-.6 1.751-.564.264.014.851.05 1.506.471l-.106.182c.114.124.167.247.106.386zm-1.855-3.045c-.015.044-.2.522-.72 1-.41.376-.874.629-1.218.736-.084.026-.145-.022-.12-.089.167-.704.582-1.393 1.192-1.921.468-.406 1.055-.654 1.255-.548.064.034.026-.1.026-.1.011 0-.301 1.015-.415.922z" />
                                                     </svg>
-                                                    <span className="text-[17px] font-semibold tracking-tight">Pay</span>
+                                                    <span className="text-[15px] font-semibold tracking-tight">Pay</span>
                                                 </div>
                                             </button>
 
                                             {/* OR Separator */}
                                             <div className="relative flex items-center justify-center">
                                                 <div className="absolute inset-0 flex items-center">
-                                                    <div className="w-full border-t border-gray-100"></div>
+                                                    <div className="w-full border-t border-gray-200"></div>
                                                 </div>
                                                 <div className="relative bg-white px-3">
-                                                    <div className="w-5 h-5 rounded-full border border-gray-100 flex items-center justify-center bg-white shadow-sm">
-                                                        <span className="text-[10px] text-gray-300 font-medium italic">o</span>
+                                                    <div className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                                                        <span className="text-[9px] text-gray-400 font-medium">o</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1262,14 +1323,12 @@ export default function PaymentLinksCreate() {
 
                                                 {/* Payment Methods */}
                                                 <div className="space-y-3">
-                                                    <div className="text-[15px] font-semibold text-[#1a1f36]">Método de pago</div>
+                                                    <div className="text-[16px] font-semibold text-[#1a1f36]">Método de pago</div>
                                                     <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                                                         {/* Card */}
-                                                        <div className="flex items-center justify-between px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
+                                                        <div className="flex items-center justify-between px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="w-4 h-4 rounded-full border-2 border-[#635bff] flex items-center justify-center p-0.5">
-                                                                    <div className="w-full h-full rounded-full bg-[#635bff]" />
-                                                                </div>
+                                                                <div className="w-4 h-4 rounded-full border border-gray-400" />
                                                                 <div className="flex items-center gap-2">
                                                                     <svg className="w-5 h-5 text-[#4f5b76]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -1278,49 +1337,56 @@ export default function PaymentLinksCreate() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-1.5">
-                                                                <div className="w-6 h-4 bg-gray-100 rounded-sm" />
-                                                                <div className="w-6 h-4 bg-gray-100 rounded-sm" />
-                                                                <div className="w-6 h-4 bg-gray-100 rounded-sm" />
-                                                                <div className="w-6 h-4 bg-gray-100 rounded-sm" />
+                                                                <span className="inline-flex items-center justify-center w-8 h-5 rounded-[4px] border border-gray-200 bg-white text-[8px] font-bold tracking-wide text-[#1a3d8f]">
+                                                                    VISA
+                                                                </span>
+                                                                <span className="relative inline-flex items-center justify-center w-8 h-5 rounded-[4px] border border-gray-200 bg-white">
+                                                                    <span className="w-3 h-3 rounded-full bg-[#eb001b]" />
+                                                                    <span className="-ml-1.5 w-3 h-3 rounded-full bg-[#f79e1b]" />
+                                                                </span>
+                                                                <span className="inline-flex items-center justify-center w-8 h-5 rounded-[4px] bg-[#1976d2] text-[8px] font-bold text-white leading-none">
+                                                                    AM
+                                                                    <span className="-ml-0.5">EX</span>
+                                                                </span>
+                                                                <span className="inline-flex items-center justify-center w-8 h-5 rounded-[4px] border border-gray-200 bg-white text-[8px] font-bold text-[#1d4ed8]">
+                                                                    D
+                                                                </span>
                                                             </div>
                                                         </div>
                                                         {/* Klarna */}
-                                                        <div className="flex items-center gap-3 px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
+                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
                                                             <div className="w-4 h-4 rounded-full border border-gray-300" />
                                                             <div className="flex items-center gap-2">
                                                                 <div className="w-5 h-5 rounded bg-[#ffb3c7] flex items-center justify-center text-[10px] font-bold text-white uppercase italic">K</div>
                                                                 <span className="text-[14px] font-medium text-[#1a1f36]">Klarna</span>
                                                             </div>
                                                         </div>
-                                                        {/* Affirm */}
-                                                        <div className="flex items-center gap-3 px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
-                                                            <div className="w-4 h-4 rounded-full border border-gray-300" />
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-5 h-5 rounded bg-[#4a1fb8] flex items-center justify-center text-[10px] font-bold text-white italic">a</div>
-                                                                <span className="text-[14px] font-medium text-[#1a1f36]">Affirm</span>
-                                                            </div>
-                                                        </div>
                                                         {/* Cash App */}
-                                                        <div className="flex items-center gap-3 px-4 py-3.5 bg-white hover:bg-gray-50 transition-colors cursor-pointer">
+                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
                                                             <div className="w-4 h-4 rounded-full border border-gray-300" />
                                                             <div className="flex items-center gap-2">
                                                                 <div className="w-5 h-5 rounded bg-[#00d632] flex items-center justify-center text-[10px] font-bold text-white">$</div>
                                                                 <span className="text-[14px] font-medium text-[#1a1f36]">Cash App Pay</span>
                                                             </div>
                                                         </div>
-                                                    </div>
-
-                                                    {/* Other methods */}
-                                                    <div className="pt-2">
-                                                        <div className="flex items-center justify-between text-[13px] text-[#4f5b76] hover:text-[#1a1f36] cursor-pointer transition-colors px-1">
-                                                            <div className="flex items-center gap-3">
-                                                                <span>Otros métodos de pago</span>
-                                                                <div className="flex items-center gap-1.5 grayscale opacity-60">
-                                                                    <div className="w-6 h-4 bg-gray-100 rounded-sm" />
-                                                                    <div className="w-4 h-4 rounded-full bg-gray-200" />
+                                                        {/* Amazon Pay */}
+                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
+                                                            <div className="w-4 h-4 rounded-full border border-gray-300" />
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-6 h-5 rounded bg-white border border-gray-200 flex items-center justify-center text-[9px] font-semibold text-[#111827] relative">
+                                                                    pay
+                                                                    <span className="absolute -bottom-0.5 left-1 right-1 h-[2px] rounded-full bg-[#f59e0b]" />
                                                                 </div>
+                                                                <span className="text-[14px] font-medium text-[#1a1f36]">Amazon Pay</span>
                                                             </div>
-                                                            <ChevronDown className="w-4 h-4" />
+                                                        </div>
+                                                        {/* Crypto */}
+                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer">
+                                                            <div className="w-4 h-4 rounded-full border border-gray-300" />
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-[10px] font-bold text-white">₿</div>
+                                                                <span className="text-[14px] font-medium text-[#1a1f36]">Criptomonedas</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1328,17 +1394,17 @@ export default function PaymentLinksCreate() {
                                                 {/* Pay Button */}
                                                 <button
                                                     type="button"
-                                                    className="w-full bg-[#0070f3] hover:bg-[#0060d3] text-white text-[16px] font-semibold rounded-lg py-3 shadow-md transition-all active:scale-[0.99] mt-2"
+                                                    className="w-full bg-[#0070f3] hover:bg-[#0060d3] text-white text-[14px] font-semibold rounded-lg py-2.5 shadow-md transition-all active:scale-[0.99] mt-2"
                                                 >
                                                     {callToAction}
                                                 </button>
 
-                                                {/* Footer with AntillaPay */}
+                                                {/* Footer */}
                                                 <div className="pt-6 flex flex-col items-center gap-4">
-                                                    <div className="flex items-center gap-3 text-[12px] text-[#aab2c4]">
+                                                    <div className="flex items-center gap-3 text-[10px] text-[#94a3b8]">
                                                         <div className="flex items-center gap-1.5">
                                                             <span>Powered by</span>
-                                                            <span className="font-bold text-[#4f5b76] tracking-tight">AntillaPay</span>
+                                                            <span className="font-semibold text-[#4f5b76]">stripe</span>
                                                         </div>
                                                         <div className="h-3 w-px bg-gray-200" />
                                                         <div className="flex items-center gap-3">
@@ -1351,38 +1417,38 @@ export default function PaymentLinksCreate() {
                                         </div>
                                     ) : (
                                         <div className="space-y-6">
-                                            <button className="w-full h-[44px] bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
+                                            <button className="w-full h-10 bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
                                                 <div className="flex items-center gap-1.5 text-white">
-                                                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                                                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                                                         <path d="M17.057 10.78c.045.068.513.784 1.151 1.72.336.495.632.936.883 1.32.743 1.135.918 2.053.493 2.767-.37.621-1.127 1.09-2.022 1.115-.96.027-1.353-.198-2.315-.198-.958 0-1.442.203-2.35.215-.98.013-1.841-.532-2.227-1.177-.852-1.424-.654-3.56.402-4.994.498-.675 1.25-.992 1.956-.992.68 0 1.235.211 1.722.457.195.1.378.204.55.3.14-.085.318-.184.5-.285.503-.274 1.1-.6 1.751-.564.264.014.851.05 1.506.471l-.106.182c.114.124.167.247.106.386zm-1.855-3.045c-.015.044-.2.522-.72 1-.41.376-.874.629-1.218.736-.084.026-.145-.022-.12-.089.167-.704.582-1.393 1.192-1.921.468-.406 1.055-.654 1.255-.548.064.034.026-.1.026-.1.011 0-.301 1.015-.415.922z" />
                                                     </svg>
-                                                    <span className="text-[17px] font-semibold tracking-tight">Pay</span>
+                                                    <span className="text-[15px] font-semibold tracking-tight">Pay</span>
                                                 </div>
                                             </button>
 
                                             <div className="relative flex items-center justify-center">
                                                 <div className="absolute inset-0 flex items-center">
-                                                    <div className="w-full border-t border-gray-100"></div>
+                                                    <div className="w-full border-t border-gray-200"></div>
                                                 </div>
                                                 <div className="relative bg-white px-3">
-                                                    <div className="w-5 h-5 rounded-full border border-gray-100 flex items-center justify-center bg-white shadow-sm">
-                                                        <span className="text-[10px] text-gray-300 font-medium italic">o</span>
+                                                    <div className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                                                        <span className="text-[9px] text-gray-400 font-medium">o</span>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-4">
-                                                <div className="text-[18px] font-semibold text-[#1a1f36]">Pago con tarjeta</div>
+                                                <div className="text-[16px] font-semibold text-[#1a1f36]">Pago con tarjeta</div>
 
                                                 {renderContactInfoSection(false)}
 
                                                 <div className="space-y-3">
-                                                    <div className="text-[15px] font-semibold text-[#1a1f36]">Método de pago</div>
+                                                    <div className="text-[14px] font-semibold text-[#1a1f36]">Método de pago</div>
                                                     <div className="space-y-2">
-                                                        <div className="text-[13px] text-[#4f5b76]">Información de la tarjeta</div>
+                                                        <div className="text-[12px] text-[#4f5b76]">Información de la tarjeta</div>
                                                         <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                                                            <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-100">
-                                                                <span className="text-[14px] text-[#aab2c4]">1234 1234 1234 1234</span>
+                                                            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+                                                                <span className="text-[13px] text-[#aab2c4]">1234 1234 1234 1234</span>
                                                                 <div className="flex items-center gap-1.5">
                                                                     <div className="w-8 h-5 bg-gray-100 rounded-sm" />
                                                                     <div className="w-8 h-5 bg-gray-100 rounded-sm" />
@@ -1390,10 +1456,10 @@ export default function PaymentLinksCreate() {
                                                                 </div>
                                                             </div>
                                                             <div className="grid grid-cols-2">
-                                                                <div className="px-3 py-2.5 text-[14px] text-[#aab2c4] border-r border-gray-100">
+                                                                <div className="px-3 py-2 text-[13px] text-[#aab2c4] border-r border-gray-100">
                                                                     MM / AA
                                                                 </div>
-                                                                <div className="px-3 py-2.5 text-[14px] text-[#aab2c4]">
+                                                                <div className="px-3 py-2 text-[13px] text-[#aab2c4]">
                                                                     CVC
                                                                 </div>
                                                             </div>
@@ -1402,20 +1468,20 @@ export default function PaymentLinksCreate() {
                                                 </div>
 
                                                 <div className="space-y-1.5">
-                                                    <div className="text-[13px] text-[#4f5b76]">Nombre del titular de la tarjeta</div>
+                                                    <div className="text-[12px] text-[#4f5b76]">Nombre del titular de la tarjeta</div>
                                                     <input
                                                         type="text"
                                                         placeholder="Nombre completo"
-                                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20] focus:border-[#635bff] transition-all"
+                                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20] focus:border-[#635bff] transition-all"
                                                     />
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <div className="text-[13px] text-[#4f5b76]">País o región</div>
+                                                    <div className="text-[12px] text-[#4f5b76]">País o región</div>
                                                     <div className="space-y-2">
                                                         <div className="relative">
                                                             <select
-                                                                className="w-full appearance-none border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-[#1a1f36] focus:outline-none focus:ring-2 focus:ring-[#635bff20] focus:border-[#635bff] transition-all"
+                                                                className="w-full appearance-none border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-[#1a1f36] focus:outline-none focus:ring-2 focus:ring-[#635bff20] focus:border-[#635bff] transition-all"
                                                                 defaultValue="Estados Unidos"
                                                             >
                                                                 <option>Estados Unidos</option>
@@ -1424,27 +1490,27 @@ export default function PaymentLinksCreate() {
                                                                 <option>Colombia</option>
                                                                 <option>Argentina</option>
                                                             </select>
-                                                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-gray-400" />
+                                                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
                                                         </div>
                                                         <input
                                                             type="text"
                                                             placeholder="Código postal"
-                                                            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20] focus:border-[#635bff] transition-all"
+                                                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20] focus:border-[#635bff] transition-all"
                                                         />
                                                     </div>
                                                 </div>
 
                                                 <button
                                                     type="button"
-                                                    className="w-full bg-[#0070f3] hover:bg-[#0060d3] text-white text-[16px] font-semibold rounded-lg py-3 shadow-md transition-all active:scale-[0.99] mt-2"
+                                                    className="w-full bg-[#0070f3] hover:bg-[#0060d3] text-white text-[14px] font-semibold rounded-lg py-2.5 shadow-md transition-all active:scale-[0.99] mt-2"
                                                 >
                                                     {callToAction}
                                                 </button>
 
-                                                <div className="pt-4 flex items-center justify-center gap-3 text-[11px] text-[#aab2c4]">
+                                                <div className="pt-4 flex items-center justify-center gap-3 text-[10px] text-[#94a3b8]">
                                                     <div className="flex items-center gap-1.5">
                                                         <span>Powered by</span>
-                                                        <span className="font-semibold text-[#4f5b76]">antillapay</span>
+                                                        <span className="font-semibold text-[#4f5b76]">stripe</span>
                                                     </div>
                                                     <div className="h-3 w-px bg-gray-200" />
                                                     <div className="flex items-center gap-3">
@@ -1472,6 +1538,34 @@ export default function PaymentLinksCreate() {
                     </p>
                 </div>
             </div>
+            {showExitConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+                    <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                        <div className="px-6 py-5 border-b border-gray-200">
+                            <h3 className="text-[18px] font-semibold text-[#1a1f36]">Confirmar salida</h3>
+                        </div>
+                        <div className="px-6 py-5 text-[14px] text-[#4f5b76] leading-relaxed">
+                            ¿Seguro que quieres salir? No se guardarán los cambios del enlace para el pago.
+                        </div>
+                        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                            <button
+                                type="button"
+                                onClick={() => setShowExitConfirm(false)}
+                                className="rounded-lg border border-gray-300 px-4 py-2 text-[14px] font-semibold text-[#374151] hover:bg-gray-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => navigate("/dashboard/payment-links")}
+                                className="rounded-lg bg-[#e11d48] px-4 py-2 text-[14px] font-semibold text-white hover:bg-[#be123c]"
+                            >
+                                Salir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
