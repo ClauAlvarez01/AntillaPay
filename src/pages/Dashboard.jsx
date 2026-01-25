@@ -132,6 +132,8 @@ const formatPaymentLinkDate = (dateValue) => {
     return `${day} ${month} ${hour}:${minute}`;
 };
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleStatus, testMode }) => {
     const hasLinks = paymentLinks.length > 0;
     const [openMenuId, setOpenMenuId] = useState(null);
@@ -161,6 +163,13 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
     const [endDate, setEndDate] = useState(null);
     const [showStartCalendar, setShowStartCalendar] = useState(false);
     const [showEndCalendar, setShowEndCalendar] = useState(false);
+    const [exportStep, setExportStep] = useState(null);
+    const [exportTimezone, setExportTimezone] = useState("GMT-5");
+    const [exportRange, setExportRange] = useState("Hoy");
+    const [exportCustomStart, setExportCustomStart] = useState("");
+    const [exportCustomEnd, setExportCustomEnd] = useState("");
+    const [exportCsvContent, setExportCsvContent] = useState("");
+    const [exportFilename, setExportFilename] = useState("");
 
     const statusFilterRef = useRef(null);
     const statusDropdownRef = useRef(null);
@@ -173,6 +182,262 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
     const endCalendarRef = useRef(null);
     const menuRef = useRef(null);
     const renameInputRef = useRef(null);
+    const exportTimerRef = useRef(null);
+
+    const exportColumns = ["ID", "Created (UTC)", "Active", "Currency", "Url", "Name"];
+    const exportRangeOptions = [
+        "Hoy",
+        "Mes en curso",
+        "Últimos 7 días",
+        "Últimas 4 semanas",
+        "Último mes",
+        "Todos",
+        "Personalizado"
+    ];
+    const paymentLinksBaseUrl = "https://buy.antillapay.com/";
+
+    const getTimezoneOffsetMinutes = (timezone) => (timezone === "UTC" ? 0 : -300);
+    const getNowPartsForTimezone = (timezone) => {
+        const offsetMinutes = getTimezoneOffsetMinutes(timezone);
+        const now = new Date();
+        const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+        const tzMs = utcMs + offsetMinutes * 60000;
+        const tzDate = new Date(tzMs);
+        return {
+            year: tzDate.getUTCFullYear(),
+            month: tzDate.getUTCMonth(),
+            day: tzDate.getUTCDate(),
+            hour: tzDate.getUTCHours(),
+            minute: tzDate.getUTCMinutes(),
+            second: tzDate.getUTCSeconds(),
+            ms: tzDate.getUTCMilliseconds()
+        };
+    };
+    const toUtcMsFromTimezone = (year, month, day, hour = 0, minute = 0, second = 0, ms = 0, timezone) => {
+        const offsetMinutes = getTimezoneOffsetMinutes(timezone);
+        return Date.UTC(year, month, day, hour, minute, second, ms) - offsetMinutes * 60000;
+    };
+    const formatShortDate = (year, month, day) => {
+        return new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short" })
+            .format(new Date(Date.UTC(year, month, day)))
+            .replace(".", "");
+    };
+    const formatRangeLabel = (startParts, endParts) => {
+        if (!startParts) return "--";
+        if (!endParts) return formatShortDate(startParts.year, startParts.month, startParts.day);
+        const sameDay = startParts.year === endParts.year &&
+            startParts.month === endParts.month &&
+            startParts.day === endParts.day;
+        if (sameDay) {
+            return formatShortDate(startParts.year, startParts.month, startParts.day);
+        }
+        return `${formatShortDate(startParts.year, startParts.month, startParts.day)}–${formatShortDate(endParts.year, endParts.month, endParts.day)}`;
+    };
+    const parseDateInput = (value) => {
+        const [year, month, day] = value.split("-").map(Number);
+        return { year, month: month - 1, day };
+    };
+    const getTodayInputValue = (timezone) => {
+        const parts = getNowPartsForTimezone(timezone);
+        const month = String(parts.month + 1).padStart(2, "0");
+        const day = String(parts.day).padStart(2, "0");
+        return `${parts.year}-${month}-${day}`;
+    };
+    const getExportRangeBounds = () => {
+        const nowParts = getNowPartsForTimezone(exportTimezone);
+        const todayStartUtcMs = toUtcMsFromTimezone(nowParts.year, nowParts.month, nowParts.day, 0, 0, 0, 0, exportTimezone);
+        const nowUtcMs = Date.now();
+
+        switch (exportRange) {
+            case "Hoy":
+                return { startUtcMs: todayStartUtcMs, endUtcMs: nowUtcMs };
+            case "Mes en curso":
+                return {
+                    startUtcMs: toUtcMsFromTimezone(nowParts.year, nowParts.month, 1, 0, 0, 0, 0, exportTimezone),
+                    endUtcMs: nowUtcMs
+                };
+            case "Últimos 7 días":
+                return { startUtcMs: todayStartUtcMs - 6 * DAY_MS, endUtcMs: nowUtcMs };
+            case "Últimas 4 semanas":
+                return { startUtcMs: todayStartUtcMs - 27 * DAY_MS, endUtcMs: nowUtcMs };
+            case "Último mes": {
+                let year = nowParts.year;
+                let month = nowParts.month - 1;
+                if (month < 0) {
+                    month = 11;
+                    year -= 1;
+                }
+                const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+                return {
+                    startUtcMs: toUtcMsFromTimezone(year, month, 1, 0, 0, 0, 0, exportTimezone),
+                    endUtcMs: toUtcMsFromTimezone(year, month, lastDay, 23, 59, 59, 999, exportTimezone)
+                };
+            }
+            case "Todos":
+                return { startUtcMs: null, endUtcMs: null };
+            case "Personalizado": {
+                if (!exportCustomStart || !exportCustomEnd) {
+                    return { startUtcMs: null, endUtcMs: null, isInvalid: true };
+                }
+                const startParts = parseDateInput(exportCustomStart);
+                const endParts = parseDateInput(exportCustomEnd);
+                let startUtcMs = toUtcMsFromTimezone(startParts.year, startParts.month, startParts.day, 0, 0, 0, 0, exportTimezone);
+                let endUtcMs = toUtcMsFromTimezone(endParts.year, endParts.month, endParts.day, 23, 59, 59, 999, exportTimezone);
+                const nowUtcMsLimit = Date.now();
+                if (endUtcMs > nowUtcMsLimit) {
+                    endUtcMs = nowUtcMsLimit;
+                }
+                if (startUtcMs > endUtcMs) {
+                    return { startUtcMs: null, endUtcMs: null, isInvalid: true };
+                }
+                return { startUtcMs, endUtcMs };
+            }
+            default:
+                return { startUtcMs: null, endUtcMs: null };
+        }
+    };
+    const getExportRangeLabel = (option) => {
+        const nowParts = getNowPartsForTimezone(exportTimezone);
+        const shiftDays = (parts, days) => {
+            const baseMs = Date.UTC(parts.year, parts.month, parts.day) + days * DAY_MS;
+            const date = new Date(baseMs);
+            return {
+                year: date.getUTCFullYear(),
+                month: date.getUTCMonth(),
+                day: date.getUTCDate()
+            };
+        };
+
+        switch (option) {
+            case "Hoy":
+                return formatRangeLabel(nowParts);
+            case "Mes en curso": {
+                const startParts = { ...nowParts, day: 1 };
+                return formatRangeLabel(startParts, nowParts);
+            }
+            case "Últimos 7 días": {
+                const startParts = shiftDays(nowParts, -6);
+                return formatRangeLabel(startParts, nowParts);
+            }
+            case "Últimas 4 semanas": {
+                const startParts = shiftDays(nowParts, -27);
+                return formatRangeLabel(startParts, nowParts);
+            }
+            case "Último mes": {
+                let year = nowParts.year;
+                let month = nowParts.month - 1;
+                if (month < 0) {
+                    month = 11;
+                    year -= 1;
+                }
+                const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+                const startParts = { year, month, day: 1 };
+                const endParts = { year, month, day: lastDay };
+                return formatRangeLabel(startParts, endParts);
+            }
+            case "Todos":
+                return "Siempre";
+            case "Personalizado": {
+                if (!exportCustomStart || !exportCustomEnd) {
+                    return "Selecciona fechas";
+                }
+                const startParts = parseDateInput(exportCustomStart);
+                const endParts = parseDateInput(exportCustomEnd);
+                return formatRangeLabel(startParts, endParts);
+            }
+            default:
+                return "--";
+        }
+    };
+    const buildExportCsv = (rows) => {
+        const header = exportColumns.join(",");
+        const body = rows.map((link) => {
+            const createdAt = new Date(link.createdAt || link.created_at || Date.now());
+            const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
+            const isActive = link.status === "Activo";
+            const values = [
+                link.id || "",
+                createdAtValue,
+                isActive ? "true" : "false",
+                link.currencyCode || "",
+                link.url || `${paymentLinksBaseUrl}${link.id || ""}`,
+                link.name || ""
+            ];
+            return values.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",");
+        }).join("\n");
+        return `${header}\n${body}`;
+    };
+    const downloadCsv = (csvContent, filename) => {
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    };
+    const resetExportFlow = () => {
+        if (exportTimerRef.current) {
+            clearTimeout(exportTimerRef.current);
+            exportTimerRef.current = null;
+        }
+        setExportStep(null);
+        setExportCsvContent("");
+        setExportFilename("");
+    };
+    const openExportModal = () => {
+        if (exportTimerRef.current) {
+            clearTimeout(exportTimerRef.current);
+            exportTimerRef.current = null;
+        }
+        setExportTimezone("GMT-5");
+        setExportRange("Hoy");
+        setExportCustomStart("");
+        setExportCustomEnd("");
+        setExportStep("form");
+    };
+    const handleExport = () => {
+        const { startUtcMs, endUtcMs, isInvalid } = getExportRangeBounds();
+        if (isInvalid) return;
+        setExportStep("loading");
+        if (exportTimerRef.current) {
+            clearTimeout(exportTimerRef.current);
+        }
+        exportTimerRef.current = setTimeout(() => {
+            const rows = paymentLinks.filter((link) => {
+                if (startUtcMs == null || endUtcMs == null) {
+                    return true;
+                }
+                const linkDate = new Date(link.createdAt || link.created_at || "");
+                if (Number.isNaN(linkDate.getTime())) return false;
+                const linkMs = linkDate.getTime();
+                return linkMs >= startUtcMs && linkMs <= endUtcMs;
+            });
+
+            if (rows.length === 0) {
+                setExportStep("empty");
+                return;
+            }
+
+            const nowParts = getNowPartsForTimezone(exportTimezone);
+            const fileDate = `${nowParts.year}-${String(nowParts.month + 1).padStart(2, "0")}-${String(nowParts.day).padStart(2, "0")}`;
+            const filename = `payment-links-${fileDate}.csv`;
+            const csvContent = buildExportCsv(rows);
+            setExportCsvContent(csvContent);
+            setExportFilename(filename);
+            setExportStep("success");
+            downloadCsv(csvContent, filename);
+        }, 1200);
+    };
+    const handleExportDownload = () => {
+        if (!exportCsvContent) return;
+        downloadCsv(exportCsvContent, exportFilename || "payment-links.csv");
+    };
+    const cancelExportLoading = () => {
+        resetExportFlow();
+    };
 
     const filteredLinks = paymentLinks
         .filter(link => appliedFilter === "Todo" || link.status === appliedFilter)
@@ -219,6 +484,9 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
             return true;
         });
     const hasActiveFilters = appliedFilter !== "Todo" || appliedTaxFilter !== "Todo" || Boolean(appliedDateFilter);
+    const todayInputValue = getTodayInputValue(exportTimezone);
+    const isCustomExportRange = exportRange === "Personalizado";
+    const isExportReady = !isCustomExportRange || (exportCustomStart && exportCustomEnd);
 
     const clearRangeFilter = () => {
         setStartDate(null);
@@ -322,6 +590,25 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [openMenuId, showStatusFilter, isStatusDropdownOpen, showTaxFilter, isTaxDropdownOpen, showDateFilter, isDateDropdownOpen]);
+
+    useEffect(() => {
+        return () => {
+            if (exportTimerRef.current) {
+                clearTimeout(exportTimerRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!exportCustomStart && !exportCustomEnd) return;
+        const todayValue = getTodayInputValue(exportTimezone);
+        if (exportCustomEnd && exportCustomEnd > todayValue) {
+            setExportCustomEnd(todayValue);
+        }
+        if (exportCustomStart && exportCustomStart > todayValue) {
+            setExportCustomStart(todayValue);
+        }
+    }, [exportTimezone, exportCustomStart, exportCustomEnd]);
 
     useEffect(() => {
         if (!renameTarget) return;
@@ -1182,7 +1469,10 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                 <BarChart className="w-4 h-4 text-[#8792a2]" />
                                 Analizar
                             </button>
-                            <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]">
+                            <button
+                                onClick={openExportModal}
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
+                            >
                                 <Share2 className="w-4 h-4 text-[#8792a2]" />
                                 Exportar
                             </button>
@@ -1422,6 +1712,242 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                     </div>
                 )
             }
+            {exportStep && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 px-4">
+                    {exportStep === "form" && (
+                        <div className="w-full max-w-[600px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar enlaces de pago</h3>
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="px-6 py-5 space-y-6">
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-2">Zona horaria</div>
+                                    <div className="flex flex-wrap items-center gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-timezone"
+                                                value="GMT-5"
+                                                checked={exportTimezone === "GMT-5"}
+                                                onChange={(event) => setExportTimezone(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">GMT-5 (UTC-05:00)</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-timezone"
+                                                value="UTC"
+                                                checked={exportTimezone === "UTC"}
+                                                onChange={(event) => setExportTimezone(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">UTC</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-3">Intervalo de fechas</div>
+                                    <div className="space-y-2">
+                                        {exportRangeOptions.map((option) => (
+                                            <label
+                                                key={option}
+                                                className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="radio"
+                                                        name="export-range"
+                                                        value={option}
+                                                        checked={exportRange === option}
+                                                        onChange={(event) => setExportRange(event.target.value)}
+                                                        className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                                    />
+                                                    <span className="text-[13px] text-[#32325d]">{option}</span>
+                                                </div>
+                                                <span className="text-[12px] text-[#6b7280]">{getExportRangeLabel(option)}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+
+                                    {isCustomExportRange && (
+                                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] text-[#6b7280]">Inicio</label>
+                                                <input
+                                                    type="date"
+                                                    value={exportCustomStart}
+                                                    max={exportCustomEnd || todayInputValue}
+                                                    onChange={(event) => {
+                                                        const nextValue = event.target.value;
+                                                        setExportCustomStart(nextValue);
+                                                        if (exportCustomEnd && nextValue && nextValue > exportCustomEnd) {
+                                                            setExportCustomEnd(nextValue);
+                                                        }
+                                                    }}
+                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] text-[#6b7280]">Final</label>
+                                                <input
+                                                    type="date"
+                                                    value={exportCustomEnd}
+                                                    min={exportCustomStart}
+                                                    max={todayInputValue}
+                                                    onChange={(event) => {
+                                                        const nextValue = event.target.value;
+                                                        setExportCustomEnd(nextValue);
+                                                        if (exportCustomStart && nextValue && nextValue < exportCustomStart) {
+                                                            setExportCustomStart(nextValue);
+                                                        }
+                                                    }}
+                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-2">Columnas</div>
+                                    <p className="text-[12px] text-[#6b7280]">{exportColumns.join(", ")}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] font-semibold text-[#374151] hover:bg-gray-50"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!isExportReady}
+                                    onClick={handleExport}
+                                    className={`rounded-lg px-4 py-2 text-[13px] font-semibold text-white ${isExportReady
+                                        ? "bg-[#635bff] hover:bg-[#5851e0]"
+                                        : "bg-[#c4c7ff] cursor-not-allowed"
+                                        }`}
+                                >
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {exportStep === "loading" && (
+                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
+                                <button
+                                    type="button"
+                                    onClick={cancelExportLoading}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="px-6 py-10 flex flex-col items-center gap-4">
+                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-full animate-spin" />
+                                <p className="text-[14px] text-[#6b7280]">Preparando exportación...</p>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={cancelExportLoading}
+                                    className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] font-semibold text-[#374151] hover:bg-gray-50"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {exportStep === "empty" && (
+                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="px-6 py-6">
+                                <p className="text-[14px] text-[#4f5b76] leading-relaxed">
+                                    No hemos podido encontrar ningún dato para export según lo que has seleccionado.
+                                    Ajusta los filtros y vuelve a intentarlo.
+                                </p>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-lg bg-[#635bff] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#5851e0]"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {exportStep === "success" && (
+                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="px-6 py-6">
+                                <p className="text-[14px] text-[#4f5b76] leading-relaxed">
+                                    Tu export ha finalizado. Si no ves el archivo,{" "}
+                                    <button
+                                        type="button"
+                                        onClick={handleExportDownload}
+                                        className="text-[#635bff] font-medium hover:underline"
+                                    >
+                                        puedes intentar descargarlo nuevamente
+                                    </button>
+                                    .
+                                </p>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-lg bg-[#635bff] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#5851e0]"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div >
     );
 };
