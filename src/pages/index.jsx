@@ -165,6 +165,7 @@ function PagesContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard/payment-links/create" element={<PaymentLinksCreate />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
+            <Route path="/customers" element={<Dashboard />} />
             <Route path="/*" element={
                 <Layout currentPageName={currentPage}>
                     <Routes>

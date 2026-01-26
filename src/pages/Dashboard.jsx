@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Home,
@@ -6,16 +6,10 @@ import {
     ArrowLeftRight,
     Users,
     Package,
-    Search,
-    HelpCircle,
-    Bell,
-    Settings,
     Plus,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
-    ExternalLink,
-    Info,
     ChevronUp,
     LayoutDashboard,
     FileText,
@@ -23,13 +17,24 @@ import {
     X,
     Maximize2,
     Check,
-    EyeOff,
     Clipboard
 } from 'lucide-react';
 import { AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import DashboardCardsSection from "@/components/dashboard/DashboardCardsSection";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import EnvironmentBanner from "@/components/dashboard/EnvironmentBanner";
+import {
+    Area,
+    AreaChart,
+    ReferenceDot,
+    ResponsiveContainer,
+    XAxis,
+    YAxis
+} from "recharts";
+import CustomersPage from "./Customers";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -102,6 +107,211 @@ const CopyableKey = ({ label, value }) => {
                     <Clipboard className="w-3.5 h-3.5" />
                 </button>
             </div>
+        </div>
+    );
+};
+
+const MOCK_CUSTOMERS = [
+    "Cafe Central",
+    "Habana Market",
+    "Caribe Tech",
+    "Isla Retail",
+    "Soluciones Delta",
+    "Mar Azul",
+    "Pacifico Imports",
+    "Vega Logistics"
+];
+
+const ERROR_REASONS = [
+    { id: "insufficient_funds", label: "Fondos insuficientes", color: "#f97316" },
+    { id: "expired_card", label: "Tarjeta vencida", color: "#ef4444" },
+    { id: "suspected_fraud", label: "Posible fraude", color: "#0ea5e9" },
+    { id: "processor_error", label: "Error del procesador", color: "#10b981" }
+];
+
+const FEE_RATE = 0.029;
+const FEE_FLAT = 0.3;
+
+const roundToCents = (value) => Math.round(value * 100) / 100;
+
+const startOfDay = (date) => {
+    const day = new Date(date);
+    day.setHours(0, 0, 0, 0);
+    return day;
+};
+
+const formatHourLabel = (date) => date.toLocaleTimeString("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+});
+
+const formatCount = (value) => value.toLocaleString("es-ES");
+
+const formatUsd = (value) => `${value.toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+})} US$`;
+
+const generateMockPayments = (seedDate, seedOffset = 0) => {
+    const start = startOfDay(seedDate);
+    const daySeed = start.getDate() + start.getMonth() * 31 + seedOffset * 7;
+    const payments = [];
+
+    for (let hour = 0; hour < 24; hour += 1) {
+        const hourStart = new Date(start);
+        hourStart.setHours(start.getHours() + hour);
+        const paymentsCount = 1 + ((hour + daySeed) % 3);
+
+        for (let index = 0; index < paymentsCount; index += 1) {
+            const seed = daySeed + hour * 5 + index * 7;
+            const base = 28 + ((hour * 9 + seedOffset * 11) % 70);
+            const wave = Math.sin((hour + seedOffset) / 2) * 12;
+            const bump = (seed % 10) * 1.4;
+            let amount = roundToCents(base + wave + bump);
+
+            if ((seed + hour) % 8 === 0) {
+                amount = roundToCents(amount + 55);
+            }
+
+            amount = Math.max(12, amount);
+            const failureSeed = (seed + hour * 3 + index * 11 + seedOffset * 5) % 13;
+            let status = "succeeded";
+            let errorReason = null;
+
+            if (failureSeed === 0) {
+                status = "failed";
+                errorReason = ERROR_REASONS[seed % ERROR_REASONS.length].id;
+            }
+
+            const succeeded = status === "succeeded";
+            const fee = succeeded ? roundToCents(amount * FEE_RATE + FEE_FLAT) : 0;
+            const createdAt = new Date(hourStart.getTime() + (index + 1) * 12 * 60 * 1000);
+
+            payments.push({
+                id: `pm_${start.getFullYear()}${String(start.getMonth() + 1).padStart(2, "0")}${String(start.getDate()).padStart(2, "0")}_${hour}_${index}`,
+                amount,
+                fee,
+                netAmount: succeeded ? roundToCents(amount - fee) : 0,
+                status,
+                errorReason,
+                createdAt,
+                customer: MOCK_CUSTOMERS[(seed + hour + index) % MOCK_CUSTOMERS.length]
+            });
+        }
+    }
+
+    return payments;
+};
+
+const buildHourlySeries = (payments, seedDate) => {
+    const start = startOfDay(seedDate);
+    const buckets = Array.from({ length: 24 }, (_, hour) => {
+        const hourDate = new Date(start);
+        hourDate.setHours(start.getHours() + hour);
+        return {
+            time: formatHourLabel(hourDate),
+            gross: 0,
+            net: 0,
+            payments: 0,
+            newCustomers: 0
+        };
+    });
+
+    const sortedPayments = [...payments].sort((a, b) => a.createdAt - b.createdAt);
+    const seenCustomers = new Set();
+
+    sortedPayments.forEach((payment) => {
+        const hourIndex = payment.createdAt.getHours();
+        const bucket = buckets[hourIndex];
+
+        if (!bucket) {
+            return;
+        }
+
+        bucket.gross += payment.amount;
+        bucket.net += payment.netAmount;
+        bucket.payments += 1;
+
+        if (!seenCustomers.has(payment.customer)) {
+            seenCustomers.add(payment.customer);
+            bucket.newCustomers += 1;
+        }
+    });
+
+    let runningBalance = 0;
+    const series = buckets.map((bucket) => {
+        runningBalance = roundToCents(runningBalance + bucket.net);
+        return {
+            ...bucket,
+            gross: roundToCents(bucket.gross),
+            net: roundToCents(bucket.net),
+            balance: runningBalance
+        };
+    });
+
+    const totals = {
+        gross: roundToCents(series.reduce((sum, item) => sum + item.gross, 0)),
+        net: roundToCents(series.reduce((sum, item) => sum + item.net, 0)),
+        payments: series.reduce((sum, item) => sum + item.payments, 0),
+        customers: series.reduce((sum, item) => sum + item.newCustomers, 0),
+        balance: series.length ? series[series.length - 1].balance : 0
+    };
+
+    return { series, totals };
+};
+
+const BalanceChart = ({ data, timeLabel }) => {
+    const lastPoint = data[data.length - 1];
+    const label = timeLabel || lastPoint?.time;
+
+    return (
+        <div className="relative h-[220px] w-full mb-8">
+            <div className="absolute inset-0 flex flex-col justify-between z-0">
+                {[...Array(2)].map((_, i) => (
+                    <div key={i} className="w-full h-[1px] bg-gray-100" />
+                ))}
+            </div>
+            <div className="absolute inset-0 flex justify-between z-0">
+                {[...Array(25)].map((_, i) => (
+                    <div key={i} className="w-[1px] h-full bg-gray-100" />
+                ))}
+            </div>
+            <div className="absolute inset-0 z-10">
+                <ResponsiveContainer>
+                    <AreaChart data={data} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id="balance-gradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#635bff" stopOpacity={0.35} />
+                                <stop offset="95%" stopColor="#635bff" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <XAxis dataKey="time" hide />
+                        <YAxis hide domain={[0, (max) => max + 40]} />
+                        <Area
+                            type="monotone"
+                            dataKey="balance"
+                            stroke="#635bff"
+                            strokeWidth={2}
+                            fill="url(#balance-gradient)"
+                            dot={false}
+                        />
+                        {lastPoint && (
+                            <ReferenceDot
+                                x={lastPoint.time}
+                                y={lastPoint.balance}
+                                r={3}
+                                fill="#635bff"
+                                stroke="#fff"
+                                strokeWidth={1.5}
+                            />
+                        )}
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+            {label && (
+                <div className="absolute bottom-[-20px] right-0 text-[11px] text-[#aab2c4]">{label}</div>
+            )}
         </div>
     );
 };
@@ -182,10 +392,11 @@ const PaymentLinksView = ({ onCreateClick }) => {
 export default function Dashboard() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [testMode, setTestMode] = useState(true);
+    const [environment] = useState("test");
     const [showOnboarding, setShowOnboarding] = useState(true);
-    const [showTestAlert, setShowTestAlert] = useState(false);
     const [isGuideCollapsed, setIsGuideCollapsed] = useState(false);
+    const [isHeaderElevated, setIsHeaderElevated] = useState(false);
+    const contentRef = useRef(null);
     const [completedTasks, setCompletedTasks] = useState(() => {
         if (typeof window === "undefined") return [];
         const saved = window.localStorage.getItem("antillapay_onboarding_tasks");
@@ -194,7 +405,16 @@ export default function Dashboard() {
     const [showVerifyEmailModal, setShowVerifyEmailModal] = useState(false);
     const [showCustomizeModal, setShowCustomizeModal] = useState(false);
     const [customizeStep, setCustomizeStep] = useState("form");
-    const [activeView, setActiveView] = useState("home");
+    const [activeView, setActiveView] = useState(() => {
+        const path = location.pathname.toLowerCase();
+        if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
+            return "customers";
+        }
+        if (path.startsWith("/dashboard/payment-links")) {
+            return "payments_links";
+        }
+        return "home";
+    });
 
     const totalTasks = 3;
     const progressPercent = Math.round((completedTasks.length / totalTasks) * 100);
@@ -205,6 +425,10 @@ export default function Dashboard() {
 
     useEffect(() => {
         const path = location.pathname.toLowerCase();
+        if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
+            setActiveView("customers");
+            return;
+        }
         if (path.startsWith("/dashboard/payment-links")) {
             setActiveView("payments_links");
             return;
@@ -213,6 +437,19 @@ export default function Dashboard() {
             setActiveView("home");
         }
     }, [location.pathname]);
+
+    useEffect(() => {
+        const container = contentRef.current;
+        if (!container) {
+            return;
+        }
+        const handleScroll = () => {
+            setIsHeaderElevated(container.scrollTop > 0);
+        };
+        handleScroll();
+        container.addEventListener("scroll", handleScroll);
+        return () => container.removeEventListener("scroll", handleScroll);
+    }, []);
 
     const completeTask = (taskId) => {
         if (!completedTasks.includes(taskId)) {
@@ -287,9 +524,48 @@ export default function Dashboard() {
         { id: "Volumen neto", label: "Volumen neto", isMonetary: true },
     ];
 
-    const currentMetric = metrics.find(m => m.id === selectedMetric);
-    const metricValue = currentMetric.isMonetary ? "0,00 US$" : "0";
-    const currentTimeLabel = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const {
+        balanceSeries,
+        totals,
+        yesterdayTotals,
+        chartTimeLabel
+    } = useMemo(() => {
+        const todayPayments = generateMockPayments(selectedDate, 0);
+        const yesterday = new Date(selectedDate);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayPayments = generateMockPayments(yesterday, 5);
+        const todaySucceeded = todayPayments.filter((payment) => payment.status === "succeeded");
+        const yesterdaySucceeded = yesterdayPayments.filter((payment) => payment.status === "succeeded");
+        const todaySeries = buildHourlySeries(todaySucceeded, selectedDate);
+        const yesterdaySeries = buildHourlySeries(yesterdaySucceeded, yesterday);
+        const lastPoint = todaySeries.series[todaySeries.series.length - 1];
+
+        return {
+            balanceSeries: todaySeries.series,
+            totals: todaySeries.totals,
+            yesterdayTotals: yesterdaySeries.totals,
+            chartTimeLabel: lastPoint?.time
+        };
+    }, [selectedDate]);
+
+    const currentMetric = metrics.find(m => m.id === selectedMetric) || metrics[0];
+    const metricTotals = {
+        "Volumen bruto": totals.gross,
+        "Clientes nuevos": totals.customers,
+        "Pagos satisfactorios": totals.payments,
+        "Volumen neto": totals.net
+    };
+    const yesterdayMetricTotals = {
+        "Volumen bruto": yesterdayTotals.gross,
+        "Clientes nuevos": yesterdayTotals.customers,
+        "Pagos satisfactorios": yesterdayTotals.payments,
+        "Volumen neto": yesterdayTotals.net
+    };
+    const selectedMetricValue = metricTotals[selectedMetric] ?? 0;
+    const selectedYesterdayValue = yesterdayMetricTotals[selectedMetric] ?? 0;
+    const metricValue = currentMetric.isMonetary ? formatUsd(selectedMetricValue) : formatCount(selectedMetricValue);
+    const yesterdayMetricValue = currentMetric.isMonetary ? formatUsd(selectedYesterdayValue) : formatCount(selectedYesterdayValue);
+    const currentTimeLabel = chartTimeLabel || new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
     const hasFormInfo = companyName.trim().length > 0;
     const hasOptions = selectedSetupOptions.length > 0;
     const canProceedToTest = hasFormInfo && hasOptions;
@@ -327,8 +603,21 @@ export default function Dashboard() {
         }
     };
 
+    const handleQuickAction = (label) => {
+        window.alert(`Accion no implementada: ${label}`);
+    };
+
+    const handleAddProduct = () => handleQuickAction("Agregar producto");
+    const handleCreatePaymentLink = () => navigate("/dashboard/payment-links/create");
+    const handleHelp = () => handleQuickAction("Ayuda");
+    const handleSettings = () => handleQuickAction("Configuracion");
+    const handleGuide = () => setShowOnboarding(true);
+    const handleRequestLive = () => {
+        setCustomizeStep("form");
+        setShowCustomizeModal(true);
+    };
     return (
-        <div className="flex h-screen w-full bg-[#f6f9fc] overflow-hidden font-sans relative">
+        <div className="flex h-screen w-full bg-[#f6f9fc] overflow-hidden font-sans relative flex-col">
 
             <AnimatePresence>
                 {showVerifyEmailModal && (
@@ -787,200 +1076,101 @@ export default function Dashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
-            {/* Sidebar */}
-            <aside className="w-[280px] bg-white border-r border-gray-200 flex flex-col z-30">
-                <div className="p-4 mb-4">
-                    <div className="flex items-center gap-3 px-2 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors group">
-                        <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">N</div>
-                        <div className="flex-1 text-sm font-bold text-[#32325d]">Nueva empresa</div>
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </div>
-                </div>
-
-                <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-                    <SidebarItem
-                        icon={Home}
-                        label="Inicio"
-                        active={activeView === "home"}
-                        onClick={() => navigate("/dashboard")}
-                    />
-                    <SidebarItem icon={DollarSign} label="Saldos" />
-                    <SidebarItem icon={ArrowLeftRight} label="Transacciones" />
-                    <SidebarItem icon={Users} label="Clientes" />
-                    <SidebarItem icon={Package} label="Catálogo de productos" />
-
-                    <div className="pt-6 pb-2 px-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">
-                        Productos
-                    </div>
-
-                    <SidebarItem
-                        icon={CreditCard}
-                        label="Pagos"
-                        hasSubmenu
-                        subItems={["Payments Links"]}
-                        active={false}
-                        onSubItemClick={(item) => {
-                            if (item === "Payments Links") {
-                                navigate("/dashboard/payment-links");
-                            }
-                        }}
-                        activeSubItem={activeView === "payments_links" ? "Payments Links" : null}
-                    />
-                    <SidebarItem
-                        icon={FileText}
-                        label="Facturación"
-                        hasSubmenu
-                        subItems={["Suscripciones"]}
-                    />
-                </nav>
-
-                <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-                    <SidebarItem icon={LayoutDashboard} label="Desarrolladores" />
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col relative overflow-hidden">
-                {/* Test Mode Banner */}
-                <div className="bg-[#e96b34] text-white px-6 py-2.5 flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                        <span className="font-bold">Modo de prueba</span>
-                        <span className="opacity-90">Estás usando datos de prueba. Para aceptar pagos, completa el perfil de tu empresa.</span>
-                    </div>
-                    <button className="flex items-center gap-1 font-bold hover:underline">
-                        Completar perfil <ExternalLink className="w-4 h-4" />
-                    </button>
-                </div>
-
-                {/* Header */}
-                <header className="h-[64px] bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0">
-                    <div className="flex-1 max-w-xl">
-                        <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[#635bff] transition-colors" />
-                            <input
-                                type="text"
-                                placeholder="Buscar"
-                                className="w-full h-9 pl-10 pr-4 bg-[#f6f9fc] rounded-md border-none text-sm focus:ring-2 focus:ring-[#635bff15] outline-none transition-all"
-                            />
+            <EnvironmentBanner
+                environment={environment}
+                onRequestLive={handleRequestLive}
+            />
+            <div className="flex flex-1 min-h-0">
+                {/* Sidebar */}
+                <aside className="w-[280px] bg-white border-r border-gray-200 flex flex-col z-30">
+                    <div className="p-4 mb-4">
+                        <div className="flex items-center gap-3 px-2 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors group">
+                            <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">N</div>
+                            <div className="flex-1 text-sm font-bold text-[#32325d]">Nueva empresa</div>
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-5">
-                        <div className="flex items-center gap-2 pr-4 border-r border-gray-100 relative">
-                            <span className="text-sm font-medium text-[#4f5b76]">Modo de prueba</span>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowTestAlert(!showTestAlert);
-                                }}
-                                className={cn(
-                                    "w-10 h-5 rounded-full relative transition-colors duration-200",
-                                    testMode ? "bg-[#e2a884]" : "bg-gray-200"
-                                )}
-                            >
-                                <div className={cn(
-                                    "absolute top-1 w-3 h-3 bg-white rounded-full transition-all duration-200",
-                                    testMode ? "left-6" : "left-1"
-                                )} />
-                            </button>
+                    <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+                        <SidebarItem
+                            icon={Home}
+                            label="Inicio"
+                            active={activeView === "home"}
+                            onClick={() => navigate("/dashboard")}
+                        />
+                        <SidebarItem icon={DollarSign} label="Saldos" />
+                        <SidebarItem icon={ArrowLeftRight} label="Transacciones" />
+                        <SidebarItem
+                            icon={Users}
+                            label="Clientes"
+                            active={activeView === "customers"}
+                            onClick={() => navigate("/customers")}
+                        />
+                        <SidebarItem icon={Package} label="Catálogo de productos" />
 
-                            {/* Test Alert Popover */}
-                            <AnimatePresence>
-                                {showTestAlert && (
-                                    <>
-                                        <div
-                                            className="fixed inset-0 z-40"
-                                            onClick={() => setShowTestAlert(false)}
-                                        />
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                            className="absolute top-full right-0 mt-2 w-[340px] bg-white rounded-xl shadow-2xl p-6 z-50 border border-gray-100"
-                                        >
-                                            <div className="absolute -top-2 right-4 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-100" />
-                                            <p className="text-[#32325d] leading-relaxed text-[15px]">
-                                                Esta cuenta está en <span className="text-[#635bff] font-semibold cursor-pointer hover:underline">modo de prueba</span>. <span className="text-[#635bff] font-semibold cursor-pointer hover:underline">completa tu perfil de empresa</span> para aceptar pagos activos.
+                        <div className="pt-6 pb-2 px-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">
+                            Productos
+                        </div>
+
+                        <SidebarItem
+                            icon={CreditCard}
+                            label="Pagos"
+                            hasSubmenu
+                            subItems={["Payments Links"]}
+                            active={false}
+                            onSubItemClick={(item) => {
+                                if (item === "Payments Links") {
+                                    navigate("/dashboard/payment-links");
+                                }
+                            }}
+                            activeSubItem={activeView === "payments_links" ? "Payments Links" : null}
+                        />
+                        <SidebarItem
+                            icon={FileText}
+                            label="Facturación"
+                            hasSubmenu
+                            subItems={["Suscripciones"]}
+                        />
+                    </nav>
+
+                    <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+                        <SidebarItem icon={LayoutDashboard} label="Desarrolladores" />
+                    </div>
+                </aside>
+
+                {/* Main Content */}
+                <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
+                    <DashboardHeader
+                        isElevated={isHeaderElevated}
+                        onLogoClick={() => navigate("/dashboard")}
+                        onAddProduct={handleAddProduct}
+                        onCreatePaymentLink={handleCreatePaymentLink}
+                        onHelp={handleHelp}
+                        onSettings={handleSettings}
+                        onGuide={handleGuide}
+                    />
+
+                    {/* Content Area */}
+                    <div ref={contentRef} className="flex-1 overflow-y-auto p-10">
+                        <div className="max-w-6xl mx-auto">
+                            <AnimatePresence mode="wait">
+                                {activeView === "home" ? (
+                                    <motion.div
+                                        key="home-view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <div className="mb-4">
+                                            <p className="text-[13px] text-[#697386]">
+                                                Los entornos de prueba son el nuevo método recomendado para hacer pruebas <span className="text-[#635bff] cursor-pointer hover:underline">Pruébalos</span>
                                             </p>
-                                        </motion.div>
-                                    </>
-                                )}
-                            </AnimatePresence>
-                        </div>
-
-                        <button className="text-[#4f5b76] hover:text-[#32325d] transition-colors"><Maximize2 className="w-4.4 h-4.4" /></button>
-                        <button className="text-[#4f5b76] hover:text-[#32325d] transition-colors"><HelpCircle className="w-5 h-5" /></button>
-                        <button className="text-[#4f5b76] hover:text-[#32325d] transition-colors relative">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#635bff] rounded-full border-2 border-white"></span>
-                        </button>
-                        <button className="text-[#4f5b76] hover:text-[#32325d] transition-colors"><Settings className="w-5 h-5" /></button>
-                        <button className="w-7 h-7 bg-[#635bff] text-white rounded-[6px] flex items-center justify-center hover:bg-[#5851e0] transition-colors shadow-sm">
-                            <Plus className="w-5 h-5" />
-                        </button>
-
-                        <AnimatePresence>
-                            {!showOnboarding && (
-                                <motion.button
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    onClick={() => setShowOnboarding(true)}
-                                    className="ml-2 flex items-center gap-3 px-4 py-2 bg-[#f8fafc] hover:bg-[#f1f5f9] border border-gray-100 rounded-full transition-all group"
-                                >
-                                    <span className="text-[13px] font-semibold text-[#4f5b76] group-hover:text-[#32325d]">Guía de configuración</span>
-                                    <div className="relative w-5 h-5">
-                                        <svg className="w-5 h-5 -rotate-90">
-                                            <circle
-                                                cx="10"
-                                                cy="10"
-                                                r="8"
-                                                stroke="currentColor"
-                                                strokeWidth="2.5"
-                                                fill="transparent"
-                                                className="text-gray-100"
-                                            />
-                                            <circle
-                                                cx="10"
-                                                cy="10"
-                                                r="8"
-                                                stroke="currentColor"
-                                                strokeWidth="2.5"
-                                                fill="transparent"
-                                                strokeDasharray={2 * Math.PI * 8}
-                                                strokeDashoffset={2 * Math.PI * 8 * (1 - progressPercent / 100)}
-                                                className="text-[#635bff] transition-all duration-700"
-                                                strokeLinecap="round"
-                                            />
-                                        </svg>
-                                    </div>
-                                </motion.button>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </header>
-
-                {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-10">
-                    <div className="max-w-6xl mx-auto">
-                        <AnimatePresence mode="wait">
-                            {activeView === "home" ? (
-                                <motion.div
-                                    key="home-view"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <div className="mb-4">
-                                        <p className="text-[13px] text-[#697386]">
-                                            Los entornos de prueba son el nuevo método recomendado para hacer pruebas <span className="text-[#635bff] cursor-pointer hover:underline">Pruébalos</span>
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <h1 className="text-[22px] font-bold text-[#32325d]">Hoy</h1>
-                                    </div>
-                                    <div className="w-full h-[1px] bg-gray-100 mb-8" />
+                                        </div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h1 className="text-[22px] font-bold text-[#32325d]">Hoy</h1>
+                                        </div>
+                                        <div className="w-full h-[1px] bg-gray-100 mb-8" />
 
                                     {/* Main Layout - Matching Image Exactly */}
                                     <div className="flex flex-col lg:flex-row gap-8">
@@ -1043,7 +1233,7 @@ export default function Dashboard() {
                                                             <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showCalendar && "rotate-180")} />
                                                         </button>
                                                     </div>
-                                                    <div className="text-[24px] font-semibold text-[#32325d]">{metricValue}</div>
+                                                    <div className="text-[24px] font-semibold text-[#32325d]">{yesterdayMetricValue}</div>
 
                                                     {/* Calendar Dropdown - Exactly as in screenshot */}
                                                     <AnimatePresence>
@@ -1119,24 +1309,7 @@ export default function Dashboard() {
                                             </div>
 
                                             {/* Chart Area */}
-                                            <div className="relative h-[220px] w-full mb-8">
-                                                {/* Grid lines */}
-                                                <div className="absolute inset-0 flex flex-col justify-between">
-                                                    {[...Array(2)].map((_, i) => (
-                                                        <div key={i} className="w-full h-[1px] bg-gray-100" />
-                                                    ))}
-                                                </div>
-                                                {/* Vertical grid lines */}
-                                                <div className="absolute inset-0 flex justify-between">
-                                                    {[...Array(25)].map((_, i) => (
-                                                        <div key={i} className="w-[1px] h-full bg-gray-100" />
-                                                    ))}
-                                                </div>
-                                                {/* Blue dot indicator */}
-                                                <div className="absolute left-2 top-[180px] w-1.5 h-1.5 bg-[#635bff] rounded-full" />
-                                                {/* Time label */}
-                                                <div className="absolute bottom-[-20px] right-0 text-[11px] text-[#aab2c4]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
-                                            </div>
+                                            <BalanceChart data={balanceSeries} timeLabel={chartTimeLabel} />
 
                                             {/* Bottom Stats Row */}
                                             <div className="border-t border-gray-100 pt-6">
@@ -1144,7 +1317,7 @@ export default function Dashboard() {
                                                     <div className="flex items-start justify-between">
                                                         <div>
                                                             <div className="text-[13px] text-[#32325d] mb-1">Saldo en USD</div>
-                                                            <div className="text-[20px] font-normal text-[#32325d]">0,00 US$</div>
+                                                            <div className="text-[20px] font-normal text-[#32325d]">{formatUsd(totals.balance)}</div>
                                                         </div>
                                                         <button className="text-[12px] text-[#635bff] font-semibold hover:underline">Ver datos</button>
                                                     </div>
@@ -1192,7 +1365,7 @@ export default function Dashboard() {
 
                                     {/* Tu resumen section */}
                                     <div className="mt-20">
-                                        <h2 className="text-[22px] font-bold text-[#32325d] mb-6">Tu resumen</h2>
+                                        <h2 className="text-[22px] font-bold text-[#32325d] mb-6">Resumen de Movimientos</h2>
 
                                         <div className="flex items-center justify-between mb-8">
                                             <div className="flex items-center gap-2">
@@ -1374,80 +1547,18 @@ export default function Dashboard() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-6">
-                                            {/* First Row: 3 cards */}
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                {[
-                                                    { title: "Payments", icon: <EyeOff className="w-3.5 h-3.5 text-gray-400" />, showMoreInfo: false },
-                                                    { title: "Volumen bruto", icon: <Info className="w-3.5 h-3.5 text-gray-400" />, showMoreInfo: true },
-                                                    { title: "Volumen neto", icon: <Info className="w-3.5 h-3.5 text-gray-400" />, showMoreInfo: true }
-                                                ].map((card, idx) => (
-                                                    <div key={idx} className="bg-white border border-gray-100 rounded-xl p-6 transition-all hover:shadow-md h-[340px] flex flex-col justify-between">
-                                                        <div>
-                                                            <div className="flex items-center gap-1.5 mb-6">
-                                                                <span className="text-[14px] font-bold text-[#32325d]">{card.title}</span>
-                                                                <button className="hover:text-gray-600 transition-colors">{card.icon}</button>
-                                                            </div>
-                                                            <div className="w-full h-[180px] border border-dashed border-gray-200 rounded-xl mb-4 relative flex items-center justify-center group/card">
-                                                                <div className="absolute inset-0 bg-[#f7f9fc]/40 rounded-xl opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                                                                <div className="px-4 py-2 bg-[#f7f9fc] border border-gray-100 rounded-lg text-[13px] text-[#697386] relative z-10 font-medium">No hay datos</div>
-                                                            </div>
-                                                        </div>
-                                                        {card.showMoreInfo && (
-                                                            <div className="flex justify-end">
-                                                                <button className="text-[12px] text-[#aab2c4] hover:text-[#635bff] font-semibold transition-colors">Más información</button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            {/* Second Row: 2 cards */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-                                                {/* Errores en los pagos */}
-                                                <div className="bg-white border border-gray-100 rounded-xl p-6 transition-all hover:shadow-md h-[400px] flex flex-col">
-                                                    <div className="flex items-center gap-1.5 mb-6">
-                                                        <span className="text-[14px] font-bold text-[#32325d]">Errores en los pagos</span>
-                                                        <button className="hover:text-gray-600 transition-colors"><Info className="w-3.5 h-3.5 text-gray-400" /></button>
-                                                    </div>
-                                                    <div className="flex-1 border border-dashed border-gray-200 rounded-xl flex items-center justify-center">
-                                                        <div className="px-5 py-2.5 bg-[#f7f9fc] border border-gray-100 rounded-lg text-[13px] text-[#697386] font-medium">No hay datos</div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Principales clientes por gasto */}
-                                                <div className="bg-white border border-gray-100 rounded-xl p-6 transition-all hover:shadow-md h-[400px] flex flex-col">
-                                                    <div className="flex items-center justify-between mb-8">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-[14px] font-bold text-[#32325d]">Principales clientes por gasto</span>
-                                                            <button className="hover:text-gray-600 transition-colors"><EyeOff className="w-3.5 h-3.5 text-gray-400" /></button>
-                                                        </div>
-                                                        <span className="text-[12px] text-[#aab2c4] font-medium uppercase tracking-wider">Siempre</span>
-                                                    </div>
-
-                                                    <div className="space-y-6">
-                                                        {[1, 2, 3, 4].map((i) => (
-                                                            <div key={i} className="flex items-center justify-between group/row">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center">
-                                                                        <Users className="w-4 h-4 text-gray-300" />
-                                                                    </div>
-                                                                    <div className="space-y-1">
-                                                                        <div className="h-2.5 w-24 bg-gray-100 rounded-full" />
-                                                                        <div className="h-2 w-32 bg-gray-50 rounded-full" />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="h-3 w-12 bg-gray-50 rounded-full" />
-                                                            </div>
-                                                        ))}
-                                                        <div className="pt-4 border-t border-gray-50">
-                                                            <div className="h-2 w-20 bg-gray-50 rounded-full" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <DashboardCardsSection referenceDate={selectedDate} />
                                     </div>
+                                </motion.div>
+                            ) : activeView === "customers" ? (
+                                <motion.div
+                                    key="customers-view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <CustomersPage />
                                 </motion.div>
                             ) : (
                                 <motion.div
@@ -1609,7 +1720,7 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
             </main>
-
+        </div>
         </div>
     );
 }
