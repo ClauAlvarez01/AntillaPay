@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Home,
@@ -11,8 +11,7 @@ import {
     Bell,
     Settings,
     Plus,
-    Share2,
-    BarChart,
+    Upload,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
@@ -38,6 +37,7 @@ import { AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import PaymentLinkDetail from "./PaymentLinkDetail";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -134,7 +134,7 @@ const formatPaymentLinkDate = (dateValue) => {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleStatus, testMode }) => {
+const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleStatus, onSelectLink, testMode }) => {
     const hasLinks = paymentLinks.length > 0;
     const [openMenuId, setOpenMenuId] = useState(null);
     const [showCopyHintId, setShowCopyHintId] = useState(null);
@@ -195,6 +195,21 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
         "Personalizado"
     ];
     const paymentLinksBaseUrl = "https://buy.antillapay.com/";
+    const formatLinkPrice = (link) => {
+        if (link.priceType === "customer_choice") {
+            return `A elección del cliente (${link.currencyCode || "USD"})`;
+        }
+        const amountValue = typeof link.amount === "number" ? link.amount : parseFloat(link.amount || "0");
+        const amount = Number.isFinite(amountValue) ? amountValue : 0;
+        const currency = link.currencyCode || "USD";
+        const symbolMap = { USD: "US$", EUR: "€", GBP: "£" };
+        const symbol = symbolMap[currency] || currency;
+        const formatted = new Intl.NumberFormat("es-ES", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount);
+        return `${symbol} ${formatted}`;
+    };
 
     const getTimezoneOffsetMinutes = (timezone) => (timezone === "UTC" ? 0 : -300);
     const getNowPartsForTimezone = (timezone) => {
@@ -642,7 +657,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-gray-200">
                         <div className="flex flex-wrap gap-3">
-                            {["Fecha de creación", "Estado", "Impuesto automático"].map((label) => (
+                            {["Fecha de creación", "Estado"].map((label) => (
                                 <div key={label} className="relative">
                                     <button
                                         type="button"
@@ -650,10 +665,6 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                             if (label === "Estado") {
                                                 setShowStatusFilter(!showStatusFilter);
                                                 setShowTaxFilter(false);
-                                                setShowDateFilter(false);
-                                            } else if (label === "Impuesto automático") {
-                                                setShowTaxFilter(!showTaxFilter);
-                                                setShowStatusFilter(false);
                                                 setShowDateFilter(false);
                                             } else if (label === "Fecha de creación") {
                                                 setShowDateFilter(!showDateFilter);
@@ -1465,15 +1476,11 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                             )}
                         </div>
                         <div className="flex items-center gap-3">
-                            <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]">
-                                <BarChart className="w-4 h-4 text-[#8792a2]" />
-                                Analizar
-                            </button>
                             <button
                                 onClick={openExportModal}
                                 className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
                             >
-                                <Share2 className="w-4 h-4 text-[#8792a2]" />
+                                <Upload className="w-4 h-4 text-[#8792a2]" />
                                 Exportar
                             </button>
                         </div>
@@ -1505,7 +1512,8 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                 return (
                                     <div
                                         key={link.id}
-                                        className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0"
+                                        onClick={() => onSelectLink?.(link.id)}
+                                        className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50"
                                     >
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold">{link.name}</span>
@@ -1514,15 +1522,14 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                             </span>
                                         </div>
                                         <div className="text-[#4f5b76]">
-                                            {link.priceType === "customer_choice"
-                                                ? `A elección del cliente (${link.currencyCode})`
-                                                : link.priceLabel}
+                                            {formatLinkPrice(link)}
                                         </div>
                                         <div className="text-[#4f5b76]">{formatPaymentLinkDate(link.createdAt)}</div>
                                         <div className="relative flex justify-end">
                                             <button
                                                 type="button"
-                                                onClick={() => {
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
                                                     setOpenMenuId(openMenuId === link.id ? null : link.id);
                                                     setShowCopyHintId(null);
                                                 }}
@@ -1534,6 +1541,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                                 <div className="absolute right-0 top-6 z-20">
                                                     <div
                                                         ref={menuRef}
+                                                        onClick={(event) => event.stopPropagation()}
                                                         className="w-56 rounded-xl border border-gray-200 bg-white shadow-xl"
                                                     >
                                                         <button
@@ -1955,6 +1963,12 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
 export default function Dashboard() {
     const navigate = useNavigate();
     const location = useLocation();
+    const paymentLinkDetailId = useMemo(() => {
+        const match = location.pathname.match(/^\/dashboard\/payment-links\/([^/]+)/i);
+        if (!match) return null;
+        if (match[1] === "create") return null;
+        return match[1];
+    }, [location.pathname]);
     const [testMode, setTestMode] = useState(true);
     const [showOnboarding, setShowOnboarding] = useState(true);
     const [showTestAlert, setShowTestAlert] = useState(false);
@@ -2017,7 +2031,8 @@ export default function Dashboard() {
     useEffect(() => {
         const path = location.pathname.toLowerCase();
         if (path.startsWith("/dashboard/payment-links")) {
-            setActiveView("payments_links");
+            const isDetail = path.startsWith("/dashboard/payment-links/") && !path.endsWith("/create");
+            setActiveView(isDetail ? "payment_link_detail" : "payments_links");
             return;
         }
         if (path.startsWith("/dashboard")) {
@@ -2141,7 +2156,7 @@ export default function Dashboard() {
     return (
         <div className={cn(
             "flex h-screen w-full overflow-hidden font-sans relative",
-            activeView === "payments_links" ? "bg-white" : "bg-[#f6f9fc]"
+            activeView === "payments_links" || activeView === "payment_link_detail" ? "bg-white" : "bg-[#f6f9fc]"
         )}>
 
             <AnimatePresence>
@@ -2638,7 +2653,7 @@ export default function Dashboard() {
                                 navigate("/dashboard/payment-links");
                             }
                         }}
-                        activeSubItem={activeView === "payments_links" ? "Payments Links" : null}
+                        activeSubItem={(activeView === "payments_links" || activeView === "payment_link_detail") ? "Payments Links" : null}
                     />
                     <SidebarItem
                         icon={FileText}
@@ -2777,10 +2792,10 @@ export default function Dashboard() {
                 {/* Content Area */}
                 <div className={cn(
                     "flex-1 overflow-y-auto",
-                    activeView === "payments_links" ? "p-8 bg-white" : "p-10"
+                    activeView === "payments_links" || activeView === "payment_link_detail" ? "p-8 bg-white" : "p-10"
                 )}>
                     <div className={cn(
-                        activeView === "payments_links" ? "w-full" : "max-w-6xl mx-auto"
+                        activeView === "payments_links" || activeView === "payment_link_detail" ? "w-full" : "max-w-6xl mx-auto"
                     )}>
                         <AnimatePresence mode="wait">
                             {activeView === "home" ? (
@@ -3268,6 +3283,20 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                 </motion.div>
+                            ) : activeView === "payment_link_detail" ? (
+                                <motion.div
+                                    key="payment_link_detail_view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <PaymentLinkDetail
+                                        paymentLinks={paymentLinks}
+                                        setPaymentLinks={setPaymentLinks}
+                                        linkId={paymentLinkDetailId}
+                                    />
+                                </motion.div>
                             ) : (
                                 <motion.div
                                     key="payments_links_view"
@@ -3278,6 +3307,7 @@ export default function Dashboard() {
                                 >
                                     <PaymentLinksView
                                         onCreateClick={() => navigate("/dashboard/payment-links/create")}
+                                        onSelectLink={(id) => navigate(`/dashboard/payment-links/${id}`)}
                                         paymentLinks={paymentLinks}
                                         onRenameLink={handleRenamePaymentLink}
                                         onToggleStatus={handleTogglePaymentLinkStatus}
