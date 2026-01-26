@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     ArrowLeftRight,
-    BarChart,
     Check,
     ChevronDown,
     ChevronLeft,
@@ -20,13 +19,14 @@ import {
     Maximize2,
     Package,
     Plus,
-    Share2,
+    Upload,
     Users,
     X
 } from 'lucide-react';
 import { AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import ProductCatalog from "@/pages/ProductCatalog";
 import ProductDetail from "@/pages/ProductDetail";
@@ -342,6 +342,10 @@ const formatPaymentLinkDate = (dateValue) => {
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const PAYMENT_LINK_STATUS_STYLES = {
+    Activo: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    Desactivado: "bg-slate-50 text-slate-700 border-slate-200"
+};
 
 const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleStatus, testMode }) => {
     const hasLinks = paymentLinks.length > 0;
@@ -353,11 +357,6 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
     const [statusFilterValue, setStatusFilterValue] = useState("Todo");
     const [appliedFilter, setAppliedFilter] = useState("Todo");
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-
-    const [showTaxFilter, setShowTaxFilter] = useState(false);
-    const [taxFilterValue, setTaxFilterValue] = useState("Todo");
-    const [appliedTaxFilter, setAppliedTaxFilter] = useState("Todo");
-    const [isTaxDropdownOpen, setIsTaxDropdownOpen] = useState(false);
 
     const [showDateFilter, setShowDateFilter] = useState(false);
     const [dateFilterValue, setDateFilterValue] = useState("está en los últimos");
@@ -373,17 +372,17 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
     const [showStartCalendar, setShowStartCalendar] = useState(false);
     const [showEndCalendar, setShowEndCalendar] = useState(false);
     const [exportStep, setExportStep] = useState(null);
+    const [exportFormat, setExportFormat] = useState("csv");
     const [exportTimezone, setExportTimezone] = useState("GMT-5");
     const [exportRange, setExportRange] = useState("Hoy");
     const [exportCustomStart, setExportCustomStart] = useState("");
     const [exportCustomEnd, setExportCustomEnd] = useState("");
     const [exportCsvContent, setExportCsvContent] = useState("");
     const [exportFilename, setExportFilename] = useState("");
+    const [exportMimeType, setExportMimeType] = useState("text/csv;charset=utf-8;");
 
     const statusFilterRef = useRef(null);
     const statusDropdownRef = useRef(null);
-    const taxFilterRef = useRef(null);
-    const taxDropdownRef = useRef(null);
     const dateFilterRef = useRef(null);
     const dateDropdownRef = useRef(null);
     const calendarRef = useRef(null);
@@ -393,7 +392,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
     const renameInputRef = useRef(null);
     const exportTimerRef = useRef(null);
 
-    const exportColumns = ["ID", "Created (UTC)", "Active", "Currency", "Url", "Name"];
+    const exportColumns = ["ID", "Fecha de creación", "Estado", "Moneda", "URL", "Nombre"];
     const exportRangeOptions = [
         "Hoy",
         "Mes en curso",
@@ -576,8 +575,33 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
         }).join("\n");
         return `${header}\n${body}`;
     };
-    const downloadCsv = (csvContent, filename) => {
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const buildExportRows = (rows) => rows.map((link) => {
+        const createdAt = new Date(link.createdAt || link.created_at || Date.now());
+        const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
+        const isActive = link.status === "Activo";
+        return [
+            link.id || "",
+            createdAtValue,
+            isActive ? "true" : "false",
+            link.currencyCode || "",
+            link.url || `${paymentLinksBaseUrl}${link.id || ""}`,
+            link.name || ""
+        ];
+    });
+    const buildSpreadsheetHtml = (headers, rows) => {
+        const escapeHtml = (value) => String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        const headerRow = `<tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>`;
+        const bodyRows = rows.map((row) =>
+            `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`
+        ).join("");
+        return `<!DOCTYPE html><html><head><meta charset="utf-8" /></head><body><table>${headerRow}${bodyRows}</table></body></html>`;
+    };
+    const downloadFile = (content, filename, mimeType) => {
+        const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -595,12 +619,14 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
         setExportStep(null);
         setExportCsvContent("");
         setExportFilename("");
+        setExportMimeType("text/csv;charset=utf-8;");
     };
     const openExportModal = () => {
         if (exportTimerRef.current) {
             clearTimeout(exportTimerRef.current);
             exportTimerRef.current = null;
         }
+        setExportFormat("csv");
         setExportTimezone("GMT-5");
         setExportRange("Hoy");
         setExportCustomStart("");
@@ -632,17 +658,26 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
 
             const nowParts = getNowPartsForTimezone(exportTimezone);
             const fileDate = `${nowParts.year}-${String(nowParts.month + 1).padStart(2, "0")}-${String(nowParts.day).padStart(2, "0")}`;
-            const filename = `payment-links-${fileDate}.csv`;
-            const csvContent = buildExportCsv(rows);
+            const extension = exportFormat === "xlsx" ? "xlsx" : "csv";
+            const filename = `payment-links-${fileDate}.${extension}`;
+            let csvContent = "";
+            let mimeType = "text/csv;charset=utf-8;";
+            if (exportFormat === "xlsx") {
+                csvContent = buildSpreadsheetHtml(exportColumns, buildExportRows(rows));
+                mimeType = "application/vnd.ms-excel";
+            } else {
+                csvContent = buildExportCsv(rows);
+            }
             setExportCsvContent(csvContent);
             setExportFilename(filename);
+            setExportMimeType(mimeType);
             setExportStep("success");
-            downloadCsv(csvContent, filename);
+            downloadFile(csvContent, filename, mimeType);
         }, 1200);
     };
     const handleExportDownload = () => {
         if (!exportCsvContent) return;
-        downloadCsv(exportCsvContent, exportFilename || "payment-links.csv");
+        downloadFile(exportCsvContent, exportFilename || "payment-links.csv", exportMimeType);
     };
     const cancelExportLoading = () => {
         resetExportFlow();
@@ -650,11 +685,6 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
 
     const filteredLinks = paymentLinks
         .filter(link => appliedFilter === "Todo" || link.status === appliedFilter)
-        .filter(link => {
-            if (appliedTaxFilter === "Todo") return true;
-            const isEnabled = link.automaticTax === true || link.automaticTax === "Habilitada";
-            return appliedTaxFilter === "Habilitada" ? isEnabled : !isEnabled;
-        })
         .filter(link => {
             if (!appliedDateFilter) return true;
 
@@ -692,7 +722,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
 
             return true;
         });
-    const hasActiveFilters = appliedFilter !== "Todo" || appliedTaxFilter !== "Todo" || Boolean(appliedDateFilter);
+    const hasActiveFilters = appliedFilter !== "Todo" || Boolean(appliedDateFilter);
     const todayInputValue = getTodayInputValue(exportTimezone);
     const isCustomExportRange = exportRange === "Personalizado";
     const isExportReady = !isCustomExportRange || (exportCustomStart && exportCustomEnd);
@@ -707,10 +737,8 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
 
     const resetFilters = () => {
         setAppliedFilter("Todo");
-        setAppliedTaxFilter("Todo");
         setAppliedDateFilter(null);
         setStatusFilterValue("Todo");
-        setTaxFilterValue("Todo");
         setDateFilterValue("está en los últimos");
         setDateNumberValue("23");
         setDateUnitValue("días");
@@ -719,10 +747,8 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
         setStartDate(null);
         setEndDate(null);
         setShowStatusFilter(false);
-        setShowTaxFilter(false);
         setShowDateFilter(false);
         setIsStatusDropdownOpen(false);
-        setIsTaxDropdownOpen(false);
         setIsDateDropdownOpen(false);
         setShowCalendar(false);
         setShowStartCalendar(false);
@@ -765,15 +791,6 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                 setIsStatusDropdownOpen(false);
             }
 
-            if (taxFilterRef.current && !taxFilterRef.current.contains(event.target)) {
-                if (!taxDropdownRef.current || !taxDropdownRef.current.contains(event.target)) {
-                    setShowTaxFilter(false);
-                    setIsTaxDropdownOpen(false);
-                }
-            } else if (taxDropdownRef.current && !taxDropdownRef.current.contains(event.target)) {
-                setIsTaxDropdownOpen(false);
-            }
-
             if (dateFilterRef.current && !dateFilterRef.current.contains(event.target)) {
                 if (!dateDropdownRef.current || !dateDropdownRef.current.contains(event.target)) {
                     setShowDateFilter(false);
@@ -798,7 +815,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [openMenuId, showStatusFilter, isStatusDropdownOpen, showTaxFilter, isTaxDropdownOpen, showDateFilter, isDateDropdownOpen]);
+    }, [openMenuId, showStatusFilter, isStatusDropdownOpen, showDateFilter, isDateDropdownOpen]);
 
     useEffect(() => {
         return () => {
@@ -851,28 +868,22 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-gray-200">
                         <div className="flex flex-wrap gap-3">
-                            {["Fecha de creación", "Estado", "Impuesto automático"].map((label) => (
+                            {["Fecha de creación", "Estado"].map((label) => (
                                 <div key={label} className="relative">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             if (label === "Estado") {
                                                 setShowStatusFilter(!showStatusFilter);
-                                                setShowTaxFilter(false);
-                                                setShowDateFilter(false);
-                                            } else if (label === "Impuesto automático") {
-                                                setShowTaxFilter(!showTaxFilter);
-                                                setShowStatusFilter(false);
                                                 setShowDateFilter(false);
                                             } else if (label === "Fecha de creación") {
                                                 setShowDateFilter(!showDateFilter);
                                                 setShowStatusFilter(false);
-                                                setShowTaxFilter(false);
                                             }
                                         }}
                                         className={cn(
                                             "inline-flex items-center gap-2 rounded-full border border-dashed border-gray-200 px-2.5 py-1 text-[12px] text-[#4f5b76] hover:border-[#cbd5f5] transition-colors",
-                                            ((label === "Estado" && showStatusFilter) || (label === "Impuesto automático" && showTaxFilter) || (label === "Fecha de creación" && showDateFilter)) && "bg-gray-50 border-[#cbd5f5]"
+                                            ((label === "Estado" && showStatusFilter) || (label === "Fecha de creación" && showDateFilter)) && "bg-gray-50 border-[#cbd5f5]"
                                         )}
                                     >
                                         <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-200 text-[11px] text-[#8792a2]">
@@ -882,11 +893,6 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                         {label === "Estado" && appliedFilter !== "Todo" && (
                                             <span className="ml-2 text-[#635bff] text-[11px] font-semibold">
                                                 {appliedFilter}
-                                            </span>
-                                        )}
-                                        {label === "Impuesto automático" && appliedTaxFilter !== "Todo" && (
-                                            <span className="ml-2 text-[#635bff] text-[11px] font-semibold">
-                                                {appliedTaxFilter}
                                             </span>
                                         )}
                                     {label === "Fecha de creación" && (
@@ -976,71 +982,6 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                         </div>
                                     )}
 
-                                    {label === "Impuesto automático" && showTaxFilter && (
-                                        <div
-                                            ref={taxFilterRef}
-                                            className="absolute top-full left-0 mt-2 w-[220px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-100 p-3 z-[60]"
-                                        >
-                                            <h3 className="text-[12px] font-bold text-[#32325d] mb-2 lowercase">
-                                                filtrar por: impuesto automático
-                                            </h3>
-
-                                            <div className="relative mb-4">
-                                                <button
-                                                    onClick={() => setIsTaxDropdownOpen(!isTaxDropdownOpen)}
-                                                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-gray-200 hover:border-[#cbd5f5] bg-white text-[13px] font-semibold text-[#32325d] transition-all"
-                                                >
-                                                    {taxFilterValue}
-                                                    <div className="flex flex-col -gap-1">
-                                                        <ChevronUp className="w-2.5 h-2.5 text-[#4f5b76]" />
-                                                        <ChevronDown className="w-2.5 h-2.5 text-[#4f5b76] -mt-1" />
-                                                    </div>
-                                                </button>
-
-                                                <AnimatePresence>
-                                                    {isTaxDropdownOpen && (
-                                                        <motion.div
-                                                            ref={taxDropdownRef}
-                                                            initial={{ opacity: 0, scale: 0.95 }}
-                                                            animate={{ opacity: 1, scale: 1 }}
-                                                            exit={{ opacity: 0, scale: 0.95 }}
-                                                            className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-[70] overflow-hidden"
-                                                        >
-                                                            {["Todo", "Habilitada", "Deshabilitada"].map((opt) => (
-                                                                <button
-                                                                    key={opt}
-                                                                    onClick={() => {
-                                                                        setTaxFilterValue(opt);
-                                                                        setIsTaxDropdownOpen(false);
-                                                                    }}
-                                                                    className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-gray-50 flex items-center justify-between transition-colors"
-                                                                >
-                                                                    <span className={taxFilterValue === opt ? "text-[#32325d] font-semibold" : "text-[#4f5b76]"}>
-                                                                        {opt}
-                                                                    </span>
-                                                                    {taxFilterValue === opt && (
-                                                                        <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
-                                                                            <Check className="w-2.5 h-2.5 text-white" />
-                                                                        </div>
-                                                                    )}
-                                                                </button>
-                                                            ))}
-                                                        </motion.div>
-                                                    )}
-                                                </AnimatePresence>
-                                            </div>
-
-                                            <Button
-                                                onClick={() => {
-                                                    setAppliedTaxFilter(taxFilterValue);
-                                                    setShowTaxFilter(false);
-                                                }}
-                                                className="w-full bg-[#635bff] hover:bg-[#5851e0] text-white font-bold py-1.5 text-[12px] rounded-lg"
-                                            >
-                                                Aplicar
-                                            </Button>
-                                        </div>
-                                    )}
 
                                     {label === "Fecha de creación" && showDateFilter && (
                                         <div
@@ -1674,15 +1615,11 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                             )}
                         </div>
                         <div className="flex items-center gap-3">
-                            <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]">
-                                <BarChart className="w-4 h-4 text-[#8792a2]" />
-                                Analizar
-                            </button>
                             <button
                                 onClick={openExportModal}
                                 className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
                             >
-                                <Share2 className="w-4 h-4 text-[#8792a2]" />
+                                <Upload className="w-4 h-4 text-[#8792a2]" />
                                 Exportar
                             </button>
                         </div>
@@ -1718,9 +1655,15 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                     >
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold">{link.name}</span>
-                                            <span className="px-2 py-0.5 rounded-full border border-gray-200 text-[12px] text-[#6b7280]">
+                                            <Badge
+                                                variant="outline"
+                                                className={cn(
+                                                    "border text-[11px]",
+                                                    PAYMENT_LINK_STATUS_STYLES[link.status] || "bg-slate-50 text-slate-700 border-slate-200"
+                                                )}
+                                            >
                                                 {link.status}
-                                            </span>
+                                            </Badge>
                                         </div>
                                         <div className="text-[#4f5b76]">
                                             {link.priceType === "customer_choice"
@@ -1938,6 +1881,34 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                             </div>
 
                             <div className="px-6 py-5 space-y-6">
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-2">Formato</div>
+                                    <div className="flex flex-wrap items-center gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-format"
+                                                value="csv"
+                                                checked={exportFormat === "csv"}
+                                                onChange={(event) => setExportFormat(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">CSV</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-format"
+                                                value="xlsx"
+                                                checked={exportFormat === "xlsx"}
+                                                onChange={(event) => setExportFormat(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">Excel (.xlsx)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <div className="text-[13px] font-semibold text-[#32325d] mb-2">Zona horaria</div>
                                     <div className="flex flex-wrap items-center gap-4">
@@ -2445,7 +2416,7 @@ export default function Dashboard() {
     return (
         <div className={cn(
             "flex h-screen w-full overflow-hidden font-sans relative flex-col",
-            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers"
                 ? "bg-white"
                 : "bg-[#f6f9fc]"
         )}>
@@ -2989,13 +2960,13 @@ export default function Dashboard() {
                     ref={contentRef}
                     className={cn(
                         "flex-1 overflow-y-auto",
-                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers"
                             ? "p-8 bg-white"
                             : "p-10"
                     )}
                 >
                     <div className={cn(
-                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers"
                             ? "w-full"
                             : "max-w-6xl mx-auto"
                     )}>
