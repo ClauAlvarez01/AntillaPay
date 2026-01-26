@@ -1514,7 +1514,7 @@ export default function ProductCatalog() {
                             <div className="flex items-center gap-2 text-[#4f5b76]">
                                 <span>{formatProductPrice(product)}</span>
                                 {product.prices && product.prices.length > 1 && (
-                                    <span className="px-2 py-0.5 rounded border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
+                                    <span className="px-2 py-0.5 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
                                         {product.prices.length} tarifas
                                     </span>
                                 )}
@@ -1522,7 +1522,7 @@ export default function ProductCatalog() {
                             <div className="text-[#4f5b76]">
                                 <Badge
                                     variant="outline"
-                                    className={cn("border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
+                                    className={cn("rounded-full border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
                                 >
                                     {product.status}
                                 </Badge>

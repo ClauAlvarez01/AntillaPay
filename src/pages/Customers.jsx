@@ -328,7 +328,7 @@ export default function CustomersPage() {
                     <TableCell key={column.key} className={cn("py-4", addLeftPadding && "px-6")}>
                         <Badge
                             variant="outline"
-                            className={cn("border text-[11px]", STATUS_STYLES[customer.status])}
+                            className={cn("rounded-full border text-[11px]", STATUS_STYLES[customer.status])}
                         >
                             {customer.status}
                         </Badge>

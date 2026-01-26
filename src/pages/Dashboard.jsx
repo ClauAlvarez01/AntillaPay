@@ -1658,7 +1658,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                             <Badge
                                                 variant="outline"
                                                 className={cn(
-                                                    "border text-[11px]",
+                                                    "rounded-full border text-[11px]",
                                                     PAYMENT_LINK_STATUS_STYLES[link.status] || "bg-slate-50 text-slate-700 border-slate-200"
                                                 )}
                                             >
