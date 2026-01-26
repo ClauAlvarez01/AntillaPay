@@ -1,28 +1,35 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+/* eslint-disable react/prop-types */
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-    Home,
-    CreditCard,
     ArrowLeftRight,
-    Users,
-    Package,
-    Plus,
+    BarChart,
+    Check,
     ChevronDown,
     ChevronLeft,
     ChevronRight,
     ChevronUp,
-    LayoutDashboard,
-    FileText,
+    Clipboard,
+    CornerDownRight,
+    CreditCard,
     DollarSign,
-    X,
+    FileText,
+    Home,
+    LayoutDashboard,
+    Link2,
     Maximize2,
-    Check,
-    Clipboard
+    Package,
+    Plus,
+    Share2,
+    Users,
+    X
 } from 'lucide-react';
 import { AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import ProductCatalog from "@/pages/ProductCatalog";
+import ProductDetail from "@/pages/ProductDetail";
 import DashboardCardsSection from "@/components/dashboard/DashboardCardsSection";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import EnvironmentBanner from "@/components/dashboard/EnvironmentBanner";
@@ -316,7 +323,514 @@ const BalanceChart = ({ data, timeLabel }) => {
     );
 };
 
-const PaymentLinksView = ({ onCreateClick }) => {
+const formatPaymentLinkDate = (dateValue) => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "--";
+    const formatter = new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: false
+    });
+    const parts = formatter.formatToParts(date);
+    const day = parts.find((part) => part.type === "day")?.value ?? "";
+    const month = (parts.find((part) => part.type === "month")?.value ?? "").replace(".", "");
+    const hour = parts.find((part) => part.type === "hour")?.value ?? "";
+    const minute = parts.find((part) => part.type === "minute")?.value ?? "";
+    return `${day} ${month} ${hour}:${minute}`;
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleStatus, testMode }) => {
+    const hasLinks = paymentLinks.length > 0;
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const [showCopyHintId, setShowCopyHintId] = useState(null);
+    const [renameTarget, setRenameTarget] = useState(null);
+    const [renameValue, setRenameValue] = useState("");
+    const [showStatusFilter, setShowStatusFilter] = useState(false);
+    const [statusFilterValue, setStatusFilterValue] = useState("Todo");
+    const [appliedFilter, setAppliedFilter] = useState("Todo");
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+
+    const [showTaxFilter, setShowTaxFilter] = useState(false);
+    const [taxFilterValue, setTaxFilterValue] = useState("Todo");
+    const [appliedTaxFilter, setAppliedTaxFilter] = useState("Todo");
+    const [isTaxDropdownOpen, setIsTaxDropdownOpen] = useState(false);
+
+    const [showDateFilter, setShowDateFilter] = useState(false);
+    const [dateFilterValue, setDateFilterValue] = useState("está en los últimos");
+    const [dateNumberValue, setDateNumberValue] = useState("23");
+    const [dateUnitValue, setDateUnitValue] = useState("días");
+    const [timezoneValue, setTimezoneValue] = useState("GMT-5");
+    const [appliedDateFilter, setAppliedDateFilter] = useState(null);
+    const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [showCalendar, setShowCalendar] = useState(false);
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [showStartCalendar, setShowStartCalendar] = useState(false);
+    const [showEndCalendar, setShowEndCalendar] = useState(false);
+    const [exportStep, setExportStep] = useState(null);
+    const [exportTimezone, setExportTimezone] = useState("GMT-5");
+    const [exportRange, setExportRange] = useState("Hoy");
+    const [exportCustomStart, setExportCustomStart] = useState("");
+    const [exportCustomEnd, setExportCustomEnd] = useState("");
+    const [exportCsvContent, setExportCsvContent] = useState("");
+    const [exportFilename, setExportFilename] = useState("");
+
+    const statusFilterRef = useRef(null);
+    const statusDropdownRef = useRef(null);
+    const taxFilterRef = useRef(null);
+    const taxDropdownRef = useRef(null);
+    const dateFilterRef = useRef(null);
+    const dateDropdownRef = useRef(null);
+    const calendarRef = useRef(null);
+    const startCalendarRef = useRef(null);
+    const endCalendarRef = useRef(null);
+    const menuRef = useRef(null);
+    const renameInputRef = useRef(null);
+    const exportTimerRef = useRef(null);
+
+    const exportColumns = ["ID", "Created (UTC)", "Active", "Currency", "Url", "Name"];
+    const exportRangeOptions = [
+        "Hoy",
+        "Mes en curso",
+        "Últimos 7 días",
+        "Últimas 4 semanas",
+        "Último mes",
+        "Todos",
+        "Personalizado"
+    ];
+    const paymentLinksBaseUrl = "https://buy.antillapay.com/";
+
+    const getTimezoneOffsetMinutes = (timezone) => (timezone === "UTC" ? 0 : -300);
+    const getNowPartsForTimezone = (timezone) => {
+        const offsetMinutes = getTimezoneOffsetMinutes(timezone);
+        const now = new Date();
+        const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+        const tzMs = utcMs + offsetMinutes * 60000;
+        const tzDate = new Date(tzMs);
+        return {
+            year: tzDate.getUTCFullYear(),
+            month: tzDate.getUTCMonth(),
+            day: tzDate.getUTCDate(),
+            hour: tzDate.getUTCHours(),
+            minute: tzDate.getUTCMinutes(),
+            second: tzDate.getUTCSeconds(),
+            ms: tzDate.getUTCMilliseconds()
+        };
+    };
+    const toUtcMsFromTimezone = (year, month, day, hour = 0, minute = 0, second = 0, ms = 0, timezone) => {
+        const offsetMinutes = getTimezoneOffsetMinutes(timezone);
+        return Date.UTC(year, month, day, hour, minute, second, ms) - offsetMinutes * 60000;
+    };
+    const formatShortDate = (year, month, day) => {
+        return new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "short" })
+            .format(new Date(Date.UTC(year, month, day)))
+            .replace(".", "");
+    };
+    const formatRangeLabel = (startParts, endParts) => {
+        if (!startParts) return "--";
+        if (!endParts) return formatShortDate(startParts.year, startParts.month, startParts.day);
+        const sameDay = startParts.year === endParts.year &&
+            startParts.month === endParts.month &&
+            startParts.day === endParts.day;
+        if (sameDay) {
+            return formatShortDate(startParts.year, startParts.month, startParts.day);
+        }
+        return `${formatShortDate(startParts.year, startParts.month, startParts.day)}–${formatShortDate(endParts.year, endParts.month, endParts.day)}`;
+    };
+    const parseDateInput = (value) => {
+        const [year, month, day] = value.split("-").map(Number);
+        return { year, month: month - 1, day };
+    };
+    const getTodayInputValue = (timezone) => {
+        const parts = getNowPartsForTimezone(timezone);
+        const month = String(parts.month + 1).padStart(2, "0");
+        const day = String(parts.day).padStart(2, "0");
+        return `${parts.year}-${month}-${day}`;
+    };
+    const getExportRangeBounds = () => {
+        const nowParts = getNowPartsForTimezone(exportTimezone);
+        const todayStartUtcMs = toUtcMsFromTimezone(nowParts.year, nowParts.month, nowParts.day, 0, 0, 0, 0, exportTimezone);
+        const nowUtcMs = Date.now();
+
+        switch (exportRange) {
+            case "Hoy":
+                return { startUtcMs: todayStartUtcMs, endUtcMs: nowUtcMs };
+            case "Mes en curso":
+                return {
+                    startUtcMs: toUtcMsFromTimezone(nowParts.year, nowParts.month, 1, 0, 0, 0, 0, exportTimezone),
+                    endUtcMs: nowUtcMs
+                };
+            case "Últimos 7 días":
+                return { startUtcMs: todayStartUtcMs - 6 * DAY_MS, endUtcMs: nowUtcMs };
+            case "Últimas 4 semanas":
+                return { startUtcMs: todayStartUtcMs - 27 * DAY_MS, endUtcMs: nowUtcMs };
+            case "Último mes": {
+                let year = nowParts.year;
+                let month = nowParts.month - 1;
+                if (month < 0) {
+                    month = 11;
+                    year -= 1;
+                }
+                const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+                return {
+                    startUtcMs: toUtcMsFromTimezone(year, month, 1, 0, 0, 0, 0, exportTimezone),
+                    endUtcMs: toUtcMsFromTimezone(year, month, lastDay, 23, 59, 59, 999, exportTimezone)
+                };
+            }
+            case "Todos":
+                return { startUtcMs: null, endUtcMs: null };
+            case "Personalizado": {
+                if (!exportCustomStart || !exportCustomEnd) {
+                    return { startUtcMs: null, endUtcMs: null, isInvalid: true };
+                }
+                const startParts = parseDateInput(exportCustomStart);
+                const endParts = parseDateInput(exportCustomEnd);
+                let startUtcMs = toUtcMsFromTimezone(startParts.year, startParts.month, startParts.day, 0, 0, 0, 0, exportTimezone);
+                let endUtcMs = toUtcMsFromTimezone(endParts.year, endParts.month, endParts.day, 23, 59, 59, 999, exportTimezone);
+                const nowUtcMsLimit = Date.now();
+                if (endUtcMs > nowUtcMsLimit) {
+                    endUtcMs = nowUtcMsLimit;
+                }
+                if (startUtcMs > endUtcMs) {
+                    return { startUtcMs: null, endUtcMs: null, isInvalid: true };
+                }
+                return { startUtcMs, endUtcMs };
+            }
+            default:
+                return { startUtcMs: null, endUtcMs: null };
+        }
+    };
+    const getExportRangeLabel = (option) => {
+        const nowParts = getNowPartsForTimezone(exportTimezone);
+        const shiftDays = (parts, days) => {
+            const baseMs = Date.UTC(parts.year, parts.month, parts.day) + days * DAY_MS;
+            const date = new Date(baseMs);
+            return {
+                year: date.getUTCFullYear(),
+                month: date.getUTCMonth(),
+                day: date.getUTCDate()
+            };
+        };
+
+        switch (option) {
+            case "Hoy":
+                return formatRangeLabel(nowParts);
+            case "Mes en curso": {
+                const startParts = { ...nowParts, day: 1 };
+                return formatRangeLabel(startParts, nowParts);
+            }
+            case "Últimos 7 días": {
+                const startParts = shiftDays(nowParts, -6);
+                return formatRangeLabel(startParts, nowParts);
+            }
+            case "Últimas 4 semanas": {
+                const startParts = shiftDays(nowParts, -27);
+                return formatRangeLabel(startParts, nowParts);
+            }
+            case "Último mes": {
+                let year = nowParts.year;
+                let month = nowParts.month - 1;
+                if (month < 0) {
+                    month = 11;
+                    year -= 1;
+                }
+                const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+                const startParts = { year, month, day: 1 };
+                const endParts = { year, month, day: lastDay };
+                return formatRangeLabel(startParts, endParts);
+            }
+            case "Todos":
+                return "Siempre";
+            case "Personalizado": {
+                if (!exportCustomStart || !exportCustomEnd) {
+                    return "Selecciona fechas";
+                }
+                const startParts = parseDateInput(exportCustomStart);
+                const endParts = parseDateInput(exportCustomEnd);
+                return formatRangeLabel(startParts, endParts);
+            }
+            default:
+                return "--";
+        }
+    };
+    const buildExportCsv = (rows) => {
+        const header = exportColumns.join(",");
+        const body = rows.map((link) => {
+            const createdAt = new Date(link.createdAt || link.created_at || Date.now());
+            const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
+            const isActive = link.status === "Activo";
+            const values = [
+                link.id || "",
+                createdAtValue,
+                isActive ? "true" : "false",
+                link.currencyCode || "",
+                link.url || `${paymentLinksBaseUrl}${link.id || ""}`,
+                link.name || ""
+            ];
+            return values.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",");
+        }).join("\n");
+        return `${header}\n${body}`;
+    };
+    const downloadCsv = (csvContent, filename) => {
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    };
+    const resetExportFlow = () => {
+        if (exportTimerRef.current) {
+            clearTimeout(exportTimerRef.current);
+            exportTimerRef.current = null;
+        }
+        setExportStep(null);
+        setExportCsvContent("");
+        setExportFilename("");
+    };
+    const openExportModal = () => {
+        if (exportTimerRef.current) {
+            clearTimeout(exportTimerRef.current);
+            exportTimerRef.current = null;
+        }
+        setExportTimezone("GMT-5");
+        setExportRange("Hoy");
+        setExportCustomStart("");
+        setExportCustomEnd("");
+        setExportStep("form");
+    };
+    const handleExport = () => {
+        const { startUtcMs, endUtcMs, isInvalid } = getExportRangeBounds();
+        if (isInvalid) return;
+        setExportStep("loading");
+        if (exportTimerRef.current) {
+            clearTimeout(exportTimerRef.current);
+        }
+        exportTimerRef.current = setTimeout(() => {
+            const rows = paymentLinks.filter((link) => {
+                if (startUtcMs == null || endUtcMs == null) {
+                    return true;
+                }
+                const linkDate = new Date(link.createdAt || link.created_at || "");
+                if (Number.isNaN(linkDate.getTime())) return false;
+                const linkMs = linkDate.getTime();
+                return linkMs >= startUtcMs && linkMs <= endUtcMs;
+            });
+
+            if (rows.length === 0) {
+                setExportStep("empty");
+                return;
+            }
+
+            const nowParts = getNowPartsForTimezone(exportTimezone);
+            const fileDate = `${nowParts.year}-${String(nowParts.month + 1).padStart(2, "0")}-${String(nowParts.day).padStart(2, "0")}`;
+            const filename = `payment-links-${fileDate}.csv`;
+            const csvContent = buildExportCsv(rows);
+            setExportCsvContent(csvContent);
+            setExportFilename(filename);
+            setExportStep("success");
+            downloadCsv(csvContent, filename);
+        }, 1200);
+    };
+    const handleExportDownload = () => {
+        if (!exportCsvContent) return;
+        downloadCsv(exportCsvContent, exportFilename || "payment-links.csv");
+    };
+    const cancelExportLoading = () => {
+        resetExportFlow();
+    };
+
+    const filteredLinks = paymentLinks
+        .filter(link => appliedFilter === "Todo" || link.status === appliedFilter)
+        .filter(link => {
+            if (appliedTaxFilter === "Todo") return true;
+            const isEnabled = link.automaticTax === true || link.automaticTax === "Habilitada";
+            return appliedTaxFilter === "Habilitada" ? isEnabled : !isEnabled;
+        })
+        .filter(link => {
+            if (!appliedDateFilter) return true;
+
+            const linkDate = new Date(link.createdAt || link.created_at || Date.now());
+
+            if (appliedDateFilter.type === "es igual a") {
+                const filterDate = appliedDateFilter.date;
+                return linkDate.toDateString() === filterDate.toDateString();
+            } else if (appliedDateFilter.type === "entre") {
+                const start = appliedDateFilter.startDate;
+                const end = appliedDateFilter.endDate;
+                return linkDate >= start && linkDate <= end;
+            } else if (appliedDateFilter.type === "está en los últimos") {
+                const now = new Date();
+                const number = parseInt(appliedDateFilter.number, 10);
+                const unit = appliedDateFilter.unit;
+
+                let pastDate;
+                if (unit === "horas") {
+                    pastDate = new Date(now.getTime() - number * 60 * 60 * 1000);
+                } else if (unit === "días") {
+                    pastDate = new Date(now.getTime() - number * 24 * 60 * 60 * 1000);
+                } else if (unit === "meses") {
+                    pastDate = new Date(now.getFullYear(), now.getMonth() - number, now.getDate());
+                }
+
+                return linkDate >= pastDate;
+            } else if (appliedDateFilter.type === "en esa fecha o después") {
+                const filterDate = appliedDateFilter.date || new Date();
+                return linkDate >= filterDate;
+            } else if (appliedDateFilter.type === "es anterior o igual al") {
+                const filterDate = appliedDateFilter.date || new Date();
+                return linkDate <= filterDate;
+            }
+
+            return true;
+        });
+    const hasActiveFilters = appliedFilter !== "Todo" || appliedTaxFilter !== "Todo" || Boolean(appliedDateFilter);
+    const todayInputValue = getTodayInputValue(exportTimezone);
+    const isCustomExportRange = exportRange === "Personalizado";
+    const isExportReady = !isCustomExportRange || (exportCustomStart && exportCustomEnd);
+
+    const clearRangeFilter = () => {
+        setStartDate(null);
+        setEndDate(null);
+        setShowStartCalendar(false);
+        setShowEndCalendar(false);
+        setAppliedDateFilter(null);
+    };
+
+    const resetFilters = () => {
+        setAppliedFilter("Todo");
+        setAppliedTaxFilter("Todo");
+        setAppliedDateFilter(null);
+        setStatusFilterValue("Todo");
+        setTaxFilterValue("Todo");
+        setDateFilterValue("está en los últimos");
+        setDateNumberValue("23");
+        setDateUnitValue("días");
+        setTimezoneValue("GMT-5");
+        setSelectedDate(null);
+        setStartDate(null);
+        setEndDate(null);
+        setShowStatusFilter(false);
+        setShowTaxFilter(false);
+        setShowDateFilter(false);
+        setIsStatusDropdownOpen(false);
+        setIsTaxDropdownOpen(false);
+        setIsDateDropdownOpen(false);
+        setShowCalendar(false);
+        setShowStartCalendar(false);
+        setShowEndCalendar(false);
+    };
+
+    const applyDateFilter = () => {
+        const needsSingleDate = ["es igual a", "en esa fecha o después", "es anterior o igual al"].includes(dateFilterValue);
+        const hasRange = dateFilterValue !== "entre" || (startDate && endDate);
+        const hasSingleDate = !needsSingleDate || Boolean(selectedDate);
+        if (!hasRange || !hasSingleDate) {
+            setAppliedDateFilter(null);
+            return;
+        }
+
+        setAppliedDateFilter({
+            type: dateFilterValue,
+            number: dateNumberValue,
+            unit: dateUnitValue,
+            timezone: timezoneValue,
+            date: needsSingleDate ? selectedDate : null,
+            startDate: dateFilterValue === "entre" ? startDate : null,
+            endDate: dateFilterValue === "entre" ? endDate : null
+        });
+        setShowDateFilter(false);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setOpenMenuId(null);
+                setShowCopyHintId(null);
+            }
+            if (statusFilterRef.current && !statusFilterRef.current.contains(event.target)) {
+                if (!statusDropdownRef.current || !statusDropdownRef.current.contains(event.target)) {
+                    setShowStatusFilter(false);
+                    setIsStatusDropdownOpen(false);
+                }
+            } else if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target)) {
+                setIsStatusDropdownOpen(false);
+            }
+
+            if (taxFilterRef.current && !taxFilterRef.current.contains(event.target)) {
+                if (!taxDropdownRef.current || !taxDropdownRef.current.contains(event.target)) {
+                    setShowTaxFilter(false);
+                    setIsTaxDropdownOpen(false);
+                }
+            } else if (taxDropdownRef.current && !taxDropdownRef.current.contains(event.target)) {
+                setIsTaxDropdownOpen(false);
+            }
+
+            if (dateFilterRef.current && !dateFilterRef.current.contains(event.target)) {
+                if (!dateDropdownRef.current || !dateDropdownRef.current.contains(event.target)) {
+                    setShowDateFilter(false);
+                    setIsDateDropdownOpen(false);
+                    setShowCalendar(false);
+                }
+            } else if (dateDropdownRef.current && !dateDropdownRef.current.contains(event.target)) {
+                setIsDateDropdownOpen(false);
+            }
+
+            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+                setShowCalendar(false);
+            }
+
+            if (startCalendarRef.current && !startCalendarRef.current.contains(event.target)) {
+                setShowStartCalendar(false);
+            }
+
+            if (endCalendarRef.current && !endCalendarRef.current.contains(event.target)) {
+                setShowEndCalendar(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [openMenuId, showStatusFilter, isStatusDropdownOpen, showTaxFilter, isTaxDropdownOpen, showDateFilter, isDateDropdownOpen]);
+
+    useEffect(() => {
+        return () => {
+            if (exportTimerRef.current) {
+                clearTimeout(exportTimerRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!exportCustomStart && !exportCustomEnd) return;
+        const todayValue = getTodayInputValue(exportTimezone);
+        if (exportCustomEnd && exportCustomEnd > todayValue) {
+            setExportCustomEnd(todayValue);
+        }
+        if (exportCustomStart && exportCustomStart > todayValue) {
+            setExportCustomStart(todayValue);
+        }
+    }, [exportTimezone, exportCustomStart, exportCustomEnd]);
+
+    useEffect(() => {
+        if (!renameTarget) return;
+        const handleEscape = (event) => {
+            if (event.key === "Escape") {
+                setRenameTarget(null);
+            }
+        };
+        document.addEventListener("keydown", handleEscape);
+        requestAnimationFrame(() => renameInputRef.current?.focus());
+        return () => document.removeEventListener("keydown", handleEscape);
+    }, [renameTarget]);
+
     return (
         <div className="w-full">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
@@ -326,66 +840,1324 @@ const PaymentLinksView = ({ onCreateClick }) => {
                     className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
                 >
                     <Plus className="w-4 h-4" />
-                    Crear enlace de pago
+                    {testMode ? "Crear enlace de pago de prueba" : "Crear enlace de pago"}
                     <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
                         N
                     </span>
                 </Button>
             </div>
 
-            <div className="bg-[#f4f5f7] rounded-2xl border border-gray-100 p-8 lg:p-12 shadow-sm min-h-[320px] lg:min-h-[360px]">
-                <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-10">
-                    <div className="max-w-xl">
-                        <h2 className="text-[32px] lg:text-[36px] font-bold text-[#32325d] leading-tight">
-                            Crea una página de un proceso
-                            de compra con solo unos clics
-                        </h2>
-                        <p className="mt-4 text-[15px] text-[#4f5b76] leading-relaxed">
-                            Vende productos, ofrece suscripciones o acepta donaciones con un enlace;
-                            no se requiere programación.
-                        </p>
-                        <Button
-                            onClick={onCreateClick}
-                            className="mt-6 bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-5 py-2.5 shadow-sm"
-                        >
-                            Crea un enlace de pago de prueba
-                        </Button>
-                    </div>
+            {hasLinks ? (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-gray-200">
+                        <div className="flex flex-wrap gap-3">
+                            {["Fecha de creación", "Estado", "Impuesto automático"].map((label) => (
+                                <div key={label} className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (label === "Estado") {
+                                                setShowStatusFilter(!showStatusFilter);
+                                                setShowTaxFilter(false);
+                                                setShowDateFilter(false);
+                                            } else if (label === "Impuesto automático") {
+                                                setShowTaxFilter(!showTaxFilter);
+                                                setShowStatusFilter(false);
+                                                setShowDateFilter(false);
+                                            } else if (label === "Fecha de creación") {
+                                                setShowDateFilter(!showDateFilter);
+                                                setShowStatusFilter(false);
+                                                setShowTaxFilter(false);
+                                            }
+                                        }}
+                                        className={cn(
+                                            "inline-flex items-center gap-2 rounded-full border border-dashed border-gray-200 px-2.5 py-1 text-[12px] text-[#4f5b76] hover:border-[#cbd5f5] transition-colors",
+                                            ((label === "Estado" && showStatusFilter) || (label === "Impuesto automático" && showTaxFilter) || (label === "Fecha de creación" && showDateFilter)) && "bg-gray-50 border-[#cbd5f5]"
+                                        )}
+                                    >
+                                        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-200 text-[11px] text-[#8792a2]">
+                                            +
+                                        </span>
+                                        {label}
+                                        {label === "Estado" && appliedFilter !== "Todo" && (
+                                            <span className="ml-2 text-[#635bff] text-[11px] font-semibold">
+                                                {appliedFilter}
+                                            </span>
+                                        )}
+                                        {label === "Impuesto automático" && appliedTaxFilter !== "Todo" && (
+                                            <span className="ml-2 text-[#635bff] text-[11px] font-semibold">
+                                                {appliedTaxFilter}
+                                            </span>
+                                        )}
+                                    {label === "Fecha de creación" && (
+                                        <>
+                                            <ChevronDown className="w-3.5 h-3.5 text-[#635bff]" />
+                                            {appliedDateFilter && (
+                                                <span className="ml-2 text-[#635bff] text-[11px] flex items-center gap-1">
+                                                        {appliedDateFilter.type === "es igual a"
+                                                            ? appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                                                            : appliedDateFilter.type === "entre"
+                                                            ? `${appliedDateFilter.startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${appliedDateFilter.endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                                            : appliedDateFilter.type === "en esa fecha o después"
+                                                            ? `A partir del ${appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                                            : appliedDateFilter.type === "es anterior o igual al"
+                                                            ? `Termina el ${appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                                            : `Desde hace ${appliedDateFilter.number} ${appliedDateFilter.unit}`
+                                                        }
+                                                    </span>
+                                                )}
+                                            </>
+                                        )}
+                                    </button>
 
-                    <div className="w-full lg:w-[420px] flex justify-center lg:justify-end">
-                        <div className="relative w-full max-w-[420px]" aria-hidden="true">
-                            <div className="bg-white rounded-2xl shadow-[0_18px_50px_-30px_rgba(15,23,42,0.4)] p-6">
-                                <div className="flex gap-6">
-                                    <div className="w-[150px] bg-[#0f8f7e] rounded-xl p-4 flex items-center justify-center">
-                                        <div className="bg-white/90 rounded-lg w-full h-full flex items-center justify-center">
-                                            <div className="relative w-12 h-12">
-                                                <div className="absolute left-0 bottom-0 w-6 h-6 bg-[#0f8f7e] rounded-sm" />
-                                                <div className="absolute right-0 top-0 w-6 h-6 bg-[#f59e0b] rounded-sm" />
-                                                <div className="absolute right-1 bottom-1 w-4 h-4 bg-white rounded-sm" />
+                                    {label === "Estado" && showStatusFilter && (
+                                        <div
+                                            ref={statusFilterRef}
+                                            className="absolute top-full left-0 mt-2 w-[220px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-100 p-3 z-[60]"
+                                        >
+                                            <h3 className="text-[12px] font-bold text-[#32325d] mb-2 lowercase">
+                                                filtrar por: estado
+                                            </h3>
+
+                                            <div className="relative mb-4">
+                                                <button
+                                                    onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                                                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-gray-200 hover:border-[#cbd5f5] bg-white text-[13px] font-semibold text-[#32325d] transition-all"
+                                                >
+                                                    {statusFilterValue}
+                                                    <div className="flex flex-col -gap-1">
+                                                        <ChevronUp className="w-2.5 h-2.5 text-[#4f5b76]" />
+                                                        <ChevronDown className="w-2.5 h-2.5 text-[#4f5b76] -mt-1" />
+                                                    </div>
+                                                </button>
+
+                                                <AnimatePresence>
+                                                    {isStatusDropdownOpen && (
+                                                        <motion.div
+                                                            ref={statusDropdownRef}
+                                                            initial={{ opacity: 0, scale: 0.95 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            exit={{ opacity: 0, scale: 0.95 }}
+                                                            className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-[70] overflow-hidden"
+                                                        >
+                                                            {["Todo", "Activo", "Desactivado"].map((opt) => (
+                                                                <button
+                                                                    key={opt}
+                                                                    onClick={() => {
+                                                                        setStatusFilterValue(opt);
+                                                                        setIsStatusDropdownOpen(false);
+                                                                    }}
+                                                                    className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-gray-50 flex items-center justify-between transition-colors"
+                                                                >
+                                                                    <span className={statusFilterValue === opt ? "text-[#32325d] font-semibold" : "text-[#4f5b76]"}>
+                                                                        {opt}
+                                                                    </span>
+                                                                    {statusFilterValue === opt && (
+                                                                        <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                                                            <Check className="w-2.5 h-2.5 text-white" />
+                                                                        </div>
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+
+                                            <Button
+                                                onClick={() => {
+                                                    setAppliedFilter(statusFilterValue);
+                                                    setShowStatusFilter(false);
+                                                }}
+                                                className="w-full bg-[#635bff] hover:bg-[#5851e0] text-white font-bold py-1.5 text-[12px] rounded-lg"
+                                            >
+                                                Aplicar
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {label === "Impuesto automático" && showTaxFilter && (
+                                        <div
+                                            ref={taxFilterRef}
+                                            className="absolute top-full left-0 mt-2 w-[220px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-100 p-3 z-[60]"
+                                        >
+                                            <h3 className="text-[12px] font-bold text-[#32325d] mb-2 lowercase">
+                                                filtrar por: impuesto automático
+                                            </h3>
+
+                                            <div className="relative mb-4">
+                                                <button
+                                                    onClick={() => setIsTaxDropdownOpen(!isTaxDropdownOpen)}
+                                                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-gray-200 hover:border-[#cbd5f5] bg-white text-[13px] font-semibold text-[#32325d] transition-all"
+                                                >
+                                                    {taxFilterValue}
+                                                    <div className="flex flex-col -gap-1">
+                                                        <ChevronUp className="w-2.5 h-2.5 text-[#4f5b76]" />
+                                                        <ChevronDown className="w-2.5 h-2.5 text-[#4f5b76] -mt-1" />
+                                                    </div>
+                                                </button>
+
+                                                <AnimatePresence>
+                                                    {isTaxDropdownOpen && (
+                                                        <motion.div
+                                                            ref={taxDropdownRef}
+                                                            initial={{ opacity: 0, scale: 0.95 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            exit={{ opacity: 0, scale: 0.95 }}
+                                                            className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-[70] overflow-hidden"
+                                                        >
+                                                            {["Todo", "Habilitada", "Deshabilitada"].map((opt) => (
+                                                                <button
+                                                                    key={opt}
+                                                                    onClick={() => {
+                                                                        setTaxFilterValue(opt);
+                                                                        setIsTaxDropdownOpen(false);
+                                                                    }}
+                                                                    className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-gray-50 flex items-center justify-between transition-colors"
+                                                                >
+                                                                    <span className={taxFilterValue === opt ? "text-[#32325d] font-semibold" : "text-[#4f5b76]"}>
+                                                                        {opt}
+                                                                    </span>
+                                                                    {taxFilterValue === opt && (
+                                                                        <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                                                            <Check className="w-2.5 h-2.5 text-white" />
+                                                                        </div>
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+
+                                            <Button
+                                                onClick={() => {
+                                                    setAppliedTaxFilter(taxFilterValue);
+                                                    setShowTaxFilter(false);
+                                                }}
+                                                className="w-full bg-[#635bff] hover:bg-[#5851e0] text-white font-bold py-1.5 text-[12px] rounded-lg"
+                                            >
+                                                Aplicar
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {label === "Fecha de creación" && showDateFilter && (
+                                        <div
+                                            ref={dateFilterRef}
+                                            className="absolute top-full left-0 mt-2 w-[300px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] border border-gray-100 p-2.5 z-[60]"
+                                        >
+                                            <h3 className="text-[12px] font-bold text-[#32325d] mb-2 lowercase">
+                                                filtrar por: creado
+                                            </h3>
+
+                                            <div className="relative mb-3">
+                                                <button
+                                                    onClick={() => setIsDateDropdownOpen(!isDateDropdownOpen)}
+                                                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-gray-200 hover:border-[#cbd5f5] bg-white text-[13px] font-semibold text-[#32325d] transition-all"
+                                                >
+                                                    {dateFilterValue}
+                                                    <div className="flex flex-col -gap-1">
+                                                        <ChevronUp className="w-2.5 h-2.5 text-[#4f5b76]" />
+                                                        <ChevronDown className="w-2.5 h-2.5 text-[#4f5b76] -mt-1" />
+                                                    </div>
+                                                </button>
+
+                                                <AnimatePresence>
+                                                    {isDateDropdownOpen && (
+                                                        <motion.div
+                                                            ref={dateDropdownRef}
+                                                            initial={{ opacity: 0, scale: 0.95 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            exit={{ opacity: 0, scale: 0.95 }}
+                                                            className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-[70] overflow-hidden"
+                                                        >
+                                                            {["está en los últimos", "es igual a", "entre", "en esa fecha o después", "es anterior o igual al"].map((opt) => (
+                                                                <button
+                                                                    key={opt}
+                                                                    onClick={() => {
+                                                                        setDateFilterValue(opt);
+                                                                        setIsDateDropdownOpen(false);
+                                                                    }}
+                                                                    className="w-full px-3 py-1.5 text-left text-[12px] hover:bg-gray-50 flex items-center justify-between transition-colors"
+                                                                >
+                                                                    <span className={dateFilterValue === opt ? "text-[#32325d] font-semibold" : "text-[#4f5b76]"}>
+                                                                        {opt}
+                                                                    </span>
+                                                                    {dateFilterValue === opt && (
+                                                                        <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                                                            <Check className="w-2.5 h-2.5 text-white" />
+                                                                        </div>
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+
+                                            <div className="mb-3">
+                                            {dateFilterValue === "está en los últimos" && (
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <CornerDownRight className="w-4 h-4 text-[#635bff]" />
+                                                    <input
+                                                        type="text"
+                                                        value={dateNumberValue}
+                                                        onChange={(e) => setDateNumberValue(e.target.value)}
+                                                        className="w-14 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                                        placeholder="23"
+                                                    />
+                                                    <select
+                                                        value={dateUnitValue}
+                                                        onChange={(e) => setDateUnitValue(e.target.value)}
+                                                        className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] appearance-none bg-white"
+                                                    >
+                                                        <option value="horas">horas</option>
+                                                        <option value="días">días</option>
+                                                        <option value="meses">meses</option>
+                                                    </select>
+                                                    <div className="flex flex-col -gap-1 -ml-6 pointer-events-none">
+                                                        <ChevronUp className="w-2.5 h-2.5 text-[#4f5b76]" />
+                                                        <ChevronDown className="w-2.5 h-2.5 text-[#4f5b76] -mt-1" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {dateFilterValue === "es igual a" && (
+                                                <div className="mb-3 relative">
+                                                    <div className="flex items-center gap-2">
+                                                        <CornerDownRight className="w-4 h-4 text-[#635bff]" />
+                                                        {!showCalendar && selectedDate ? (
+                                                            <button
+                                                                onClick={() => setShowCalendar(true)}
+                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                            >
+                                                                {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setShowCalendar(true)}
+                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                            >
+                                                                DD/MM/YYYY
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {showCalendar && (
+                                                        <div
+                                                            ref={calendarRef}
+                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                        >
+                                                            {(() => {
+                                                                const calendarDate = selectedDate || new Date();
+                                                                const today = new Date();
+                                                                return (
+                                                                    <>
+                                                                        <div className="flex items-center justify-between mb-4">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newDate = new Date(calendarDate);
+                                                                                    newDate.setMonth(newDate.getMonth() - 1);
+                                                                                    setSelectedDate(newDate);
+                                                                                }}
+                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                            >
+                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                            </button>
+                                                                            <div className="text-sm font-semibold text-[#32325d]">
+                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newDate = new Date(calendarDate);
+                                                                                    newDate.setMonth(newDate.getMonth() + 1);
+                                                                                    setSelectedDate(newDate);
+                                                                                }}
+                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                            >
+                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                            </button>
+                                                                        </div>
+
+                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                    {day}
+                                                                                </div>
+                                                                            ))}
+
+                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                const isToday = day === today.getDate() &&
+                                                                                    calendarDate.getMonth() === today.getMonth() &&
+                                                                                    calendarDate.getFullYear() === today.getFullYear();
+                                                                                const isSelected = selectedDate
+                                                                                    ? day === selectedDate.getDate() &&
+                                                                                        calendarDate.getMonth() === selectedDate.getMonth() &&
+                                                                                        calendarDate.getFullYear() === selectedDate.getFullYear()
+                                                                                    : false;
+
+                                                                                return (
+                                                                                    <button
+                                                                                        key={day}
+                                                                                        onClick={() => {
+                                                                                            const newDate = new Date(calendarDate);
+                                                                                            newDate.setDate(day);
+                                                                                            setSelectedDate(newDate);
+                                                                                            setShowCalendar(false);
+                                                                                        }}
+                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
+                                                                                            isToday ? 'bg-[#635bff] text-white' :
+                                                                                            isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
+                                                                                            'text-[#4f5b76]'
+                                                                                        }`}
+                                                                                    >
+                                                                                        {day}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {dateFilterValue === "entre" && (
+                                                <div className="mb-3">
+                                                    <div className="flex gap-2 mb-3">
+                                                        <div className="flex-1">
+                                                            <label className="block text-[11px] text-[#4f5b76] mb-1">Inicio</label>
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="text"
+                                                                    value={startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
+                                                                    onClick={() => setShowStartCalendar(!showStartCalendar)}
+                                                                    readOnly
+                                                                    placeholder="DD/MM/YYYY"
+                                                                    className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] cursor-pointer placeholder:text-[#aab2c4]"
+                                                                />
+                                                                {showStartCalendar && (
+                                                                    <div
+                                                                        ref={startCalendarRef}
+                                                                        className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                                    >
+                                                                        {(() => {
+                                                                            const calendarDate = startDate || new Date();
+                                                                            return (
+                                                                                <>
+                                                                                    <div className="flex items-center justify-between mb-4">
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                const newDate = new Date(calendarDate);
+                                                                                                newDate.setMonth(newDate.getMonth() - 1);
+                                                                                                setStartDate(newDate);
+                                                                                            }}
+                                                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                                                        >
+                                                                                            <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                                        </button>
+                                                                                        <div className="text-sm font-semibold text-[#32325d]">
+                                                                                            {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                                        </div>
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                const newDate = new Date(calendarDate);
+                                                                                                newDate.setMonth(newDate.getMonth() + 1);
+                                                                                                setStartDate(newDate);
+                                                                                            }}
+                                                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                                                        >
+                                                                                            <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                                        </button>
+                                                                                    </div>
+                                                                        
+                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                        {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                            <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                                {day}
+                                                                                            </div>
+                                                                                        ))}
+                                                                            
+                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                const isInRange = startDate
+                                                                                    ? day >= startDate.getDate() ||
+                                                                                        startDate.getMonth() !== new Date().getMonth() ||
+                                                                                        startDate.getFullYear() !== new Date().getFullYear()
+                                                                                    : false;
+                                                                                
+                                                                                return (
+                                                                                    <button
+                                                                                        key={day}
+                                                                                        onClick={() => {
+                                                                                            const newDate = new Date(calendarDate);
+                                                                                            newDate.setDate(day);
+                                                                                            setStartDate(newDate);
+                                                                                            setShowStartCalendar(false);
+                                                                                        }}
+                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
+                                                                                            isInRange ? 'bg-[#cbd5f5] text-[#32325d]' : 'text-[#4f5b76]'
+                                                                                        }`}
+                                                                                    >
+                                                                                        {day}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                                    </div>
+                                                                                </>
+                                                                            );
+                                                                        })()}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex-1">
+                                                            <label className="block text-[11px] text-[#4f5b76] mb-1">Final</label>
+                                                            <div className="relative">
+                                                                <input
+                                                                    type="text"
+                                                                    value={endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
+                                                                    onClick={() => setShowEndCalendar(!showEndCalendar)}
+                                                                    readOnly
+                                                                    placeholder="DD/MM/YYYY"
+                                                                    className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] cursor-pointer placeholder:text-[#aab2c4]"
+                                                                />
+                                                                {showEndCalendar && (
+                                                                    <div
+                                                                        ref={endCalendarRef}
+                                                                        className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                                    >
+                                                                        {(() => {
+                                                                            const calendarDate = endDate || new Date();
+                                                                            return (
+                                                                                <>
+                                                                                    <div className="flex items-center justify-between mb-4">
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                const newDate = new Date(calendarDate);
+                                                                                                newDate.setMonth(newDate.getMonth() - 1);
+                                                                                                setEndDate(newDate);
+                                                                                            }}
+                                                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                                                        >
+                                                                                            <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                                        </button>
+                                                                                        <div className="text-sm font-semibold text-[#32325d]">
+                                                                                            {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                                        </div>
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                const newDate = new Date(calendarDate);
+                                                                                                newDate.setMonth(newDate.getMonth() + 1);
+                                                                                                setEndDate(newDate);
+                                                                                            }}
+                                                                                            className="p-1 hover:bg-gray-100 rounded"
+                                                                                        >
+                                                                                            <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                                        </button>
+                                                                                    </div>
+                                                                        
+                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                        {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                            <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                                {day}
+                                                                                            </div>
+                                                                                        ))}
+                                                                            
+                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                const isInRange = endDate
+                                                                                    ? day <= endDate.getDate() ||
+                                                                                        endDate.getMonth() !== new Date().getMonth() ||
+                                                                                        endDate.getFullYear() !== new Date().getFullYear()
+                                                                                    : false;
+                                                                                
+                                                                                return (
+                                                                                    <button
+                                                                                        key={day}
+                                                                                        onClick={() => {
+                                                                                            const newDate = new Date(calendarDate);
+                                                                                            newDate.setDate(day);
+                                                                                            setEndDate(newDate);
+                                                                                            setShowEndCalendar(false);
+                                                                                        }}
+                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
+                                                                                            isInRange ? 'bg-[#cbd5f5] text-[#32325d]' : 'text-[#4f5b76]'
+                                                                                        }`}
+                                                                                    >
+                                                                                        {day}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                                    </div>
+                                                                                </>
+                                                                            );
+                                                                        })()}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {dateFilterValue === "en esa fecha o después" && (
+                                                <div className="mb-3 relative">
+                                                    <div className="flex items-center gap-2">
+                                                        <CornerDownRight className="w-4 h-4 text-[#635bff]" />
+                                                        {!showCalendar && selectedDate ? (
+                                                            <button
+                                                                onClick={() => setShowCalendar(true)}
+                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                            >
+                                                                {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setShowCalendar(true)}
+                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                            >
+                                                                DD/MM/YYYY
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {showCalendar && (
+                                                        <div
+                                                            ref={calendarRef}
+                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                        >
+                                                            {(() => {
+                                                                const calendarDate = selectedDate || new Date();
+                                                                const today = new Date();
+                                                                return (
+                                                                    <>
+                                                                        <div className="flex items-center justify-between mb-4">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newDate = new Date(calendarDate);
+                                                                                    newDate.setMonth(newDate.getMonth() - 1);
+                                                                                    setSelectedDate(newDate);
+                                                                                }}
+                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                            >
+                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                            </button>
+                                                                            <div className="text-sm font-semibold text-[#32325d]">
+                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newDate = new Date(calendarDate);
+                                                                                    newDate.setMonth(newDate.getMonth() + 1);
+                                                                                    setSelectedDate(newDate);
+                                                                                }}
+                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                            >
+                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                            </button>
+                                                                        </div>
+
+                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                    {day}
+                                                                                </div>
+                                                                            ))}
+
+                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                const isToday = day === today.getDate() &&
+                                                                                    calendarDate.getMonth() === today.getMonth() &&
+                                                                                    calendarDate.getFullYear() === today.getFullYear();
+                                                                                const isSelected = selectedDate
+                                                                                    ? day === selectedDate.getDate() &&
+                                                                                        calendarDate.getMonth() === selectedDate.getMonth() &&
+                                                                                        calendarDate.getFullYear() === selectedDate.getFullYear()
+                                                                                    : false;
+
+                                                                                return (
+                                                                                    <button
+                                                                                        key={day}
+                                                                                        onClick={() => {
+                                                                                            const newDate = new Date(calendarDate);
+                                                                                            newDate.setDate(day);
+                                                                                            setSelectedDate(newDate);
+                                                                                            setShowCalendar(false);
+                                                                                        }}
+                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
+                                                                                            isToday ? 'bg-[#635bff] text-white' :
+                                                                                            isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
+                                                                                            'text-[#4f5b76]'
+                                                                                        }`}
+                                                                                    >
+                                                                                        {day}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    )}
+                                                    
+                                                </div>
+                                            )}
+
+                                            {dateFilterValue === "es anterior o igual al" && (
+                                                <div className="mb-3 relative">
+                                                    <div className="flex items-center gap-2">
+                                                        <CornerDownRight className="w-4 h-4 text-[#635bff]" />
+                                                        {!showCalendar && selectedDate ? (
+                                                            <button
+                                                                onClick={() => setShowCalendar(true)}
+                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                            >
+                                                                {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setShowCalendar(true)}
+                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                            >
+                                                                DD/MM/YYYY
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {showCalendar && (
+                                                        <div
+                                                            ref={calendarRef}
+                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                        >
+                                                            {(() => {
+                                                                const calendarDate = selectedDate || new Date();
+                                                                const today = new Date();
+                                                                return (
+                                                                    <>
+                                                                        <div className="flex items-center justify-between mb-4">
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newDate = new Date(calendarDate);
+                                                                                    newDate.setMonth(newDate.getMonth() - 1);
+                                                                                    setSelectedDate(newDate);
+                                                                                }}
+                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                            >
+                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                            </button>
+                                                                            <div className="text-sm font-semibold text-[#32325d]">
+                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newDate = new Date(calendarDate);
+                                                                                    newDate.setMonth(newDate.getMonth() + 1);
+                                                                                    setSelectedDate(newDate);
+                                                                                }}
+                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                            >
+                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                            </button>
+                                                                        </div>
+
+                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                    {day}
+                                                                                </div>
+                                                                            ))}
+
+                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                const isToday = day === today.getDate() &&
+                                                                                    calendarDate.getMonth() === today.getMonth() &&
+                                                                                    calendarDate.getFullYear() === today.getFullYear();
+                                                                                const isSelected = selectedDate
+                                                                                    ? day === selectedDate.getDate() &&
+                                                                                        calendarDate.getMonth() === selectedDate.getMonth() &&
+                                                                                        calendarDate.getFullYear() === selectedDate.getFullYear()
+                                                                                    : false;
+
+                                                                                return (
+                                                                                    <button
+                                                                                        key={day}
+                                                                                        onClick={() => {
+                                                                                            const newDate = new Date(calendarDate);
+                                                                                            newDate.setDate(day);
+                                                                                            setSelectedDate(newDate);
+                                                                                            setShowCalendar(false);
+                                                                                        }}
+                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
+                                                                                            isToday ? 'bg-[#635bff] text-white' :
+                                                                                            isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
+                                                                                            'text-[#4f5b76]'
+                                                                                        }`}
+                                                                                    >
+                                                                                        {day}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    )}
+                                                    
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center gap-4 mb-3">
+                                                <p className="text-[12px] font-semibold text-[#32325d]">Zona horaria:</p>
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="timezone"
+                                                        value="GMT-5"
+                                                        checked={timezoneValue === "GMT-5"}
+                                                        onChange={(e) => setTimezoneValue(e.target.value)}
+                                                        className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                                    />
+                                                    <span className="text-[12px] text-[#4f5b76]">GMT-5</span>
+                                                </label>
+                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="timezone"
+                                                        value="UTC"
+                                                        checked={timezoneValue === "UTC"}
+                                                        onChange={(e) => setTimezoneValue(e.target.value)}
+                                                        className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                                    />
+                                                    <span className="text-[12px] text-[#4f5b76]">UTC</span>
+                                                </label>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="flex-1 space-y-4">
-                                        <div className="h-3 w-28 bg-[#0f172a] rounded-sm" />
-                                        <div className="space-y-2">
-                                            <div className="h-2 w-36 bg-gray-100 rounded-full" />
-                                            <div className="h-2 w-32 bg-gray-100 rounded-full" />
-                                            <div className="h-2 w-28 bg-gray-100 rounded-full" />
+
+                                            {dateFilterValue === "entre" ? (
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={clearRangeFilter}
+                                                        className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[12px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                                    >
+                                                        Borra
+                                                    </button>
+                                                    <Button
+                                                        onClick={applyDateFilter}
+                                                        className="flex-1 bg-[#635bff] hover:bg-[#5851e0] text-white font-bold py-1.5 text-[12px] rounded-lg"
+                                                    >
+                                                        Aplicar
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    onClick={applyDateFilter}
+                                                    className="w-full bg-[#635bff] hover:bg-[#5851e0] text-white font-bold py-1.5 text-[12px] rounded-lg"
+                                                >
+                                                    Aplicar
+                                                </Button>
+                                            )}
                                         </div>
-                                        <div className="h-2 w-24 bg-[#0f8f7e] rounded-full" />
+                                    )}
+                                </div>
+                            ))}
+                            {hasActiveFilters && (
+                                <button
+                                    type="button"
+                                    onClick={resetFilters}
+                                    className="text-[12px] font-semibold text-[#635bff] hover:underline"
+                                >
+                                    Borrar los filtros
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]">
+                                <BarChart className="w-4 h-4 text-[#8792a2]" />
+                                Analizar
+                            </button>
+                            <button
+                                onClick={openExportModal}
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
+                            >
+                                <Share2 className="w-4 h-4 text-[#8792a2]" />
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
+                    <div className="px-6 pb-6">
+                        {filteredLinks.length > 0 && (
+                            <div className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 py-4 text-[13px] font-semibold text-[#6b7280] border-b border-gray-200">
+                                <div>Nombre</div>
+                                <div>Precio</div>
+                                <div>Fecha de creación</div>
+                                <div />
+                            </div>
+                        )}
+                        {filteredLinks.length === 0 ? (
+                            <div className="py-16 flex flex-col items-center text-center">
+                                <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                                    <Link2 className="w-6 h-6 text-[#9ca3af]" />
+                                </div>
+                                <h3 className="text-[18px] font-semibold text-[#32325d]">
+                                    No se han encontrado enlaces de pago de prueba
+                                </h3>
+                                <p className="mt-2 text-[14px] text-[#6b7280] max-w-[360px]">
+                                    No se han encontrado resultados para esa consulta. Intenta usar filtros diferentes.
+                                </p>
+                            </div>
+                        ) : (
+                            filteredLinks.map((link) => {
+                                const isActive = link.status === "Activo";
+                                return (
+                                    <div
+                                        key={link.id}
+                                        className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold">{link.name}</span>
+                                            <span className="px-2 py-0.5 rounded-full border border-gray-200 text-[12px] text-[#6b7280]">
+                                                {link.status}
+                                            </span>
+                                        </div>
+                                        <div className="text-[#4f5b76]">
+                                            {link.priceType === "customer_choice"
+                                                ? `A elección del cliente (${link.currencyCode})`
+                                                : link.priceLabel}
+                                        </div>
+                                        <div className="text-[#4f5b76]">{formatPaymentLinkDate(link.createdAt)}</div>
+                                        <div className="relative flex justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setOpenMenuId(openMenuId === link.id ? null : link.id);
+                                                    setShowCopyHintId(null);
+                                                }}
+                                                className="text-[#aab2c4] text-lg leading-none hover:text-[#6b7280]"
+                                            >
+                                                ...
+                                            </button>
+                                            {openMenuId === link.id && (
+                                                <div className="absolute right-0 top-6 z-20">
+                                                    <div
+                                                        ref={menuRef}
+                                                        className="w-56 rounded-xl border border-gray-200 bg-white shadow-xl"
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setRenameTarget(link);
+                                                                setRenameValue(link.name);
+                                                                setOpenMenuId(null);
+                                                                setShowCopyHintId(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50 rounded-t-xl"
+                                                        >
+                                                            Cambiar nombre
+                                                        </button>
+                                                        <div
+                                                            onMouseEnter={() => setShowCopyHintId(link.id)}
+                                                            onMouseLeave={() => setShowCopyHintId(null)}
+                                                            className="border-t border-gray-200 relative"
+                                                        >
+                                                            {showCopyHintId === link.id && (
+                                                                <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 w-[220px] bg-white rounded-xl shadow-xl p-4 z-50 border border-gray-100">
+                                                                    <div className="absolute -right-[6.5px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rotate-45 border-t border-r border-l-0 border-b-0 border-gray-100" />
+                                                                    <p className="text-[#4f5b76] text-[13px] leading-relaxed">
+                                                                        Para copiar los enlaces de pago al modo activo, activa tu cuenta
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                className="w-full text-left px-4 py-2.5 text-[14px] text-[#9ca3af] cursor-not-allowed pointer-events-none"
+                                                            >
+                                                                Copiar a modo activo
+                                                            </button>
+                                                        </div>
+                                                        <div className="border-t border-gray-200">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    onToggleStatus(link.id);
+                                                                    setOpenMenuId(null);
+                                                                }}
+                                                                className={`w-full text-left px-4 py-2.5 text-[14px] rounded-b-xl ${isActive ? "text-[#4f5b76]" : "text-[#635bff]"
+                                                                    }`}
+                                                            >
+                                                                {isActive ? "Desactivar" : "Activar"}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="bg-[#f4f5f7] rounded-2xl border border-gray-100 p-8 lg:p-12 shadow-sm min-h-[320px] lg:min-h-[360px]">
+                    <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-10">
+                        <div className="max-w-xl">
+                            <h2 className="text-[32px] lg:text-[36px] font-bold text-[#32325d] leading-tight">
+                                Crea una página de un proceso
+                                de compra con solo unos clics
+                            </h2>
+                            <p className="mt-4 text-[15px] text-[#4f5b76] leading-relaxed">
+                                Vende productos, ofrece suscripciones o acepta donaciones con un enlace;
+                                no se requiere programación.
+                            </p>
+                            <Button
+                                onClick={onCreateClick}
+                                className="mt-6 bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-5 py-2.5 shadow-sm"
+                            >
+                                Crea un enlace de pago de prueba
+                            </Button>
+                        </div>
+
+                        <div className="w-full lg:w-[420px] flex justify-center lg:justify-end">
+                            <div className="relative w-full max-w-[420px]" aria-hidden="true">
+                                <div className="bg-white rounded-2xl shadow-[0_18px_50px_-30px_rgba(15,23,42,0.4)] p-6">
+                                    <div className="flex gap-6">
+                                        <div className="w-[150px] bg-[#0f8f7e] rounded-xl p-4 flex items-center justify-center">
+                                            <div className="bg-white/90 rounded-lg w-full h-full flex items-center justify-center">
+                                                <div className="relative w-12 h-12">
+                                                    <div className="absolute left-0 bottom-0 w-6 h-6 bg-[#0f8f7e] rounded-sm" />
+                                                    <div className="absolute right-0 top-0 w-6 h-6 bg-[#f59e0b] rounded-sm" />
+                                                    <div className="absolute right-1 bottom-1 w-4 h-4 bg-white rounded-sm" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 space-y-4">
+                                            <div className="h-3 w-28 bg-[#0f172a] rounded-sm" />
+                                            <div className="space-y-2">
+                                                <div className="h-2 w-36 bg-gray-100 rounded-full" />
+                                                <div className="h-2 w-32 bg-gray-100 rounded-full" />
+                                                <div className="h-2 w-28 bg-gray-100 rounded-full" />
+                                            </div>
+                                            <div className="h-2 w-24 bg-[#0f8f7e] rounded-full" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="mt-4 sm:mt-0 sm:absolute sm:-right-6 sm:top-12 bg-white rounded-xl shadow-lg border border-gray-100 px-4 py-3 max-w-[220px]">
-                                <div className="text-[11px] text-[#635bff] font-semibold truncate">buy.antillapay.com/EaUa24H</div>
-                                <div className="mt-2 h-2 w-24 bg-[#635bff] rounded-full" />
+                                <div className="mt-4 sm:mt-0 sm:absolute sm:-right-6 sm:top-12 bg-white rounded-xl shadow-lg border border-gray-100 px-4 py-3 max-w-[220px]">
+                                    <div className="text-[11px] text-[#635bff] font-semibold truncate">buy.antillapay.com/EaUa24H</div>
+                                    <div className="mt-2 h-2 w-24 bg-[#635bff] rounded-full" />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            )
+            }
+            {
+                renameTarget && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <div className="space-y-1">
+                                    <h3 className="text-[20px] font-semibold text-[#1a1f36]">Cambiar nombre</h3>
+                                    <p className="text-[14px] text-[#6b7280]">
+                                        Este nombre solo aparece en el Dashboard de AntillaPay, y tus clientes no lo verán.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setRenameTarget(null)}
+                                    className="rounded-xl border border-[#93c5fd] p-2 text-[#1f2937] hover:bg-[#eff6ff]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="px-6 py-5 border-b border-gray-200">
+                                <label className="block text-[14px] font-semibold text-[#1f2937] mb-2">Nombre</label>
+                                <input
+                                    ref={renameInputRef}
+                                    type="text"
+                                    maxLength={250}
+                                    value={renameValue}
+                                    onChange={(event) => setRenameValue(event.target.value)}
+                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[14px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                />
+                                <div className="mt-2 text-right text-[12px] text-[#6b7280]">
+                                    {renameValue.length}/250 caracteres
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 px-6 py-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setRenameTarget(null)}
+                                    className="rounded-lg border border-gray-300 px-4 py-2 text-[14px] font-semibold text-[#374151] hover:bg-gray-50"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!renameValue.trim()}
+                                    onClick={() => {
+                                        const nextName = renameValue.trim();
+                                        if (nextName) {
+                                            onRenameLink(renameTarget.id, nextName);
+                                        }
+                                        setRenameTarget(null);
+                                    }}
+                                    className={`rounded-lg px-4 py-2 text-[14px] font-semibold text-white ${renameValue.trim()
+                                        ? "bg-[#635bff] hover:bg-[#5851e0]"
+                                        : "bg-[#c4c7ff] cursor-not-allowed"
+                                        }`}
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+            {exportStep && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 px-4">
+                    {exportStep === "form" && (
+                        <div className="w-full max-w-[600px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar enlaces de pago</h3>
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="px-6 py-5 space-y-6">
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-2">Zona horaria</div>
+                                    <div className="flex flex-wrap items-center gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-timezone"
+                                                value="GMT-5"
+                                                checked={exportTimezone === "GMT-5"}
+                                                onChange={(event) => setExportTimezone(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">GMT-5 (UTC-05:00)</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-timezone"
+                                                value="UTC"
+                                                checked={exportTimezone === "UTC"}
+                                                onChange={(event) => setExportTimezone(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">UTC</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-3">Intervalo de fechas</div>
+                                    <div className="space-y-2">
+                                        {exportRangeOptions.map((option) => (
+                                            <label
+                                                key={option}
+                                                className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="radio"
+                                                        name="export-range"
+                                                        value={option}
+                                                        checked={exportRange === option}
+                                                        onChange={(event) => setExportRange(event.target.value)}
+                                                        className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                                    />
+                                                    <span className="text-[13px] text-[#32325d]">{option}</span>
+                                                </div>
+                                                <span className="text-[12px] text-[#6b7280]">{getExportRangeLabel(option)}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+
+                                    {isCustomExportRange && (
+                                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] text-[#6b7280]">Inicio</label>
+                                                <input
+                                                    type="date"
+                                                    value={exportCustomStart}
+                                                    max={exportCustomEnd || todayInputValue}
+                                                    onChange={(event) => {
+                                                        const nextValue = event.target.value;
+                                                        setExportCustomStart(nextValue);
+                                                        if (exportCustomEnd && nextValue && nextValue > exportCustomEnd) {
+                                                            setExportCustomEnd(nextValue);
+                                                        }
+                                                    }}
+                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] text-[#6b7280]">Final</label>
+                                                <input
+                                                    type="date"
+                                                    value={exportCustomEnd}
+                                                    min={exportCustomStart}
+                                                    max={todayInputValue}
+                                                    onChange={(event) => {
+                                                        const nextValue = event.target.value;
+                                                        setExportCustomEnd(nextValue);
+                                                        if (exportCustomStart && nextValue && nextValue < exportCustomStart) {
+                                                            setExportCustomStart(nextValue);
+                                                        }
+                                                    }}
+                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-2">Columnas</div>
+                                    <p className="text-[12px] text-[#6b7280]">{exportColumns.join(", ")}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] font-semibold text-[#374151] hover:bg-gray-50"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={!isExportReady}
+                                    onClick={handleExport}
+                                    className={`rounded-lg px-4 py-2 text-[13px] font-semibold text-white ${isExportReady
+                                        ? "bg-[#635bff] hover:bg-[#5851e0]"
+                                        : "bg-[#c4c7ff] cursor-not-allowed"
+                                        }`}
+                                >
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {exportStep === "loading" && (
+                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
+                                <button
+                                    type="button"
+                                    onClick={cancelExportLoading}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="px-6 py-10 flex flex-col items-center gap-4">
+                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-full animate-spin" />
+                                <p className="text-[14px] text-[#6b7280]">Preparando exportación...</p>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={cancelExportLoading}
+                                    className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] font-semibold text-[#374151] hover:bg-gray-50"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {exportStep === "empty" && (
+                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="px-6 py-6">
+                                <p className="text-[14px] text-[#4f5b76] leading-relaxed">
+                                    No hemos podido encontrar ningún dato para export según lo que has seleccionado.
+                                    Ajusta los filtros y vuelve a intentarlo.
+                                </p>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-lg bg-[#635bff] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#5851e0]"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {exportStep === "success" && (
+                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                                    aria-label="Cerrar"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="px-6 py-6">
+                                <p className="text-[14px] text-[#4f5b76] leading-relaxed">
+                                    Tu export ha finalizado. Si no ves el archivo,{" "}
+                                    <button
+                                        type="button"
+                                        onClick={handleExportDownload}
+                                        className="text-[#635bff] font-medium hover:underline"
+                                    >
+                                        puedes intentar descargarlo nuevamente
+                                    </button>
+                                    .
+                                </p>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={resetExportFlow}
+                                    className="rounded-lg bg-[#635bff] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#5851e0]"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div >
     );
 };
 
@@ -405,6 +2177,12 @@ export default function Dashboard() {
     const [showVerifyEmailModal, setShowVerifyEmailModal] = useState(false);
     const [showCustomizeModal, setShowCustomizeModal] = useState(false);
     const [customizeStep, setCustomizeStep] = useState("form");
+    const [selectedProductId, setSelectedProductId] = useState(null);
+    const [paymentLinks, setPaymentLinks] = useState(() => {
+        if (typeof window === "undefined") return [];
+        const stored = window.localStorage.getItem("antillapay_payment_links");
+        return stored ? JSON.parse(stored) : [];
+    });
     const [activeView, setActiveView] = useState(() => {
         const path = location.pathname.toLowerCase();
         if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
@@ -424,17 +2202,64 @@ export default function Dashboard() {
     }, [completedTasks]);
 
     useEffect(() => {
+        if (typeof window === "undefined") return;
+        window.localStorage.setItem("antillapay_payment_links", JSON.stringify(paymentLinks));
+    }, [paymentLinks]);
+
+    const handleRenamePaymentLink = (id, name) => {
+        setPaymentLinks((prev) =>
+            prev.map((link) => (link.id === id ? { ...link, name } : link))
+        );
+    };
+
+    const handleTogglePaymentLinkStatus = (id) => {
+        setPaymentLinks((prev) =>
+            prev.map((link) =>
+                link.id === id
+                    ? { ...link, status: link.status === "Activo" ? "Desactivado" : "Activo" }
+                    : link
+            )
+        );
+    };
+
+    useEffect(() => {
+        const newLink = location.state?.newPaymentLink;
+        if (!newLink) return;
+        setPaymentLinks((prev) => {
+            if (prev.some((link) => link.id === newLink.id)) {
+                return prev;
+            }
+            return [newLink, ...prev];
+        });
+        navigate(location.pathname, { replace: true, state: null });
+    }, [location.state, location.pathname, navigate]);
+
+    useEffect(() => {
         const path = location.pathname.toLowerCase();
         if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
             setActiveView("customers");
+            setSelectedProductId(null);
             return;
         }
         if (path.startsWith("/dashboard/payment-links")) {
             setActiveView("payments_links");
+            setSelectedProductId(null);
+            return;
+        }
+        if (path.startsWith("/dashboard/products/")) {
+            const parts = path.split("/");
+            setSelectedProductId(parts[3] || null);
+            setActiveView("product_detail");
+            return;
+        }
+        if (path.startsWith("/dashboard/product-catalog")) {
+            setActiveView("product_catalog");
+            setSelectedProductId(null);
             return;
         }
         if (path.startsWith("/dashboard")) {
             setActiveView("home");
+            setSelectedProductId(null);
         }
     }, [location.pathname]);
 
@@ -469,7 +2294,7 @@ export default function Dashboard() {
     const [showCalendar, setShowCalendar] = useState(false);
     const [showMetricDropdown, setShowMetricDropdown] = useState(false);
     const [selectedMetric, setSelectedMetric] = useState("Volumen neto");
-    const [selectedDate, setSelectedDate] = useState(new Date(2026, 0, 18));
+    const [selectedDate] = useState(new Date(2026, 0, 18));
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -499,7 +2324,7 @@ export default function Dashboard() {
             setCompanyWebsite(parsed.companyWebsite ?? "");
             setSelectedSetupOptions(parsed.selectedSetupOptions ?? []);
             setCustomizeStep(parsed.customizeStep ?? "form");
-        } catch (error) {
+        } catch {
             // Ignore malformed storage for demo.
         }
     }, []);
@@ -616,9 +2441,14 @@ export default function Dashboard() {
         setCustomizeStep("form");
         setShowCustomizeModal(true);
     };
+    const isTestMode = environment === "test";
     return (
-        <div className="flex h-screen w-full bg-[#f6f9fc] overflow-hidden font-sans relative flex-col">
-
+        <div className={cn(
+            "flex h-screen w-full overflow-hidden font-sans relative flex-col",
+            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                ? "bg-white"
+                : "bg-[#f6f9fc]"
+        )}>
             <AnimatePresence>
                 {showVerifyEmailModal && (
                     <>
@@ -1133,11 +2963,10 @@ export default function Dashboard() {
                         />
                     </nav>
 
-                    <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-                        <SidebarItem icon={LayoutDashboard} label="Desarrolladores" />
-                    </div>
-                </aside>
-
+                <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+                    <SidebarItem icon={LayoutDashboard} label="Desarrolladores" />
+                </div>
+            </aside>
                 {/* Main Content */}
                 <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
                     <DashboardHeader
@@ -1150,10 +2979,22 @@ export default function Dashboard() {
                         onGuide={handleGuide}
                     />
 
-                    {/* Content Area */}
-                    <div ref={contentRef} className="flex-1 overflow-y-auto p-10">
-                        <div className="max-w-6xl mx-auto">
-                            <AnimatePresence mode="wait">
+                {/* Content Area */}
+                <div
+                    ref={contentRef}
+                    className={cn(
+                        "flex-1 overflow-y-auto",
+                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                            ? "p-8 bg-white"
+                            : "p-10"
+                    )}
+                >
+                    <div className={cn(
+                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                            ? "w-full"
+                            : "max-w-6xl mx-auto"
+                    )}>
+                        <AnimatePresence mode="wait">
                                 {activeView === "home" ? (
                                     <motion.div
                                         key="home-view"
@@ -1550,6 +3391,22 @@ export default function Dashboard() {
                                         <DashboardCardsSection referenceDate={selectedDate} />
                                     </div>
                                 </motion.div>
+                            ) : activeView === "payments_links" ? (
+                                <motion.div
+                                    key="payments_links_view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <PaymentLinksView
+                                        onCreateClick={() => navigate("/dashboard/payment-links/create")}
+                                        paymentLinks={paymentLinks}
+                                        onRenameLink={handleRenamePaymentLink}
+                                        onToggleStatus={handleTogglePaymentLinkStatus}
+                                        testMode={isTestMode}
+                                    />
+                                </motion.div>
                             ) : activeView === "customers" ? (
                                 <motion.div
                                     key="customers-view"
@@ -1560,17 +3417,27 @@ export default function Dashboard() {
                                 >
                                     <CustomersPage />
                                 </motion.div>
-                            ) : (
+                            ) : activeView === "product_catalog" ? (
                                 <motion.div
-                                    key="payments_links_view"
+                                    key="product_catalog_view"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <PaymentLinksView onCreateClick={() => navigate("/dashboard/payment-links/create")} />
+                                    <ProductCatalog />
                                 </motion.div>
-                            )}
+                            ) : activeView === "product_detail" ? (
+                                <motion.div
+                                    key="product_detail_view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <ProductDetail productId={selectedProductId} />
+                                </motion.div>
+                            ) : null}
                         </AnimatePresence>
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import Layout from "./Layout.jsx";
 import Home from "./Home";
 
 import Products from "./Products";
+import ProductCreate from "./ProductCreate";
 
 import Pricing from "./Pricing";
 
@@ -164,6 +165,7 @@ function PagesContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard/payment-links/create" element={<PaymentLinksCreate />} />
+            <Route path="/dashboard/products/create" element={<ProductCreate />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/customers" element={<Dashboard />} />
             <Route path="/*" element={
