@@ -14,12 +14,17 @@ import {
     X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const PRODUCT_TABS = [
     "Todos los productos"
 ];
 const DAY_MS = 24 * 60 * 60 * 1000;
+const PRODUCT_STATUS_STYLES = {
+    Activo: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    Archivado: "bg-slate-50 text-slate-700 border-slate-200"
+};
 
 const formatProductDate = (dateValue) => {
     const date = new Date(dateValue);
@@ -85,12 +90,14 @@ export default function ProductCatalog() {
     const [showCopyHintId, setShowCopyHintId] = useState(null);
     const [exportStep, setExportStep] = useState(null);
     const [exportType, setExportType] = useState("products");
+    const [exportFormat, setExportFormat] = useState("csv");
     const [exportTimezone, setExportTimezone] = useState("GMT-5");
     const [exportRange, setExportRange] = useState("Hoy");
     const [exportCustomStart, setExportCustomStart] = useState("");
     const [exportCustomEnd, setExportCustomEnd] = useState("");
     const [exportCsvContent, setExportCsvContent] = useState("");
     const [exportFilename, setExportFilename] = useState("");
+    const [exportMimeType, setExportMimeType] = useState("text/csv;charset=utf-8;");
 
     const statusFilterRef = useRef(null);
     const statusDropdownRef = useRef(null);
@@ -339,6 +346,16 @@ export default function ProductCatalog() {
         }).join("\n");
         return `${header}\n${body}`;
     };
+    const buildProductsExportRows = (rows) => rows.map((product) => {
+        const createdAt = new Date(product.createdAt || product.created_at || "");
+        const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
+        return [
+            product.id || "",
+            product.name || "",
+            createdAtValue,
+            product.description || ""
+        ];
+    });
     const buildPricesExportCsv = (rows) => {
         const header = exportColumnsByType.prices.join(",");
         const body = rows.map(({ product, price }) => {
@@ -356,8 +373,32 @@ export default function ProductCatalog() {
         }).join("\n");
         return `${header}\n${body}`;
     };
-    const downloadCsv = (csvContent, filename) => {
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const buildPricesExportRows = (rows) => rows.map(({ product, price }) => {
+        const createdAt = new Date(price.createdAt || product.createdAt || product.created_at || "");
+        const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
+        return [
+            price.id || "",
+            product.id || "",
+            product.name || "",
+            createdAtValue,
+            price.currency || product.currency || "",
+            price.amount ?? ""
+        ];
+    });
+    const buildSpreadsheetHtml = (headers, rows) => {
+        const escapeHtml = (value) => String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        const headerRow = `<tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>`;
+        const bodyRows = rows.map((row) =>
+            `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`
+        ).join("");
+        return `<!DOCTYPE html><html><head><meta charset="utf-8" /></head><body><table>${headerRow}${bodyRows}</table></body></html>`;
+    };
+    const downloadFile = (content, filename, mimeType) => {
+        const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -375,6 +416,7 @@ export default function ProductCatalog() {
         setExportStep(null);
         setExportCsvContent("");
         setExportFilename("");
+        setExportMimeType("text/csv;charset=utf-8;");
     };
     const openExportModal = (type) => {
         if (exportTimerRef.current) {
@@ -382,6 +424,7 @@ export default function ProductCatalog() {
             exportTimerRef.current = null;
         }
         setExportType(type);
+        setExportFormat("csv");
         setExportTimezone("GMT-5");
         setExportRange("Hoy");
         setExportCustomStart("");
@@ -404,6 +447,7 @@ export default function ProductCatalog() {
                 return dateMs >= startUtcMs && dateMs <= endUtcMs;
             };
             let csvContent = "";
+            let mimeType = "text/csv;charset=utf-8;";
             let rowsCount = 0;
 
             if (exportType === "prices") {
@@ -412,7 +456,12 @@ export default function ProductCatalog() {
                 ).filter(({ product, price }) => isInRange(price.createdAt || product.createdAt || product.created_at || ""));
                 rowsCount = priceRows.length;
                 if (rowsCount > 0) {
-                    csvContent = buildPricesExportCsv(priceRows);
+                    if (exportFormat === "xlsx") {
+                        csvContent = buildSpreadsheetHtml(exportColumnsByType.prices, buildPricesExportRows(priceRows));
+                        mimeType = "application/vnd.ms-excel";
+                    } else {
+                        csvContent = buildPricesExportCsv(priceRows);
+                    }
                 }
             } else {
                 const productRows = products.filter((product) =>
@@ -420,7 +469,12 @@ export default function ProductCatalog() {
                 );
                 rowsCount = productRows.length;
                 if (rowsCount > 0) {
-                    csvContent = buildProductsExportCsv(productRows);
+                    if (exportFormat === "xlsx") {
+                        csvContent = buildSpreadsheetHtml(exportColumnsByType.products, buildProductsExportRows(productRows));
+                        mimeType = "application/vnd.ms-excel";
+                    } else {
+                        csvContent = buildProductsExportCsv(productRows);
+                    }
                 }
             }
 
@@ -431,16 +485,18 @@ export default function ProductCatalog() {
 
             const nowParts = getNowPartsForTimezone(exportTimezone);
             const fileDate = `${nowParts.year}-${String(nowParts.month + 1).padStart(2, "0")}-${String(nowParts.day).padStart(2, "0")}`;
-            const filename = exportType === "prices" ? `precios-${fileDate}.csv` : `productos-${fileDate}.csv`;
+            const extension = exportFormat === "xlsx" ? "xlsx" : "csv";
+            const filename = exportType === "prices" ? `precios-${fileDate}.${extension}` : `productos-${fileDate}.${extension}`;
             setExportCsvContent(csvContent);
             setExportFilename(filename);
+            setExportMimeType(mimeType);
             setExportStep("success");
-            downloadCsv(csvContent, filename);
+            downloadFile(csvContent, filename, mimeType);
         }, 1200);
     };
     const handleExportDownload = () => {
         if (!exportCsvContent) return;
-        downloadCsv(exportCsvContent, exportFilename || "export.csv");
+        downloadFile(exportCsvContent, exportFilename || "export.csv", exportMimeType);
     };
     const cancelExportLoading = () => {
         resetExportFlow();
@@ -1458,12 +1514,19 @@ export default function ProductCatalog() {
                             <div className="flex items-center gap-2 text-[#4f5b76]">
                                 <span>{formatProductPrice(product)}</span>
                                 {product.prices && product.prices.length > 1 && (
-                                    <span className="px-2 py-0.5 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
+                                    <span className="px-2 py-0.5 rounded border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
                                         {product.prices.length} tarifas
                                     </span>
                                 )}
                             </div>
-                            <div className="text-[#4f5b76]">{product.status}</div>
+                            <div className="text-[#4f5b76]">
+                                <Badge
+                                    variant="outline"
+                                    className={cn("border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
+                                >
+                                    {product.status}
+                                </Badge>
+                            </div>
                             <div className="text-[#4f5b76]">{formatProductDate(product.createdAt)}</div>
                             <div className="relative flex justify-end">
                                 <button
@@ -1608,6 +1671,34 @@ export default function ProductCatalog() {
                             </div>
 
                             <div className="px-6 py-5 space-y-6">
+                                <div>
+                                    <div className="text-[13px] font-semibold text-[#32325d] mb-2">Formato</div>
+                                    <div className="flex flex-wrap items-center gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-format"
+                                                value="csv"
+                                                checked={exportFormat === "csv"}
+                                                onChange={(event) => setExportFormat(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">CSV</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="export-format"
+                                                value="xlsx"
+                                                checked={exportFormat === "xlsx"}
+                                                onChange={(event) => setExportFormat(event.target.value)}
+                                                className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                            />
+                                            <span className="text-[12px] text-[#4f5b76]">Excel (.xlsx)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <div className="text-[13px] font-semibold text-[#32325d] mb-2">Zona horaria</div>
                                     <div className="flex flex-wrap items-center gap-4">

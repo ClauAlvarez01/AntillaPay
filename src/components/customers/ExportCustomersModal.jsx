@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
     Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle
+    DialogContent
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const COLUMN_OPTIONS = [
     { id: "name", label: "Nombre" },
@@ -102,121 +94,157 @@ export default function ExportCustomersModal({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="sm:max-w-[520px]"
+                className="sm:max-w-[600px] rounded-2xl border border-gray-200 p-0 [&>button]:hidden"
                 aria-labelledby="export-customers-title"
                 aria-describedby="export-customers-description"
             >
-                <DialogHeader>
-                    <DialogTitle id="export-customers-title">Exportar clientes</DialogTitle>
-                    <DialogDescription id="export-customers-description">
-                        Elige el formato y el alcance de los datos.
-                    </DialogDescription>
-                </DialogHeader>
+                <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                    <div>
+                        <h3 id="export-customers-title" className="text-[18px] font-semibold text-[#1a1f36]">
+                            Exportar clientes
+                        </h3>
+                        <p id="export-customers-description" className="text-[13px] text-[#6b7280] mt-1">
+                            Elige el formato y el alcance de los datos.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => onOpenChange(false)}
+                        className="rounded-xl border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563]"
+                        aria-label="Cerrar"
+                        disabled={isExporting}
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
 
-                <div className="space-y-6">
-                    <div className="space-y-3">
-                        <div className="text-[12px] font-semibold text-[#4f5b76] uppercase tracking-wide">
-                            Formato
+                <div className="px-6 py-5 space-y-6">
+                    <div>
+                        <div className="text-[13px] font-semibold text-[#32325d] mb-2">Formato</div>
+                        <div className="flex flex-wrap items-center gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="export-format"
+                                    value="csv"
+                                    checked={format === "csv"}
+                                    onChange={(event) => setFormat(event.target.value)}
+                                    className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                />
+                                <span className="text-[12px] text-[#4f5b76]">CSV</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="export-format"
+                                    value="xlsx"
+                                    checked={format === "xlsx"}
+                                    onChange={(event) => setFormat(event.target.value)}
+                                    className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                />
+                                <span className="text-[12px] text-[#4f5b76]">Excel (.xlsx)</span>
+                            </label>
                         </div>
-                        <RadioGroup value={format} onValueChange={setFormat} className="grid gap-3">
-                            {[
-                                { value: "csv", label: "CSV" },
-                                { value: "xlsx", label: "Excel (.xlsx)" }
-                            ].map((option) => (
-                                <div key={option.value} className="flex items-center gap-3">
-                                    <RadioGroupItem value={option.value} id={`format-${option.value}`} />
-                                    <Label htmlFor={`format-${option.value}`} className="text-[13px] text-[#32325d]">
-                                        {option.label}
-                                    </Label>
-                                </div>
-                            ))}
-                        </RadioGroup>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="text-[12px] font-semibold text-[#4f5b76] uppercase tracking-wide">
-                            Alcance
+                    <div>
+                        <div className="text-[13px] font-semibold text-[#32325d] mb-2">Alcance</div>
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="export-scope"
+                                    value="all"
+                                    checked={scope === "all"}
+                                    onChange={(event) => setScope(event.target.value)}
+                                    className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                />
+                                <span className="text-[13px] text-[#32325d]">Todos los clientes</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="export-scope"
+                                    value="filtered"
+                                    checked={scope === "filtered"}
+                                    onChange={(event) => setScope(event.target.value)}
+                                    className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                />
+                                <span className="text-[13px] text-[#32325d]">Solo resultados filtrados</span>
+                            </label>
+                            <label className={cn("flex items-center gap-2 cursor-pointer", !hasSelection && "opacity-50")}>
+                                <input
+                                    type="radio"
+                                    name="export-scope"
+                                    value="selected"
+                                    checked={scope === "selected"}
+                                    onChange={(event) => setScope(event.target.value)}
+                                    className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                    disabled={!hasSelection}
+                                />
+                                <span className="text-[13px] text-[#32325d]">Solo seleccionados</span>
+                            </label>
                         </div>
-                        <RadioGroup value={scope} onValueChange={setScope} className="grid gap-3">
-                            <div className="flex items-center gap-3">
-                                <RadioGroupItem value="all" id="scope-all" />
-                                <Label htmlFor="scope-all" className="text-[13px] text-[#32325d]">
-                                    Todos los clientes
-                                </Label>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <RadioGroupItem value="filtered" id="scope-filtered" />
-                                <Label htmlFor="scope-filtered" className="text-[13px] text-[#32325d]">
-                                    Solo resultados filtrados
-                                </Label>
-                            </div>
-                            <div className={cn("flex items-center gap-3", !hasSelection && "opacity-50")}>
-                                <RadioGroupItem value="selected" id="scope-selected" disabled={!hasSelection} />
-                                <Label htmlFor="scope-selected" className="text-[13px] text-[#32325d]">
-                                    Solo seleccionados
-                                </Label>
-                            </div>
-                        </RadioGroup>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="text-[12px] font-semibold text-[#4f5b76] uppercase tracking-wide">
-                            Columnas
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <Checkbox
-                                id="use-current-columns"
+                    <div>
+                        <div className="text-[13px] font-semibold text-[#32325d] mb-2">Columnas</div>
+                        <label className="flex items-start gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
                                 checked={useCurrentColumns}
-                                onCheckedChange={(value) => setUseCurrentColumns(Boolean(value))}
+                                onChange={(event) => setUseCurrentColumns(event.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#635bff] focus:ring-[#93c5fd]"
                             />
                             <div className="space-y-1">
-                                <Label htmlFor="use-current-columns" className="text-[13px] text-[#32325d]">
+                                <span className="text-[13px] text-[#32325d]">
                                     Usar la configuración actual de columnas
-                                </Label>
+                                </span>
                                 <p className="text-[12px] text-[#8792a2]">
                                     Exporta las columnas visibles y el orden actual.
                                 </p>
                             </div>
-                        </div>
+                        </label>
                         {!useCurrentColumns && (
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 mt-3">
                                 {COLUMN_OPTIONS.map((column) => (
-                                    <div key={column.id} className="flex items-center gap-2">
-                                        <Checkbox
-                                            id={`column-${column.id}`}
+                                    <label key={column.id} className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
                                             checked={selectedColumns.includes(column.id)}
-                                            onCheckedChange={() => handleToggleColumn(column.id)}
+                                            onChange={() => handleToggleColumn(column.id)}
+                                            className="h-4 w-4 rounded border-gray-300 text-[#635bff] focus:ring-[#93c5fd]"
                                         />
-                                        <Label htmlFor={`column-${column.id}`} className="text-[12px] text-[#4f5b76]">
-                                            {column.label}
-                                        </Label>
-                                    </div>
+                                        <span className="text-[12px] text-[#4f5b76]">{column.label}</span>
+                                    </label>
                                 ))}
                             </div>
                         )}
                     </div>
                 </div>
 
-                <DialogFooter className="gap-2">
-                    <Button
+                <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                    <button
                         type="button"
-                        variant="outline"
-                        className="rounded-md border-gray-200"
                         onClick={() => onOpenChange(false)}
+                        className="rounded-lg border border-gray-300 px-4 py-2 text-[13px] font-semibold text-[#374151] hover:bg-gray-50"
                         disabled={isExporting}
                     >
                         Cancelar
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                         type="button"
-                        className="rounded-md bg-[#635bff] text-white hover:bg-[#5851e0]"
                         onClick={handleExport}
                         disabled={isExportDisabled}
+                        className={`rounded-lg px-4 py-2 text-[13px] font-semibold text-white ${isExportDisabled
+                            ? "bg-[#c4c7ff] cursor-not-allowed"
+                            : "bg-[#635bff] hover:bg-[#5851e0]"
+                            }`}
                     >
                         {isExporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Exportar
-                    </Button>
-                </DialogFooter>
+                    </button>
+                </div>
             </DialogContent>
         </Dialog>
     );

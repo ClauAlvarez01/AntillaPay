@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Plus, Search, User } from "lucide-react";
+import { Plus, Search, Upload, User } from "lucide-react";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -144,21 +144,21 @@ const FilterPill = ({ label, active, onClick }) => (
 );
 
 const EmptyState = ({ onAdd }) => (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white p-16 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f4f5f7]">
+    <div className="flex flex-col items-center text-center gap-3 py-16">
+        <div className="w-12 h-12 rounded-xl bg-[#f4f5f7] flex items-center justify-center">
             <User className="h-5 w-5 text-[#aab2c4]" />
         </div>
-        <h3 className="mt-4 text-[18px] font-semibold text-[#32325d]">Agrega tu primer cliente de prueba</h3>
-        <p className="mt-2 max-w-md text-[14px] text-[#697386]">
+        <h3 className="text-[18px] font-semibold text-[#32325d]">Agrega tu primer cliente de prueba</h3>
+        <p className="max-w-md text-[14px] text-[#697386]">
             Cobra a clientes con facturas unicas o recurrentes, o suscripciones.
         </p>
-        <a href="#" className="mt-3 text-[13px] font-semibold text-[#635bff] hover:underline">
+        <a href="#" className="text-[13px] font-semibold text-[#635bff] hover:underline">
             Aprender mas ->
         </a>
         <Button
             type="button"
             onClick={onAdd}
-            className="mt-6 rounded-full bg-[#635bff] px-4 text-white hover:bg-[#5851e0]"
+            className="mt-2 rounded-full bg-[#635bff] px-4 text-white hover:bg-[#5851e0]"
         >
             <Plus className="h-4 w-4" />
             Agregar un cliente de prueba
@@ -452,16 +452,17 @@ export default function CustomersPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="rounded-full border-gray-200 text-[12px] text-[#4f5b76] hover:text-[#32325d]"
+                        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
                         onClick={() => setIsExportModalOpen(true)}
                     >
+                        <Upload className="w-4 h-4 text-[#8792a2]" />
                         Exportar
                     </Button>
                     <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="rounded-full border-gray-200 text-[12px] text-[#4f5b76] hover:text-[#32325d]"
+                        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
                         onClick={handleEditColumns}
                     >
                         Editar columnas
@@ -472,7 +473,7 @@ export default function CustomersPage() {
             {customers.length === 0 ? (
                 <EmptyState onAdd={() => setIsDialogOpen(true)} />
             ) : (
-                <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <div className="rounded-2xl border border-gray-100 bg-white">
                     <div className="max-h-[520px] overflow-auto">
                         <Table>
                             <TableHeader className="sticky top-0 z-10 bg-white">
