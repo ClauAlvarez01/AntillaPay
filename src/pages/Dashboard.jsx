@@ -38,6 +38,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import PaymentLinkDetail from "./PaymentLinkDetail";
+import ProductCatalog from "@/pages/ProductCatalog";
+import ProductDetail from "@/pages/ProductDetail";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -1982,6 +1984,7 @@ export default function Dashboard() {
     const [showCustomizeModal, setShowCustomizeModal] = useState(false);
     const [customizeStep, setCustomizeStep] = useState("form");
     const [activeView, setActiveView] = useState("home");
+    const [selectedProductId, setSelectedProductId] = useState(null);
     const [paymentLinks, setPaymentLinks] = useState(() => {
         if (typeof window === "undefined") return [];
         const stored = window.localStorage.getItem("antillapay_payment_links");
@@ -2035,8 +2038,20 @@ export default function Dashboard() {
             setActiveView(isDetail ? "payment_link_detail" : "payments_links");
             return;
         }
-        if (path.startsWith("/dashboard")) {
+        if (lowerPath.startsWith("/dashboard/products/")) {
+            const parts = path.split("/");
+            setSelectedProductId(parts[3] || null);
+            setActiveView("product_detail");
+            return;
+        }
+        if (lowerPath.startsWith("/dashboard/product-catalog")) {
+            setActiveView("product_catalog");
+            setSelectedProductId(null);
+            return;
+        }
+        if (lowerPath.startsWith("/dashboard")) {
             setActiveView("home");
+            setSelectedProductId(null);
         }
     }, [location.pathname]);
 
@@ -2157,6 +2172,9 @@ export default function Dashboard() {
         <div className={cn(
             "flex h-screen w-full overflow-hidden font-sans relative",
             activeView === "payments_links" || activeView === "payment_link_detail" ? "bg-white" : "bg-[#f6f9fc]"
+            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                ? "bg-white"
+                : "bg-[#f6f9fc]"
         )}>
 
             <AnimatePresence>
@@ -2636,7 +2654,12 @@ export default function Dashboard() {
                     <SidebarItem icon={DollarSign} label="Saldos" />
                     <SidebarItem icon={ArrowLeftRight} label="Transacciones" />
                     <SidebarItem icon={Users} label="Clientes" />
-                    <SidebarItem icon={Package} label="Catálogo de productos" />
+                    <SidebarItem
+                        icon={Package}
+                        label="Catálogo de productos"
+                        active={activeView === "product_catalog" || activeView === "product_detail"}
+                        onClick={() => navigate("/dashboard/product-catalog")}
+                    />
 
                     <div className="pt-6 pb-2 px-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">
                         Productos
@@ -2796,6 +2819,14 @@ export default function Dashboard() {
                 )}>
                     <div className={cn(
                         activeView === "payments_links" || activeView === "payment_link_detail" ? "w-full" : "max-w-6xl mx-auto"
+                    activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                        ? "p-8 bg-white"
+                        : "p-10"
+                )}>
+                    <div className={cn(
+                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail"
+                            ? "w-full"
+                            : "max-w-6xl mx-auto"
                     )}>
                         <AnimatePresence mode="wait">
                             {activeView === "home" ? (
@@ -3314,7 +3345,27 @@ export default function Dashboard() {
                                         testMode={testMode}
                                     />
                                 </motion.div>
-                            )}
+                            ) : activeView === "product_catalog" ? (
+                                <motion.div
+                                    key="product_catalog_view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <ProductCatalog />
+                                </motion.div>
+                            ) : activeView === "product_detail" ? (
+                                <motion.div
+                                    key="product_detail_view"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <ProductDetail productId={selectedProductId} />
+                                </motion.div>
+                            ) : null}
                         </AnimatePresence>
                     </div>
                 </div>
