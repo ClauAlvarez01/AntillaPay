@@ -2936,7 +2936,12 @@ export default function Dashboard() {
                             active={activeView === "customers"}
                             onClick={() => navigate("/customers")}
                         />
-                        <SidebarItem icon={Package} label="Catálogo de productos" />
+                        <SidebarItem
+                            icon={Package}
+                            label="Catálogo de productos"
+                            active={activeView === "product_catalog"}
+                            onClick={() => navigate("/dashboard/product-catalog")}
+                        />
 
                         <div className="pt-6 pb-2 px-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">
                             Productos
