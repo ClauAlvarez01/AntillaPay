@@ -292,7 +292,10 @@ export default function BalancesPage({ onOpenReport }) {
                                                     {formatCurrency(transfer.amount)}
                                                 </TableCell>
                                                 <TableCell className="py-4">
-                                                    <Badge variant="outline" className={cn("text-[11px] font-bold uppercase tracking-wider px-2 py-0.5", STATUS_STYLES[transfer.status])}>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={cn("rounded-full border text-[11px] font-semibold capitalize", STATUS_STYLES[transfer.status])}
+                                                    >
                                                         {transfer.status}
                                                     </Badge>
                                                 </TableCell>

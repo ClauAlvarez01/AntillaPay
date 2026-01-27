@@ -1024,7 +1024,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                         <Badge
                                                             variant="outline"
                                                             className={cn(
-                                                                "text-[10px] font-bold uppercase tracking-wider px-2 py-0 h-5 border rounded-md",
+                                                                "rounded-full border text-[11px] font-semibold capitalize",
                                                                 STATUS_STYLES[transfer.status]
                                                             )}
                                                         >
