@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MoreHorizontal, Plus, Search, Upload, User } from "lucide-react";
+import { Plus, Search, Upload, User } from "lucide-react";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,6 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import {
     Dialog,
     DialogContent,
@@ -115,8 +109,7 @@ const DEFAULT_COLUMNS = [
     { key: "createdAt", label: "Creado", visible: true },
     { key: "type", label: "Tipo", visible: true },
     { key: "balance", label: "Saldo", visible: true },
-    { key: "status", label: "Estado", visible: true },
-    { key: "actions", label: "Acciones", visible: true, locked: true }
+    { key: "status", label: "Estado", visible: true }
 ];
 
 const COLUMN_USER_ID = "anon";
@@ -285,11 +278,10 @@ export default function CustomersPage() {
     const renderHeaderCell = (column, index) => {
         const baseClass = "text-[12px] font-semibold text-[#8792a2]";
         const isFirst = index === 0;
-        const isActions = column.key === "actions";
         const headerClass = cn(
             baseClass,
             isFirst && "px-6",
-            isActions && "text-right pr-6"
+            column.key === "actions" && "text-right pr-6"
         );
 
         if (column.key === "createdAt") {
@@ -303,14 +295,6 @@ export default function CustomersPage() {
                         Creado
                         <span className="text-[10px]">{sortOrder === "desc" ? "↓" : "↑"}</span>
                     </button>
-                </TableHead>
-            );
-        }
-
-        if (isActions) {
-            return (
-                <TableHead key={column.key} className={headerClass}>
-                    <span className="sr-only">Acciones</span>
                 </TableHead>
             );
         }
@@ -365,43 +349,6 @@ export default function CustomersPage() {
                         >
                             {customer.status}
                         </Badge>
-                    </TableCell>
-                );
-            case "actions":
-                return (
-                    <TableCell key={column.key} className="py-4 text-right pr-6">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    type="button"
-                                    className="text-[#aab2c4] hover:text-[#32325d] transition-colors"
-                                >
-                                    <MoreHorizontal className="w-5 h-5" />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-[220px] rounded-xl p-1 shadow-xl border-gray-100">
-                                <DropdownMenuItem
-                                    onClick={() => {
-                                        navigate(`/dashboard/customers/${customer.id}`, { state: { customer } });
-                                    }}
-                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                >
-                                    Ver detalles
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => handleCopyText(customer.email)}
-                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                >
-                                    Copiar email
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => handleCopyText(customer.id)}
-                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                >
-                                    Copiar ID del cliente
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </TableCell>
                 );
             default:
