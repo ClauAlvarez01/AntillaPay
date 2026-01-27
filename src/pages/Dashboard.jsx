@@ -42,6 +42,7 @@ import {
     YAxis
 } from "recharts";
 import CustomersPage from "./Customers";
+import BalancesPage from "./Balances";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -895,20 +896,20 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                                 {appliedFilter}
                                             </span>
                                         )}
-                                    {label === "Fecha de creación" && (
-                                        <>
-                                            <ChevronDown className="w-3.5 h-3.5 text-[#635bff]" />
-                                            {appliedDateFilter && (
-                                                <span className="ml-2 text-[#635bff] text-[11px] flex items-center gap-1">
+                                        {label === "Fecha de creación" && (
+                                            <>
+                                                <ChevronDown className="w-3.5 h-3.5 text-[#635bff]" />
+                                                {appliedDateFilter && (
+                                                    <span className="ml-2 text-[#635bff] text-[11px] flex items-center gap-1">
                                                         {appliedDateFilter.type === "es igual a"
                                                             ? appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
                                                             : appliedDateFilter.type === "entre"
-                                                            ? `${appliedDateFilter.startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${appliedDateFilter.endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
-                                                            : appliedDateFilter.type === "en esa fecha o después"
-                                                            ? `A partir del ${appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
-                                                            : appliedDateFilter.type === "es anterior o igual al"
-                                                            ? `Termina el ${appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
-                                                            : `Desde hace ${appliedDateFilter.number} ${appliedDateFilter.unit}`
+                                                                ? `${appliedDateFilter.startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} - ${appliedDateFilter.endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                                                : appliedDateFilter.type === "en esa fecha o después"
+                                                                    ? `A partir del ${appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                                                    : appliedDateFilter.type === "es anterior o igual al"
+                                                                        ? `Termina el ${appliedDateFilter.date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+                                                                        : `Desde hace ${appliedDateFilter.number} ${appliedDateFilter.unit}`
                                                         }
                                                     </span>
                                                 )}
@@ -1038,544 +1039,539 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                             </div>
 
                                             <div className="mb-3">
-                                            {dateFilterValue === "está en los últimos" && (
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <CornerDownRight className="w-4 h-4 text-[#635bff]" />
-                                                    <input
-                                                        type="text"
-                                                        value={dateNumberValue}
-                                                        onChange={(e) => setDateNumberValue(e.target.value)}
-                                                        className="w-14 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
-                                                        placeholder="23"
-                                                    />
-                                                    <select
-                                                        value={dateUnitValue}
-                                                        onChange={(e) => setDateUnitValue(e.target.value)}
-                                                        className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] appearance-none bg-white"
-                                                    >
-                                                        <option value="horas">horas</option>
-                                                        <option value="días">días</option>
-                                                        <option value="meses">meses</option>
-                                                    </select>
-                                                    <div className="flex flex-col -gap-1 -ml-6 pointer-events-none">
-                                                        <ChevronUp className="w-2.5 h-2.5 text-[#4f5b76]" />
-                                                        <ChevronDown className="w-2.5 h-2.5 text-[#4f5b76] -mt-1" />
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {dateFilterValue === "es igual a" && (
-                                                <div className="mb-3 relative">
-                                                    <div className="flex items-center gap-2">
+                                                {dateFilterValue === "está en los últimos" && (
+                                                    <div className="flex items-center gap-2 mb-3">
                                                         <CornerDownRight className="w-4 h-4 text-[#635bff]" />
-                                                        {!showCalendar && selectedDate ? (
-                                                            <button
-                                                                onClick={() => setShowCalendar(true)}
-                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
-                                                            >
-                                                                {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => setShowCalendar(true)}
-                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
-                                                            >
-                                                                DD/MM/YYYY
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    {showCalendar && (
-                                                        <div
-                                                            ref={calendarRef}
-                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                        <input
+                                                            type="text"
+                                                            value={dateNumberValue}
+                                                            onChange={(e) => setDateNumberValue(e.target.value)}
+                                                            className="w-14 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                                                            placeholder="23"
+                                                        />
+                                                        <select
+                                                            value={dateUnitValue}
+                                                            onChange={(e) => setDateUnitValue(e.target.value)}
+                                                            className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] appearance-none bg-white"
                                                         >
-                                                            {(() => {
-                                                                const calendarDate = selectedDate || new Date();
-                                                                const today = new Date();
-                                                                return (
-                                                                    <>
-                                                                        <div className="flex items-center justify-between mb-4">
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const newDate = new Date(calendarDate);
-                                                                                    newDate.setMonth(newDate.getMonth() - 1);
-                                                                                    setSelectedDate(newDate);
-                                                                                }}
-                                                                                className="p-1 hover:bg-gray-100 rounded"
-                                                                            >
-                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
-                                                                            </button>
-                                                                            <div className="text-sm font-semibold text-[#32325d]">
-                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                                                                            </div>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const newDate = new Date(calendarDate);
-                                                                                    newDate.setMonth(newDate.getMonth() + 1);
-                                                                                    setSelectedDate(newDate);
-                                                                                }}
-                                                                                className="p-1 hover:bg-gray-100 rounded"
-                                                                            >
-                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
-                                                                            </button>
-                                                                        </div>
+                                                            <option value="horas">horas</option>
+                                                            <option value="días">días</option>
+                                                            <option value="meses">meses</option>
+                                                        </select>
+                                                        <div className="flex flex-col -gap-1 -ml-6 pointer-events-none">
+                                                            <ChevronUp className="w-2.5 h-2.5 text-[#4f5b76]" />
+                                                            <ChevronDown className="w-2.5 h-2.5 text-[#4f5b76] -mt-1" />
+                                                        </div>
+                                                    </div>
+                                                )}
 
-                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
-                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
-                                                                                    {day}
+                                                {dateFilterValue === "es igual a" && (
+                                                    <div className="mb-3 relative">
+                                                        <div className="flex items-center gap-2">
+                                                            <CornerDownRight className="w-4 h-4 text-[#635bff]" />
+                                                            {!showCalendar && selectedDate ? (
+                                                                <button
+                                                                    onClick={() => setShowCalendar(true)}
+                                                                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                                >
+                                                                    {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setShowCalendar(true)}
+                                                                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                                >
+                                                                    DD/MM/YYYY
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {showCalendar && (
+                                                            <div
+                                                                ref={calendarRef}
+                                                                className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                            >
+                                                                {(() => {
+                                                                    const calendarDate = selectedDate || new Date();
+                                                                    const today = new Date();
+                                                                    return (
+                                                                        <>
+                                                                            <div className="flex items-center justify-between mb-4">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDate = new Date(calendarDate);
+                                                                                        newDate.setMonth(newDate.getMonth() - 1);
+                                                                                        setSelectedDate(newDate);
+                                                                                    }}
+                                                                                    className="p-1 hover:bg-gray-100 rounded"
+                                                                                >
+                                                                                    <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                                </button>
+                                                                                <div className="text-sm font-semibold text-[#32325d]">
+                                                                                    {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                                                                                 </div>
-                                                                            ))}
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDate = new Date(calendarDate);
+                                                                                        newDate.setMonth(newDate.getMonth() + 1);
+                                                                                        setSelectedDate(newDate);
+                                                                                    }}
+                                                                                    className="p-1 hover:bg-gray-100 rounded"
+                                                                                >
+                                                                                    <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                                </button>
+                                                                            </div>
 
-                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
-                                                                                const isToday = day === today.getDate() &&
-                                                                                    calendarDate.getMonth() === today.getMonth() &&
-                                                                                    calendarDate.getFullYear() === today.getFullYear();
-                                                                                const isSelected = selectedDate
-                                                                                    ? day === selectedDate.getDate() &&
+                                                                            <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                    <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                        {day}
+                                                                                    </div>
+                                                                                ))}
+
+                                                                                {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                    const isToday = day === today.getDate() &&
+                                                                                        calendarDate.getMonth() === today.getMonth() &&
+                                                                                        calendarDate.getFullYear() === today.getFullYear();
+                                                                                    const isSelected = selectedDate
+                                                                                        ? day === selectedDate.getDate() &&
                                                                                         calendarDate.getMonth() === selectedDate.getMonth() &&
                                                                                         calendarDate.getFullYear() === selectedDate.getFullYear()
-                                                                                    : false;
+                                                                                        : false;
 
+                                                                                    return (
+                                                                                        <button
+                                                                                            key={day}
+                                                                                            onClick={() => {
+                                                                                                const newDate = new Date(calendarDate);
+                                                                                                newDate.setDate(day);
+                                                                                                setSelectedDate(newDate);
+                                                                                                setShowCalendar(false);
+                                                                                            }}
+                                                                                            className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${isToday ? 'bg-[#635bff] text-white' :
+                                                                                                isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
+                                                                                                    'text-[#4f5b76]'
+                                                                                                }`}
+                                                                                        >
+                                                                                            {day}
+                                                                                        </button>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        </>
+                                                                    );
+                                                                })()}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {dateFilterValue === "entre" && (
+                                                    <div className="mb-3">
+                                                        <div className="flex gap-2 mb-3">
+                                                            <div className="flex-1">
+                                                                <label className="block text-[11px] text-[#4f5b76] mb-1">Inicio</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
+                                                                        onClick={() => setShowStartCalendar(!showStartCalendar)}
+                                                                        readOnly
+                                                                        placeholder="DD/MM/YYYY"
+                                                                        className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] cursor-pointer placeholder:text-[#aab2c4]"
+                                                                    />
+                                                                    {showStartCalendar && (
+                                                                        <div
+                                                                            ref={startCalendarRef}
+                                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                                        >
+                                                                            {(() => {
+                                                                                const calendarDate = startDate || new Date();
                                                                                 return (
-                                                                                    <button
-                                                                                        key={day}
-                                                                                        onClick={() => {
-                                                                                            const newDate = new Date(calendarDate);
-                                                                                            newDate.setDate(day);
-                                                                                            setSelectedDate(newDate);
-                                                                                            setShowCalendar(false);
-                                                                                        }}
-                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
-                                                                                            isToday ? 'bg-[#635bff] text-white' :
-                                                                                            isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
-                                                                                            'text-[#4f5b76]'
-                                                                                        }`}
-                                                                                    >
-                                                                                        {day}
-                                                                                    </button>
-                                                                                );
-                                                                            })}
-                                                                        </div>
-                                                                    </>
-                                                                );
-                                                            })()}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {dateFilterValue === "entre" && (
-                                                <div className="mb-3">
-                                                    <div className="flex gap-2 mb-3">
-                                                        <div className="flex-1">
-                                                            <label className="block text-[11px] text-[#4f5b76] mb-1">Inicio</label>
-                                                            <div className="relative">
-                                                                <input
-                                                                    type="text"
-                                                                    value={startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
-                                                                    onClick={() => setShowStartCalendar(!showStartCalendar)}
-                                                                    readOnly
-                                                                    placeholder="DD/MM/YYYY"
-                                                                    className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] cursor-pointer placeholder:text-[#aab2c4]"
-                                                                />
-                                                                {showStartCalendar && (
-                                                                    <div
-                                                                        ref={startCalendarRef}
-                                                                        className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
-                                                                    >
-                                                                        {(() => {
-                                                                            const calendarDate = startDate || new Date();
-                                                                            return (
-                                                                                <>
-                                                                                    <div className="flex items-center justify-between mb-4">
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                const newDate = new Date(calendarDate);
-                                                                                                newDate.setMonth(newDate.getMonth() - 1);
-                                                                                                setStartDate(newDate);
-                                                                                            }}
-                                                                                            className="p-1 hover:bg-gray-100 rounded"
-                                                                                        >
-                                                                                            <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
-                                                                                        </button>
-                                                                                        <div className="text-sm font-semibold text-[#32325d]">
-                                                                                            {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                                                                                        </div>
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                const newDate = new Date(calendarDate);
-                                                                                                newDate.setMonth(newDate.getMonth() + 1);
-                                                                                                setStartDate(newDate);
-                                                                                            }}
-                                                                                            className="p-1 hover:bg-gray-100 rounded"
-                                                                                        >
-                                                                                            <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
-                                                                                        </button>
-                                                                                    </div>
-                                                                        
-                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                                                                                        {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
-                                                                                            <div key={day} className="font-semibold text-[#4f5b76] py-1">
-                                                                                                {day}
+                                                                                    <>
+                                                                                        <div className="flex items-center justify-between mb-4">
+                                                                                            <button
+                                                                                                onClick={() => {
+                                                                                                    const newDate = new Date(calendarDate);
+                                                                                                    newDate.setMonth(newDate.getMonth() - 1);
+                                                                                                    setStartDate(newDate);
+                                                                                                }}
+                                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                                            >
+                                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                                            </button>
+                                                                                            <div className="text-sm font-semibold text-[#32325d]">
+                                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                                                                                             </div>
-                                                                                        ))}
-                                                                            
-                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
-                                                                                const isInRange = startDate
-                                                                                    ? day >= startDate.getDate() ||
-                                                                                        startDate.getMonth() !== new Date().getMonth() ||
-                                                                                        startDate.getFullYear() !== new Date().getFullYear()
-                                                                                    : false;
-                                                                                
-                                                                                return (
-                                                                                    <button
-                                                                                        key={day}
-                                                                                        onClick={() => {
-                                                                                            const newDate = new Date(calendarDate);
-                                                                                            newDate.setDate(day);
-                                                                                            setStartDate(newDate);
-                                                                                            setShowStartCalendar(false);
-                                                                                        }}
-                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
-                                                                                            isInRange ? 'bg-[#cbd5f5] text-[#32325d]' : 'text-[#4f5b76]'
-                                                                                        }`}
-                                                                                    >
-                                                                                        {day}
-                                                                                    </button>
+                                                                                            <button
+                                                                                                onClick={() => {
+                                                                                                    const newDate = new Date(calendarDate);
+                                                                                                    newDate.setMonth(newDate.getMonth() + 1);
+                                                                                                    setStartDate(newDate);
+                                                                                                }}
+                                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                                            >
+                                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                                            </button>
+                                                                                        </div>
+
+                                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                                    {day}
+                                                                                                </div>
+                                                                                            ))}
+
+                                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                                const isInRange = startDate
+                                                                                                    ? day >= startDate.getDate() ||
+                                                                                                    startDate.getMonth() !== new Date().getMonth() ||
+                                                                                                    startDate.getFullYear() !== new Date().getFullYear()
+                                                                                                    : false;
+
+                                                                                                return (
+                                                                                                    <button
+                                                                                                        key={day}
+                                                                                                        onClick={() => {
+                                                                                                            const newDate = new Date(calendarDate);
+                                                                                                            newDate.setDate(day);
+                                                                                                            setStartDate(newDate);
+                                                                                                            setShowStartCalendar(false);
+                                                                                                        }}
+                                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${isInRange ? 'bg-[#cbd5f5] text-[#32325d]' : 'text-[#4f5b76]'
+                                                                                                            }`}
+                                                                                                    >
+                                                                                                        {day}
+                                                                                                    </button>
+                                                                                                );
+                                                                                            })}
+                                                                                        </div>
+                                                                                    </>
                                                                                 );
-                                                                            })}
-                                                                                    </div>
-                                                                                </>
-                                                                            );
-                                                                        })()}
-                                                                    </div>
-                                                                )}
+                                                                            })()}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex-1">
+                                                                <label className="block text-[11px] text-[#4f5b76] mb-1">Final</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
+                                                                        onClick={() => setShowEndCalendar(!showEndCalendar)}
+                                                                        readOnly
+                                                                        placeholder="DD/MM/YYYY"
+                                                                        className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] cursor-pointer placeholder:text-[#aab2c4]"
+                                                                    />
+                                                                    {showEndCalendar && (
+                                                                        <div
+                                                                            ref={endCalendarRef}
+                                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                                        >
+                                                                            {(() => {
+                                                                                const calendarDate = endDate || new Date();
+                                                                                return (
+                                                                                    <>
+                                                                                        <div className="flex items-center justify-between mb-4">
+                                                                                            <button
+                                                                                                onClick={() => {
+                                                                                                    const newDate = new Date(calendarDate);
+                                                                                                    newDate.setMonth(newDate.getMonth() - 1);
+                                                                                                    setEndDate(newDate);
+                                                                                                }}
+                                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                                            >
+                                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                                            </button>
+                                                                                            <div className="text-sm font-semibold text-[#32325d]">
+                                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                                            </div>
+                                                                                            <button
+                                                                                                onClick={() => {
+                                                                                                    const newDate = new Date(calendarDate);
+                                                                                                    newDate.setMonth(newDate.getMonth() + 1);
+                                                                                                    setEndDate(newDate);
+                                                                                                }}
+                                                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                                            >
+                                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                                            </button>
+                                                                                        </div>
+
+                                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                                    {day}
+                                                                                                </div>
+                                                                                            ))}
+
+                                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                                const isInRange = endDate
+                                                                                                    ? day <= endDate.getDate() ||
+                                                                                                    endDate.getMonth() !== new Date().getMonth() ||
+                                                                                                    endDate.getFullYear() !== new Date().getFullYear()
+                                                                                                    : false;
+
+                                                                                                return (
+                                                                                                    <button
+                                                                                                        key={day}
+                                                                                                        onClick={() => {
+                                                                                                            const newDate = new Date(calendarDate);
+                                                                                                            newDate.setDate(day);
+                                                                                                            setEndDate(newDate);
+                                                                                                            setShowEndCalendar(false);
+                                                                                                        }}
+                                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${isInRange ? 'bg-[#cbd5f5] text-[#32325d]' : 'text-[#4f5b76]'
+                                                                                                            }`}
+                                                                                                    >
+                                                                                                        {day}
+                                                                                                    </button>
+                                                                                                );
+                                                                                            })}
+                                                                                        </div>
+                                                                                    </>
+                                                                                );
+                                                                            })()}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        
-                                                        <div className="flex-1">
-                                                            <label className="block text-[11px] text-[#4f5b76] mb-1">Final</label>
-                                                            <div className="relative">
-                                                                <input
-                                                                    type="text"
-                                                                    value={endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ""}
-                                                                    onClick={() => setShowEndCalendar(!showEndCalendar)}
-                                                                    readOnly
-                                                                    placeholder="DD/MM/YYYY"
-                                                                    className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] cursor-pointer placeholder:text-[#aab2c4]"
-                                                                />
-                                                                {showEndCalendar && (
-                                                                    <div
-                                                                        ref={endCalendarRef}
-                                                                        className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
-                                                                    >
-                                                                        {(() => {
-                                                                            const calendarDate = endDate || new Date();
-                                                                            return (
-                                                                                <>
-                                                                                    <div className="flex items-center justify-between mb-4">
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                const newDate = new Date(calendarDate);
-                                                                                                newDate.setMonth(newDate.getMonth() - 1);
-                                                                                                setEndDate(newDate);
-                                                                                            }}
-                                                                                            className="p-1 hover:bg-gray-100 rounded"
-                                                                                        >
-                                                                                            <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
-                                                                                        </button>
-                                                                                        <div className="text-sm font-semibold text-[#32325d]">
-                                                                                            {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                                                                                        </div>
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                const newDate = new Date(calendarDate);
-                                                                                                newDate.setMonth(newDate.getMonth() + 1);
-                                                                                                setEndDate(newDate);
-                                                                                            }}
-                                                                                            className="p-1 hover:bg-gray-100 rounded"
-                                                                                        >
-                                                                                            <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
-                                                                                        </button>
-                                                                                    </div>
-                                                                        
-                                                                                    <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                                                                                        {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
-                                                                                            <div key={day} className="font-semibold text-[#4f5b76] py-1">
-                                                                                                {day}
-                                                                                            </div>
-                                                                                        ))}
-                                                                            
-                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
-                                                                                const isInRange = endDate
-                                                                                    ? day <= endDate.getDate() ||
-                                                                                        endDate.getMonth() !== new Date().getMonth() ||
-                                                                                        endDate.getFullYear() !== new Date().getFullYear()
-                                                                                    : false;
-                                                                                
-                                                                                return (
-                                                                                    <button
-                                                                                        key={day}
-                                                                                        onClick={() => {
-                                                                                            const newDate = new Date(calendarDate);
-                                                                                            newDate.setDate(day);
-                                                                                            setEndDate(newDate);
-                                                                                            setShowEndCalendar(false);
-                                                                                        }}
-                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
-                                                                                            isInRange ? 'bg-[#cbd5f5] text-[#32325d]' : 'text-[#4f5b76]'
-                                                                                        }`}
-                                                                                    >
+                                                    </div>
+                                                )}
+
+                                                {dateFilterValue === "en esa fecha o después" && (
+                                                    <div className="mb-3 relative">
+                                                        <div className="flex items-center gap-2">
+                                                            <CornerDownRight className="w-4 h-4 text-[#635bff]" />
+                                                            {!showCalendar && selectedDate ? (
+                                                                <button
+                                                                    onClick={() => setShowCalendar(true)}
+                                                                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                                >
+                                                                    {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setShowCalendar(true)}
+                                                                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                                >
+                                                                    DD/MM/YYYY
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {showCalendar && (
+                                                            <div
+                                                                ref={calendarRef}
+                                                                className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                            >
+                                                                {(() => {
+                                                                    const calendarDate = selectedDate || new Date();
+                                                                    const today = new Date();
+                                                                    return (
+                                                                        <>
+                                                                            <div className="flex items-center justify-between mb-4">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDate = new Date(calendarDate);
+                                                                                        newDate.setMonth(newDate.getMonth() - 1);
+                                                                                        setSelectedDate(newDate);
+                                                                                    }}
+                                                                                    className="p-1 hover:bg-gray-100 rounded"
+                                                                                >
+                                                                                    <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                                </button>
+                                                                                <div className="text-sm font-semibold text-[#32325d]">
+                                                                                    {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                                </div>
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDate = new Date(calendarDate);
+                                                                                        newDate.setMonth(newDate.getMonth() + 1);
+                                                                                        setSelectedDate(newDate);
+                                                                                    }}
+                                                                                    className="p-1 hover:bg-gray-100 rounded"
+                                                                                >
+                                                                                    <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                                </button>
+                                                                            </div>
+
+                                                                            <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                    <div key={day} className="font-semibold text-[#4f5b76] py-1">
                                                                                         {day}
-                                                                                    </button>
-                                                                                );
-                                                                            })}
                                                                                     </div>
-                                                                                </>
-                                                                            );
-                                                                        })()}
-                                                                    </div>
-                                                                )}
+                                                                                ))}
+
+                                                                                {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                    const isToday = day === today.getDate() &&
+                                                                                        calendarDate.getMonth() === today.getMonth() &&
+                                                                                        calendarDate.getFullYear() === today.getFullYear();
+                                                                                    const isSelected = selectedDate
+                                                                                        ? day === selectedDate.getDate() &&
+                                                                                        calendarDate.getMonth() === selectedDate.getMonth() &&
+                                                                                        calendarDate.getFullYear() === selectedDate.getFullYear()
+                                                                                        : false;
+
+                                                                                    return (
+                                                                                        <button
+                                                                                            key={day}
+                                                                                            onClick={() => {
+                                                                                                const newDate = new Date(calendarDate);
+                                                                                                newDate.setDate(day);
+                                                                                                setSelectedDate(newDate);
+                                                                                                setShowCalendar(false);
+                                                                                            }}
+                                                                                            className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${isToday ? 'bg-[#635bff] text-white' :
+                                                                                                isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
+                                                                                                    'text-[#4f5b76]'
+                                                                                                }`}
+                                                                                        >
+                                                                                            {day}
+                                                                                        </button>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        </>
+                                                                    );
+                                                                })()}
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {dateFilterValue === "en esa fecha o después" && (
-                                                <div className="mb-3 relative">
-                                                    <div className="flex items-center gap-2">
-                                                        <CornerDownRight className="w-4 h-4 text-[#635bff]" />
-                                                        {!showCalendar && selectedDate ? (
-                                                            <button
-                                                                onClick={() => setShowCalendar(true)}
-                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
-                                                            >
-                                                                {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => setShowCalendar(true)}
-                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
-                                                            >
-                                                                DD/MM/YYYY
-                                                            </button>
                                                         )}
+
                                                     </div>
-                                                    
-                                                    {showCalendar && (
-                                                        <div
-                                                            ref={calendarRef}
-                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
-                                                        >
-                                                            {(() => {
-                                                                const calendarDate = selectedDate || new Date();
-                                                                const today = new Date();
-                                                                return (
-                                                                    <>
-                                                                        <div className="flex items-center justify-between mb-4">
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const newDate = new Date(calendarDate);
-                                                                                    newDate.setMonth(newDate.getMonth() - 1);
-                                                                                    setSelectedDate(newDate);
-                                                                                }}
-                                                                                className="p-1 hover:bg-gray-100 rounded"
-                                                                            >
-                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
-                                                                            </button>
-                                                                            <div className="text-sm font-semibold text-[#32325d]">
-                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                                                                            </div>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const newDate = new Date(calendarDate);
-                                                                                    newDate.setMonth(newDate.getMonth() + 1);
-                                                                                    setSelectedDate(newDate);
-                                                                                }}
-                                                                                className="p-1 hover:bg-gray-100 rounded"
-                                                                            >
-                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
-                                                                            </button>
-                                                                        </div>
+                                                )}
 
-                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
-                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
-                                                                                    {day}
+                                                {dateFilterValue === "es anterior o igual al" && (
+                                                    <div className="mb-3 relative">
+                                                        <div className="flex items-center gap-2">
+                                                            <CornerDownRight className="w-4 h-4 text-[#635bff]" />
+                                                            {!showCalendar && selectedDate ? (
+                                                                <button
+                                                                    onClick={() => setShowCalendar(true)}
+                                                                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                                >
+                                                                    {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setShowCalendar(true)}
+                                                                    className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
+                                                                >
+                                                                    DD/MM/YYYY
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {showCalendar && (
+                                                            <div
+                                                                ref={calendarRef}
+                                                                className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
+                                                            >
+                                                                {(() => {
+                                                                    const calendarDate = selectedDate || new Date();
+                                                                    const today = new Date();
+                                                                    return (
+                                                                        <>
+                                                                            <div className="flex items-center justify-between mb-4">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDate = new Date(calendarDate);
+                                                                                        newDate.setMonth(newDate.getMonth() - 1);
+                                                                                        setSelectedDate(newDate);
+                                                                                    }}
+                                                                                    className="p-1 hover:bg-gray-100 rounded"
+                                                                                >
+                                                                                    <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
+                                                                                </button>
+                                                                                <div className="text-sm font-semibold text-[#32325d]">
+                                                                                    {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                                                                                 </div>
-                                                                            ))}
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDate = new Date(calendarDate);
+                                                                                        newDate.setMonth(newDate.getMonth() + 1);
+                                                                                        setSelectedDate(newDate);
+                                                                                    }}
+                                                                                    className="p-1 hover:bg-gray-100 rounded"
+                                                                                >
+                                                                                    <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
+                                                                                </button>
+                                                                            </div>
 
-                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
-                                                                                const isToday = day === today.getDate() &&
-                                                                                    calendarDate.getMonth() === today.getMonth() &&
-                                                                                    calendarDate.getFullYear() === today.getFullYear();
-                                                                                const isSelected = selectedDate
-                                                                                    ? day === selectedDate.getDate() &&
+                                                                            <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                                                                                {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
+                                                                                    <div key={day} className="font-semibold text-[#4f5b76] py-1">
+                                                                                        {day}
+                                                                                    </div>
+                                                                                ))}
+
+                                                                                {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
+                                                                                    const isToday = day === today.getDate() &&
+                                                                                        calendarDate.getMonth() === today.getMonth() &&
+                                                                                        calendarDate.getFullYear() === today.getFullYear();
+                                                                                    const isSelected = selectedDate
+                                                                                        ? day === selectedDate.getDate() &&
                                                                                         calendarDate.getMonth() === selectedDate.getMonth() &&
                                                                                         calendarDate.getFullYear() === selectedDate.getFullYear()
-                                                                                    : false;
+                                                                                        : false;
 
-                                                                                return (
-                                                                                    <button
-                                                                                        key={day}
-                                                                                        onClick={() => {
-                                                                                            const newDate = new Date(calendarDate);
-                                                                                            newDate.setDate(day);
-                                                                                            setSelectedDate(newDate);
-                                                                                            setShowCalendar(false);
-                                                                                        }}
-                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
-                                                                                            isToday ? 'bg-[#635bff] text-white' :
-                                                                                            isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
-                                                                                            'text-[#4f5b76]'
-                                                                                        }`}
-                                                                                    >
-                                                                                        {day}
-                                                                                    </button>
-                                                                                );
-                                                                            })}
-                                                                        </div>
-                                                                    </>
-                                                                );
-                                                            })()}
-                                                        </div>
-                                                    )}
-                                                    
-                                                </div>
-                                            )}
-
-                                            {dateFilterValue === "es anterior o igual al" && (
-                                                <div className="mb-3 relative">
-                                                    <div className="flex items-center gap-2">
-                                                        <CornerDownRight className="w-4 h-4 text-[#635bff]" />
-                                                        {!showCalendar && selectedDate ? (
-                                                            <button
-                                                                onClick={() => setShowCalendar(true)}
-                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#32325d] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
-                                                            >
-                                                                {selectedDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => setShowCalendar(true)}
-                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-[13px] text-[#4f5b76] hover:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#93c5fd] text-left"
-                                                            >
-                                                                DD/MM/YYYY
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    {showCalendar && (
-                                                        <div
-                                                            ref={calendarRef}
-                                                            className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-[70] w-[320px]"
-                                                        >
-                                                            {(() => {
-                                                                const calendarDate = selectedDate || new Date();
-                                                                const today = new Date();
-                                                                return (
-                                                                    <>
-                                                                        <div className="flex items-center justify-between mb-4">
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const newDate = new Date(calendarDate);
-                                                                                    newDate.setMonth(newDate.getMonth() - 1);
-                                                                                    setSelectedDate(newDate);
-                                                                                }}
-                                                                                className="p-1 hover:bg-gray-100 rounded"
-                                                                            >
-                                                                                <ChevronLeft className="w-4 h-4 text-[#4f5b76]" />
-                                                                            </button>
-                                                                            <div className="text-sm font-semibold text-[#32325d]">
-                                                                                {calendarDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                                                                                    return (
+                                                                                        <button
+                                                                                            key={day}
+                                                                                            onClick={() => {
+                                                                                                const newDate = new Date(calendarDate);
+                                                                                                newDate.setDate(day);
+                                                                                                setSelectedDate(newDate);
+                                                                                                setShowCalendar(false);
+                                                                                            }}
+                                                                                            className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${isToday ? 'bg-[#635bff] text-white' :
+                                                                                                isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
+                                                                                                    'text-[#4f5b76]'
+                                                                                                }`}
+                                                                                        >
+                                                                                            {day}
+                                                                                        </button>
+                                                                                    );
+                                                                                })}
                                                                             </div>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const newDate = new Date(calendarDate);
-                                                                                    newDate.setMonth(newDate.getMonth() + 1);
-                                                                                    setSelectedDate(newDate);
-                                                                                }}
-                                                                                className="p-1 hover:bg-gray-100 rounded"
-                                                                            >
-                                                                                <ChevronRight className="w-4 h-4 text-[#4f5b76]" />
-                                                                            </button>
-                                                                        </div>
+                                                                        </>
+                                                                    );
+                                                                })()}
+                                                            </div>
+                                                        )}
 
-                                                                        <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                                                                            {['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'].map(day => (
-                                                                                <div key={day} className="font-semibold text-[#4f5b76] py-1">
-                                                                                    {day}
-                                                                                </div>
-                                                                            ))}
+                                                    </div>
+                                                )}
 
-                                                                            {Array.from({ length: new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, i) => i + 1).map(day => {
-                                                                                const isToday = day === today.getDate() &&
-                                                                                    calendarDate.getMonth() === today.getMonth() &&
-                                                                                    calendarDate.getFullYear() === today.getFullYear();
-                                                                                const isSelected = selectedDate
-                                                                                    ? day === selectedDate.getDate() &&
-                                                                                        calendarDate.getMonth() === selectedDate.getMonth() &&
-                                                                                        calendarDate.getFullYear() === selectedDate.getFullYear()
-                                                                                    : false;
-
-                                                                                return (
-                                                                                    <button
-                                                                                        key={day}
-                                                                                        onClick={() => {
-                                                                                            const newDate = new Date(calendarDate);
-                                                                                            newDate.setDate(day);
-                                                                                            setSelectedDate(newDate);
-                                                                                            setShowCalendar(false);
-                                                                                        }}
-                                                                                        className={`py-1 px-2 rounded text-xs hover:bg-gray-100 ${
-                                                                                            isToday ? 'bg-[#635bff] text-white' :
-                                                                                            isSelected ? 'bg-[#cbd5f5] text-[#32325d]' :
-                                                                                            'text-[#4f5b76]'
-                                                                                        }`}
-                                                                                    >
-                                                                                        {day}
-                                                                                    </button>
-                                                                                );
-                                                                            })}
-                                                                        </div>
-                                                                    </>
-                                                                );
-                                                            })()}
-                                                        </div>
-                                                    )}
-                                                    
+                                                <div className="flex items-center gap-4 mb-3">
+                                                    <p className="text-[12px] font-semibold text-[#32325d]">Zona horaria:</p>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="radio"
+                                                            name="timezone"
+                                                            value="GMT-5"
+                                                            checked={timezoneValue === "GMT-5"}
+                                                            onChange={(e) => setTimezoneValue(e.target.value)}
+                                                            className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                                        />
+                                                        <span className="text-[12px] text-[#4f5b76]">GMT-5</span>
+                                                    </label>
+                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="radio"
+                                                            name="timezone"
+                                                            value="UTC"
+                                                            checked={timezoneValue === "UTC"}
+                                                            onChange={(e) => setTimezoneValue(e.target.value)}
+                                                            className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
+                                                        />
+                                                        <span className="text-[12px] text-[#4f5b76]">UTC</span>
+                                                    </label>
                                                 </div>
-                                            )}
-
-                                            <div className="flex items-center gap-4 mb-3">
-                                                <p className="text-[12px] font-semibold text-[#32325d]">Zona horaria:</p>
-                                                <label className="flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="radio"
-                                                        name="timezone"
-                                                        value="GMT-5"
-                                                        checked={timezoneValue === "GMT-5"}
-                                                        onChange={(e) => setTimezoneValue(e.target.value)}
-                                                        className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
-                                                    />
-                                                    <span className="text-[12px] text-[#4f5b76]">GMT-5</span>
-                                                </label>
-                                                <label className="flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="radio"
-                                                        name="timezone"
-                                                        value="UTC"
-                                                        checked={timezoneValue === "UTC"}
-                                                        onChange={(e) => setTimezoneValue(e.target.value)}
-                                                        className="w-4 h-4 text-[#635bff] border-gray-300 focus:ring-[#93c5fd]"
-                                                    />
-                                                    <span className="text-[12px] text-[#4f5b76]">UTC</span>
-                                                </label>
                                             </div>
-                                        </div>
 
                                             {dateFilterValue === "entre" ? (
                                                 <div className="flex gap-2">
@@ -2162,6 +2158,9 @@ export default function Dashboard() {
         if (path.startsWith("/dashboard/payment-links")) {
             return "payments_links";
         }
+        if (path.startsWith("/dashboard/balances") || path.startsWith("/dashboard/saldos")) {
+            return "saldos";
+        }
         return "home";
     });
 
@@ -2225,6 +2224,11 @@ export default function Dashboard() {
         }
         if (path.startsWith("/dashboard/product-catalog")) {
             setActiveView("product_catalog");
+            setSelectedProductId(null);
+            return;
+        }
+        if (path.startsWith("/dashboard/balances") || path.startsWith("/dashboard/saldos")) {
+            setActiveView("saldos");
             setSelectedProductId(null);
             return;
         }
@@ -2416,7 +2420,7 @@ export default function Dashboard() {
     return (
         <div className={cn(
             "flex h-screen w-full overflow-hidden font-sans relative flex-col",
-            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers"
+            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "saldos"
                 ? "bg-white"
                 : "bg-[#f6f9fc]"
         )}>
@@ -2899,7 +2903,15 @@ export default function Dashboard() {
                             active={activeView === "home"}
                             onClick={() => navigate("/dashboard")}
                         />
-                        <SidebarItem icon={DollarSign} label="Saldos" />
+                        <SidebarItem
+                            icon={DollarSign}
+                            label="Saldos"
+                            active={activeView === "saldos"}
+                            onClick={() => {
+                                setActiveView("saldos");
+                                navigate("/dashboard/balances");
+                            }}
+                        />
                         <SidebarItem icon={ArrowLeftRight} label="Transacciones" />
                         <SidebarItem
                             icon={Users}
@@ -2939,10 +2951,10 @@ export default function Dashboard() {
                         />
                     </nav>
 
-                <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-                    <SidebarItem icon={LayoutDashboard} label="Desarrolladores" />
-                </div>
-            </aside>
+                    <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+                        <SidebarItem icon={LayoutDashboard} label="Desarrolladores" />
+                    </div>
+                </aside>
                 {/* Main Content */}
                 <main className="flex-1 flex flex-col relative overflow-hidden min-h-0">
                     <DashboardHeader
@@ -2955,22 +2967,22 @@ export default function Dashboard() {
                         onGuide={handleGuide}
                     />
 
-                {/* Content Area */}
-                <div
-                    ref={contentRef}
-                    className={cn(
-                        "flex-1 overflow-y-auto",
-                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers"
-                            ? "p-8 bg-white"
-                            : "p-10"
-                    )}
-                >
-                    <div className={cn(
-                        activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers"
-                            ? "w-full"
-                            : "max-w-6xl mx-auto"
-                    )}>
-                        <AnimatePresence mode="wait">
+                    {/* Content Area */}
+                    <div
+                        ref={contentRef}
+                        className={cn(
+                            "flex-1 overflow-y-auto",
+                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "saldos"
+                                ? "p-8 bg-white"
+                                : "p-10"
+                        )}
+                    >
+                        <div className={cn(
+                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "saldos"
+                                ? "w-full"
+                                : "max-w-6xl mx-auto"
+                        )}>
+                            <AnimatePresence mode="wait">
                                 {activeView === "home" ? (
                                     <motion.div
                                         key="home-view"
@@ -2989,581 +3001,591 @@ export default function Dashboard() {
                                         </div>
                                         <div className="w-full h-[1px] bg-gray-100 mb-8" />
 
-                                    {/* Main Layout - Matching Image Exactly */}
-                                    <div className="flex flex-col lg:flex-row gap-8">
-                                        {/* Left Side - Chart and Stats */}
-                                        <div className="flex-1">
-                                            {/* Top Stats Row */}
-                                            <div className="grid grid-cols-2 gap-10 mb-6">
-                                                <div className="metric-dropdown relative">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <button
-                                                            onClick={() => setShowMetricDropdown(!showMetricDropdown)}
-                                                            className="flex items-center gap-1.5 text-[13px] text-[#697386] hover:text-[#32325d] transition-colors group"
-                                                        >
-                                                            <span>{selectedMetric}</span>
-                                                            <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showMetricDropdown && "rotate-180")} />
-                                                        </button>
-                                                    </div>
-                                                    <div className="text-[24px] font-semibold text-[#32325d]">
-                                                        {metricValue}
-                                                    </div>
-                                                    <div className="text-[11px] text-[#aab2c4] mt-0.5">{currentTimeLabel}</div>
-
-                                                    {/* Metric Selection Dropdown */}
-                                                    <AnimatePresence>
-                                                        {showMetricDropdown && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                className="absolute top-full left-0 mt-2 w-[240px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 overflow-hidden"
+                                        {/* Main Layout - Matching Image Exactly */}
+                                        <div className="flex flex-col lg:flex-row gap-8">
+                                            {/* Left Side - Chart and Stats */}
+                                            <div className="flex-1">
+                                                {/* Top Stats Row */}
+                                                <div className="grid grid-cols-2 gap-10 mb-6">
+                                                    <div className="metric-dropdown relative">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <button
+                                                                onClick={() => setShowMetricDropdown(!showMetricDropdown)}
+                                                                className="flex items-center gap-1.5 text-[13px] text-[#697386] hover:text-[#32325d] transition-colors group"
                                                             >
-                                                                {metrics.map((metric) => (
-                                                                    <button
-                                                                        key={metric.id}
-                                                                        onClick={() => {
-                                                                            setSelectedMetric(metric.id);
-                                                                            setShowMetricDropdown(false);
-                                                                        }}
-                                                                        className={cn(
-                                                                            "w-full px-4 py-2.5 text-left text-[15px] transition-colors flex items-center justify-between group",
-                                                                            selectedMetric === metric.id ? "text-[#635bff]" : "text-[#32325d] hover:bg-gray-50"
-                                                                        )}
-                                                                    >
-                                                                        <span>{metric.label}</span>
-                                                                        {selectedMetric === metric.id && <Check className="w-4 h-4 text-[#635bff]" />}
-                                                                    </button>
-                                                                ))}
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-                                                </div>
+                                                                <span>{selectedMetric}</span>
+                                                                <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showMetricDropdown && "rotate-180")} />
+                                                            </button>
+                                                        </div>
+                                                        <div className="text-[24px] font-semibold text-[#32325d]">
+                                                            {metricValue}
+                                                        </div>
+                                                        <div className="text-[11px] text-[#aab2c4] mt-0.5">{currentTimeLabel}</div>
 
-                                                <div className="calendar-dropdown relative">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <button
-                                                            onClick={() => setShowCalendar(!showCalendar)}
-                                                            className="flex items-center gap-1.5 text-[13px] text-[#697386] hover:text-[#32325d] transition-colors group"
-                                                        >
-                                                            <span>Ayer</span>
-                                                            <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showCalendar && "rotate-180")} />
-                                                        </button>
-                                                    </div>
-                                                    <div className="text-[24px] font-semibold text-[#32325d]">{yesterdayMetricValue}</div>
-
-                                                    {/* Calendar Dropdown - Exactly as in screenshot */}
-                                                    <AnimatePresence>
-                                                        {showCalendar && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                className="absolute top-full left-0 mt-3 bg-white rounded-2xl shadow-[0_18px_40px_-12px_rgba(0,0,0,0.15)] border border-gray-100 p-5 z-50 min-w-[320px]"
-                                                            >
-                                                                {/* Date Input Box */}
-                                                                <div className="mb-5 p-1 bg-[#635bff15] border-2 border-[#635bff30] rounded-xl">
-                                                                    <div className="bg-white rounded-[10px] px-4 py-3 flex items-center justify-center">
-                                                                        <div className="flex items-center gap-2 text-[15px] font-medium text-[#32325d]">
-                                                                            <span className="bg-[#635bff15] px-2 py-0.5 rounded-md text-[#32325d]">18</span>
-                                                                            <span className="text-[#aab2c4] font-light">/</span>
-                                                                            <span>01</span>
-                                                                            <span className="text-[#aab2c4] font-light">/</span>
-                                                                            <span>2026</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Month Selector */}
-                                                                <div className="flex items-center justify-between mb-4 px-1">
-                                                                    <button className="flex items-center gap-1.5 text-[16px] text-[#32325d] font-semibold hover:text-[#635bff] transition-colors">
-                                                                        <span>enero de 2026</span>
-                                                                        <ChevronDown className="w-4 h-4 opacity-40" />
-                                                                    </button>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors">
-                                                                            <ChevronLeft className="w-5 h-5" />
+                                                        {/* Metric Selection Dropdown */}
+                                                        <AnimatePresence>
+                                                            {showMetricDropdown && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    className="absolute top-full left-0 mt-2 w-[240px] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 overflow-hidden"
+                                                                >
+                                                                    {metrics.map((metric) => (
+                                                                        <button
+                                                                            key={metric.id}
+                                                                            onClick={() => {
+                                                                                setSelectedMetric(metric.id);
+                                                                                setShowMetricDropdown(false);
+                                                                            }}
+                                                                            className={cn(
+                                                                                "w-full px-4 py-2.5 text-left text-[15px] transition-colors flex items-center justify-between group",
+                                                                                selectedMetric === metric.id ? "text-[#635bff]" : "text-[#32325d] hover:bg-gray-50"
+                                                                            )}
+                                                                        >
+                                                                            <span>{metric.label}</span>
+                                                                            {selectedMetric === metric.id && <Check className="w-4 h-4 text-[#635bff]" />}
                                                                         </button>
-                                                                        <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors">
-                                                                            <ChevronRight className="w-5 h-5" />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Calendar Grid */}
-                                                                <div className="grid grid-cols-7 gap-y-1 text-[13px]">
-                                                                    {/* Day labels */}
-                                                                    {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map((day) => (
-                                                                        <div key={day} className="text-center text-[#8792a2] font-semibold py-2 text-[11px] tracking-wide">
-                                                                            {day}
-                                                                        </div>
                                                                     ))}
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
 
-                                                                    {/* Padding days */}
-                                                                    {[...Array(3)].map((_, i) => <div key={`empty-${i}`} />)}
+                                                    <div className="calendar-dropdown relative">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <button
+                                                                onClick={() => setShowCalendar(!showCalendar)}
+                                                                className="flex items-center gap-1.5 text-[13px] text-[#697386] hover:text-[#32325d] transition-colors group"
+                                                            >
+                                                                <span>Ayer</span>
+                                                                <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-200", showCalendar && "rotate-180")} />
+                                                            </button>
+                                                        </div>
+                                                        <div className="text-[24px] font-semibold text-[#32325d]">{yesterdayMetricValue}</div>
 
-                                                                    {/* Calendar days */}
-                                                                    {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                                                                        <div key={day} className="flex items-center justify-center py-1.5">
-                                                                            <button
-                                                                                className={cn(
-                                                                                    "w-9 h-9 flex items-center justify-center rounded-full transition-all text-[13px] font-medium",
-                                                                                    day === 18
-                                                                                        ? "bg-[#635bff] text-white shadow-lg shadow-[#635bff40]"
-                                                                                        : "text-[#32325d] hover:bg-gray-50",
-                                                                                    day > 19 && "text-[#aab2c4]"
-                                                                                )}
-                                                                            >
-                                                                                {day}
+                                                        {/* Calendar Dropdown - Exactly as in screenshot */}
+                                                        <AnimatePresence>
+                                                            {showCalendar && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    className="absolute top-full left-0 mt-3 bg-white rounded-2xl shadow-[0_18px_40px_-12px_rgba(0,0,0,0.15)] border border-gray-100 p-5 z-50 min-w-[320px]"
+                                                                >
+                                                                    {/* Date Input Box */}
+                                                                    <div className="mb-5 p-1 bg-[#635bff15] border-2 border-[#635bff30] rounded-xl">
+                                                                        <div className="bg-white rounded-[10px] px-4 py-3 flex items-center justify-center">
+                                                                            <div className="flex items-center gap-2 text-[15px] font-medium text-[#32325d]">
+                                                                                <span className="bg-[#635bff15] px-2 py-0.5 rounded-md text-[#32325d]">18</span>
+                                                                                <span className="text-[#aab2c4] font-light">/</span>
+                                                                                <span>01</span>
+                                                                                <span className="text-[#aab2c4] font-light">/</span>
+                                                                                <span>2026</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Month Selector */}
+                                                                    <div className="flex items-center justify-between mb-4 px-1">
+                                                                        <button className="flex items-center gap-1.5 text-[16px] text-[#32325d] font-semibold hover:text-[#635bff] transition-colors">
+                                                                            <span>enero de 2026</span>
+                                                                            <ChevronDown className="w-4 h-4 opacity-40" />
+                                                                        </button>
+                                                                        <div className="flex items-center gap-3">
+                                                                            <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors">
+                                                                                <ChevronLeft className="w-5 h-5" />
+                                                                            </button>
+                                                                            <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors">
+                                                                                <ChevronRight className="w-5 h-5" />
                                                                             </button>
                                                                         </div>
-                                                                    ))}
-                                                                </div>
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-                                                </div>
-                                            </div>
-
-                                            {/* Chart Area */}
-                                            <BalanceChart data={balanceSeries} timeLabel={chartTimeLabel} />
-
-                                            {/* Bottom Stats Row */}
-                                            <div className="border-t border-gray-100 pt-6">
-                                                <div className="grid grid-cols-2 gap-16">
-                                                    <div className="flex items-start justify-between">
-                                                        <div>
-                                                            <div className="text-[13px] text-[#32325d] mb-1">Saldo en USD</div>
-                                                            <div className="text-[20px] font-normal text-[#32325d]">{formatUsd(totals.balance)}</div>
-                                                        </div>
-                                                        <button className="text-[12px] text-[#635bff] font-semibold hover:underline">Ver datos</button>
-                                                    </div>
-                                                    <div className="flex items-start justify-between">
-                                                        <div>
-                                                            <div className="text-[13px] text-[#32325d] mb-1">Transferencias</div>
-                                                            <div className="text-[20px] font-normal text-[#32325d]">—</div>
-                                                        </div>
-                                                        <button className="text-[12px] text-[#635bff] font-semibold hover:underline">Ver datos</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Right Side - Recommendations and API Keys */}
-                                        <div className="w-full lg:w-[340px] space-y-6">
-                                            {/* Recommendations Card */}
-                                            <div className="bg-[#f7f9fc] rounded-lg p-5 border border-gray-100">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <h3 className="text-[14px] font-semibold text-[#32325d]">Recomendaciones</h3>
-                                                    <button className="text-gray-400 hover:text-gray-600">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                                <p className="text-[13px] text-[#4f5b76] leading-relaxed mb-3">
-                                                    Utiliza Checkout para integrar un <span className="text-[#635bff] font-medium cursor-pointer hover:underline">formulario de pago</span> en tu sitio web o redirige a tus clientes a una página alojada en AntillaPay.
-                                                </p>
-                                                <p className="text-[13px] text-[#4f5b76] leading-relaxed">
-                                                    <span className="text-[#635bff] font-medium cursor-pointer hover:underline">Crea y envía facturas</span> que los clientes puedan pagar al instante.
-                                                </p>
-
-                                                <div className="space-y-4 pt-4 border-t border-gray-200/60">
-                                                    <div className="flex items-center justify-between">
-                                                        <h4 className="text-[14px] font-bold text-[#32325d]">Claves de API</h4>
-                                                        <span className="text-[12px] text-[#635bff] font-semibold cursor-pointer hover:underline">Consulta la documentación</span>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <CopyableKey label="Clave publicable" value="pk_test_51SrAY7P7M..." />
-                                                        <CopyableKey label="Clave secreta" value="sk_test_51SrAY7P7M..." />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Tu resumen section */}
-                                    <div className="mt-20">
-                                        <h2 className="text-[22px] font-bold text-[#32325d] mb-6">Resumen de Movimientos</h2>
-
-                                        <div className="flex items-center justify-between mb-8">
-                                            <div className="flex items-center gap-2">
-                                                {/* Intervalo de fechas */}
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowDateDropdown(!showDateDropdown);
-                                                            setShowDailyDropdown(false);
-                                                            setShowCompareDropdown(false);
-                                                        }}
-                                                        className="flex items-center bg-white border border-gray-200 rounded-full text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
-                                                    >
-                                                        <span className="px-3 py-1.5 text-[#697386]">Intervalo de fechas</span>
-                                                        <div className="w-[1px] h-4 bg-gray-200" />
-                                                        <span className="px-3 py-1.5 text-[#635bff] font-semibold flex items-center gap-1.5">
-                                                            Últimos 7 días <ChevronDown className="w-3.5 h-3.5" />
-                                                        </span>
-                                                    </button>
-
-                                                    <AnimatePresence>
-                                                        {showDateDropdown && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 p-6 z-[120] w-[700px]"
-                                                            >
-                                                                <div className="flex gap-8">
-                                                                    {/* Left Sidebar */}
-                                                                    <div className="w-32 flex flex-col gap-4">
-                                                                        <button className="text-left text-[14px] text-[#32325d] hover:text-[#635bff]">Hoy</button>
-                                                                        <button className="text-left text-[14px] text-[#32325d] hover:text-[#635bff]">Siempre</button>
                                                                     </div>
 
-                                                                    {/* Center content */}
-                                                                    <div className="flex-1">
-                                                                        <div className="flex items-center gap-4 mb-8">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="text-[14px] text-[#697386]">Inicio</span>
-                                                                                <div className="px-3 py-1.5 border-2 border-[#635bff]/30 bg-[#635bff]/5 rounded-lg text-[14px] text-[#32325d]">13 / 01 / 2026</div>
+                                                                    {/* Calendar Grid */}
+                                                                    <div className="grid grid-cols-7 gap-y-1 text-[13px]">
+                                                                        {/* Day labels */}
+                                                                        {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map((day) => (
+                                                                            <div key={day} className="text-center text-[#8792a2] font-semibold py-2 text-[11px] tracking-wide">
+                                                                                {day}
                                                                             </div>
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="text-[14px] text-[#697386]">Final</span>
-                                                                                <div className="px-3 py-1.5 border border-gray-200 rounded-lg text-[14px] text-[#32325d]">19 / 01 / 2026</div>
-                                                                            </div>
-                                                                        </div>
+                                                                        ))}
 
-                                                                        <div className="flex gap-12">
-                                                                            {/* Dec 2025 */}
-                                                                            <div className="flex-1">
-                                                                                <div className="flex items-center justify-between mb-4">
-                                                                                    <ChevronLeft className="w-4 h-4 text-gray-400 cursor-pointer" />
-                                                                                    <span className="text-[14px] font-semibold text-[#32325d]">diciembre de 2025 <ChevronDown className="w-3 h-3 inline ml-1" /></span>
-                                                                                    <div className="w-4" />
-                                                                                </div>
-                                                                                <div className="grid grid-cols-7 gap-y-2 text-center text-[12px]">
-                                                                                    {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map(d => <div key={d} className="text-[#aab2c4] font-medium">{d}</div>)}
-                                                                                    {Array.from({ length: 31 }).map((_, i) => (
-                                                                                        <div key={i} className="py-1 text-[#32325d] hover:bg-gray-50 rounded cursor-pointer">{i + 1}</div>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                            {/* Jan 2026 */}
-                                                                            <div className="flex-1">
-                                                                                <div className="flex items-center justify-between mb-4">
-                                                                                    <div className="w-4" />
-                                                                                    <span className="text-[14px] font-semibold text-[#32325d]">enero de 2026 <ChevronDown className="w-3 h-3 inline ml-1" /></span>
-                                                                                    <ChevronRight className="w-4 h-4 text-gray-400 cursor-pointer" />
-                                                                                </div>
-                                                                                <div className="grid grid-cols-7 gap-y-2 text-center text-[12px]">
-                                                                                    {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map(d => <div key={d} className="text-[#aab2c4] font-medium">{d}</div>)}
-                                                                                    {Array.from({ length: 31 }).map((_, i) => (
-                                                                                        <div key={i} className={cn(
-                                                                                            "py-1 rounded cursor-pointer transition-colors",
-                                                                                            (i + 1 >= 13 && i + 1 <= 19) ? "bg-[#635bff]/10 text-[#635bff]" : "text-[#32325d] hover:bg-gray-50",
-                                                                                            (i + 1 === 13 || i + 1 === 19) && "bg-[#635bff] text-white"
-                                                                                        )}>{i + 1}</div>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
+                                                                        {/* Padding days */}
+                                                                        {[...Array(3)].map((_, i) => <div key={`empty-${i}`} />)}
 
-                                                                        <div className="flex justify-end gap-2 mt-8">
-                                                                            <button onClick={() => setShowDateDropdown(false)} className="px-4 py-1.5 border border-gray-200 rounded-lg text-[14px] text-[#32325d] font-semibold hover:bg-gray-50">Borra</button>
-                                                                            <button onClick={() => setShowDateDropdown(false)} className="px-4 py-1.5 bg-[#635bff] text-white rounded-lg text-[14px] font-semibold hover:bg-[#5851e0]">Aplica</button>
-                                                                        </div>
+                                                                        {/* Calendar days */}
+                                                                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                                                                            <div key={day} className="flex items-center justify-center py-1.5">
+                                                                                <button
+                                                                                    className={cn(
+                                                                                        "w-9 h-9 flex items-center justify-center rounded-full transition-all text-[13px] font-medium",
+                                                                                        day === 18
+                                                                                            ? "bg-[#635bff] text-white shadow-lg shadow-[#635bff40]"
+                                                                                            : "text-[#32325d] hover:bg-gray-50",
+                                                                                        day > 19 && "text-[#aab2c4]"
+                                                                                    )}
+                                                                                >
+                                                                                    {day}
+                                                                                </button>
+                                                                            </div>
+                                                                        ))}
                                                                     </div>
-                                                                </div>
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
                                                 </div>
 
-                                                {/* Diario */}
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowDailyDropdown(!showDailyDropdown);
-                                                            setShowDateDropdown(false);
-                                                            setShowCompareDropdown(false);
-                                                        }}
-                                                        className="flex items-center px-3 py-1.5 bg-white border border-gray-200 rounded-full text-[13px] text-[#635bff] font-semibold hover:border-gray-300 transition-colors gap-1.5 shadow-sm"
-                                                    >
-                                                        {selectedDaily} <ChevronDown className="w-3.5 h-3.5 text-[#635bff]" />
-                                                    </button>
+                                                {/* Chart Area */}
+                                                <BalanceChart data={balanceSeries} timeLabel={chartTimeLabel} />
 
-                                                    <AnimatePresence>
-                                                        {showDailyDropdown && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[120] w-[180px]"
-                                                            >
-                                                                {["Por hora", "Diario"].map((opt) => (
-                                                                    <button
-                                                                        key={opt}
-                                                                        onClick={() => {
-                                                                            setSelectedDaily(opt);
-                                                                            setShowDailyDropdown(false);
-                                                                        }}
-                                                                        className="w-full px-4 py-2 text-left text-[14px] text-[#32325d] hover:bg-gray-50 flex items-center justify-between"
-                                                                    >
-                                                                        {opt}
-                                                                        {selectedDaily === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
-                                                                    </button>
-                                                                ))}
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-                                                </div>
-
-                                                <div className="relative">
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowCompareDropdown(!showCompareDropdown);
-                                                            setShowDateDropdown(false);
-                                                            setShowDailyDropdown(false);
-                                                        }}
-                                                        className="flex items-center bg-white border border-gray-200 rounded-full text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
-                                                    >
-                                                        <div className="px-3 py-1.5 flex items-center gap-2 border-r border-gray-200 bg-gray-50/30">
-                                                            <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
-                                                                <X className="w-2.5 h-2.5 text-gray-500" />
+                                                {/* Bottom Stats Row */}
+                                                <div className="border-t border-gray-100 pt-6">
+                                                    <div className="grid grid-cols-2 gap-16">
+                                                        <div className="flex items-start justify-between">
+                                                            <div>
+                                                                <div className="text-[13px] text-[#32325d] mb-1">Saldo en USD</div>
+                                                                <div className="text-[20px] font-normal text-[#32325d]">{formatUsd(totals.balance)}</div>
                                                             </div>
-                                                            <span className="text-[#697386] font-medium">Compara</span>
+                                                            <button className="text-[12px] text-[#635bff] font-semibold hover:underline">Ver datos</button>
                                                         </div>
-                                                        <span className="px-3 py-1.5 text-[#635bff] font-semibold flex items-center gap-1.5 hover:bg-gray-50">
-                                                            {selectedCompare} <ChevronDown className="w-3.5 h-3.5" />
-                                                        </span>
-                                                    </button>
+                                                        <div className="flex items-start justify-between">
+                                                            <div>
+                                                                <div className="text-[13px] text-[#32325d] mb-1">Transferencias</div>
+                                                                <div className="text-[20px] font-normal text-[#32325d]">—</div>
+                                                            </div>
+                                                            <button className="text-[12px] text-[#635bff] font-semibold hover:underline">Ver datos</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                    <AnimatePresence>
-                                                        {showCompareDropdown && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[120] w-[220px]"
-                                                            >
-                                                                {["Período anterior", "Semana anterior", "Mes anterior", "Año anterior", "Custom"].map((opt) => (
-                                                                    <button
-                                                                        key={opt}
-                                                                        onClick={() => {
-                                                                            setSelectedCompare(opt);
-                                                                            setShowCompareDropdown(false);
-                                                                        }}
-                                                                        className="w-full px-4 py-2 text-left text-[14px] text-[#32325d] hover:bg-gray-50 flex items-center justify-between"
-                                                                    >
-                                                                        {opt}
-                                                                        {selectedCompare === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
-                                                                    </button>
-                                                                ))}
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
+                                            {/* Right Side - Recommendations and API Keys */}
+                                            <div className="w-full lg:w-[340px] space-y-6">
+                                                {/* Recommendations Card */}
+                                                <div className="bg-[#f7f9fc] rounded-lg p-5 border border-gray-100">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <h3 className="text-[14px] font-semibold text-[#32325d]">Recomendaciones</h3>
+                                                        <button className="text-gray-400 hover:text-gray-600">
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-[13px] text-[#4f5b76] leading-relaxed mb-3">
+                                                        Utiliza Checkout para integrar un <span className="text-[#635bff] font-medium cursor-pointer hover:underline">formulario de pago</span> en tu sitio web o redirige a tus clientes a una página alojada en AntillaPay.
+                                                    </p>
+                                                    <p className="text-[13px] text-[#4f5b76] leading-relaxed">
+                                                        <span className="text-[#635bff] font-medium cursor-pointer hover:underline">Crea y envía facturas</span> que los clientes puedan pagar al instante.
+                                                    </p>
+
+                                                    <div className="space-y-4 pt-4 border-t border-gray-200/60">
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="text-[14px] font-bold text-[#32325d]">Claves de API</h4>
+                                                            <span className="text-[12px] text-[#635bff] font-semibold cursor-pointer hover:underline">Consulta la documentación</span>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <CopyableKey label="Clave publicable" value="pk_test_51SrAY7P7M..." />
+                                                            <CopyableKey label="Clave secreta" value="sk_test_51SrAY7P7M..." />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <DashboardCardsSection referenceDate={selectedDate} />
-                                    </div>
-                                </motion.div>
-                            ) : activeView === "payments_links" ? (
-                                <motion.div
-                                    key="payments_links_view"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <PaymentLinksView
-                                        onCreateClick={() => navigate("/dashboard/payment-links/create")}
-                                        paymentLinks={paymentLinks}
-                                        onRenameLink={handleRenamePaymentLink}
-                                        onToggleStatus={handleTogglePaymentLinkStatus}
-                                        testMode={isTestMode}
-                                    />
-                                </motion.div>
-                            ) : activeView === "customers" ? (
-                                <motion.div
-                                    key="customers-view"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <CustomersPage />
-                                </motion.div>
-                            ) : activeView === "product_catalog" ? (
-                                <motion.div
-                                    key="product_catalog_view"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ProductCatalog />
-                                </motion.div>
-                            ) : activeView === "product_detail" ? (
-                                <motion.div
-                                    key="product_detail_view"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ProductDetail productId={selectedProductId} />
-                                </motion.div>
-                            ) : null}
-                        </AnimatePresence>
-                    </div>
-                </div>
+                                        {/* Tu resumen section */}
+                                        <div className="mt-20">
+                                            <h2 className="text-[22px] font-bold text-[#32325d] mb-6">Resumen de Movimientos</h2>
 
-                <AnimatePresence>
-                    {showOnboarding && (
-                        <motion.div
-                            key="onboarding-card"
-                            className={cn(
-                                "fixed bottom-6 right-6 w-[320px] bg-[#f7f9fc] rounded-xl shadow-2xl overflow-hidden transition-all duration-500 z-[102]",
-                                "ring-4 ring-[#635bff]/20"
-                            )}
-                            initial={{ y: 100, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: 100, opacity: 0 }}
-                        >
-                            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                                <h3 className="text-[13px] font-bold text-[#32325d]">Guía de configuración</h3>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsGuideCollapsed(!isGuideCollapsed)}
-                                        className="text-gray-400 hover:text-gray-600 transition-colors"
-                                        aria-label={isGuideCollapsed ? "Expandir guía de configuración" : "Colapsar guía de configuración"}
+                                            <div className="flex items-center justify-between mb-8">
+                                                <div className="flex items-center gap-2">
+                                                    {/* Intervalo de fechas */}
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowDateDropdown(!showDateDropdown);
+                                                                setShowDailyDropdown(false);
+                                                                setShowCompareDropdown(false);
+                                                            }}
+                                                            className="flex items-center bg-white border border-gray-200 rounded-full text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
+                                                        >
+                                                            <span className="px-3 py-1.5 text-[#697386]">Intervalo de fechas</span>
+                                                            <div className="w-[1px] h-4 bg-gray-200" />
+                                                            <span className="px-3 py-1.5 text-[#635bff] font-semibold flex items-center gap-1.5">
+                                                                Últimos 7 días <ChevronDown className="w-3.5 h-3.5" />
+                                                            </span>
+                                                        </button>
+
+                                                        <AnimatePresence>
+                                                            {showDateDropdown && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 p-6 z-[120] w-[700px]"
+                                                                >
+                                                                    <div className="flex gap-8">
+                                                                        {/* Left Sidebar */}
+                                                                        <div className="w-32 flex flex-col gap-4">
+                                                                            <button className="text-left text-[14px] text-[#32325d] hover:text-[#635bff]">Hoy</button>
+                                                                            <button className="text-left text-[14px] text-[#32325d] hover:text-[#635bff]">Siempre</button>
+                                                                        </div>
+
+                                                                        {/* Center content */}
+                                                                        <div className="flex-1">
+                                                                            <div className="flex items-center gap-4 mb-8">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="text-[14px] text-[#697386]">Inicio</span>
+                                                                                    <div className="px-3 py-1.5 border-2 border-[#635bff]/30 bg-[#635bff]/5 rounded-lg text-[14px] text-[#32325d]">13 / 01 / 2026</div>
+                                                                                </div>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="text-[14px] text-[#697386]">Final</span>
+                                                                                    <div className="px-3 py-1.5 border border-gray-200 rounded-lg text-[14px] text-[#32325d]">19 / 01 / 2026</div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="flex gap-12">
+                                                                                {/* Dec 2025 */}
+                                                                                <div className="flex-1">
+                                                                                    <div className="flex items-center justify-between mb-4">
+                                                                                        <ChevronLeft className="w-4 h-4 text-gray-400 cursor-pointer" />
+                                                                                        <span className="text-[14px] font-semibold text-[#32325d]">diciembre de 2025 <ChevronDown className="w-3 h-3 inline ml-1" /></span>
+                                                                                        <div className="w-4" />
+                                                                                    </div>
+                                                                                    <div className="grid grid-cols-7 gap-y-2 text-center text-[12px]">
+                                                                                        {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map(d => <div key={d} className="text-[#aab2c4] font-medium">{d}</div>)}
+                                                                                        {Array.from({ length: 31 }).map((_, i) => (
+                                                                                            <div key={i} className="py-1 text-[#32325d] hover:bg-gray-50 rounded cursor-pointer">{i + 1}</div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                                {/* Jan 2026 */}
+                                                                                <div className="flex-1">
+                                                                                    <div className="flex items-center justify-between mb-4">
+                                                                                        <div className="w-4" />
+                                                                                        <span className="text-[14px] font-semibold text-[#32325d]">enero de 2026 <ChevronDown className="w-3 h-3 inline ml-1" /></span>
+                                                                                        <ChevronRight className="w-4 h-4 text-gray-400 cursor-pointer" />
+                                                                                    </div>
+                                                                                    <div className="grid grid-cols-7 gap-y-2 text-center text-[12px]">
+                                                                                        {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map(d => <div key={d} className="text-[#aab2c4] font-medium">{d}</div>)}
+                                                                                        {Array.from({ length: 31 }).map((_, i) => (
+                                                                                            <div key={i} className={cn(
+                                                                                                "py-1 rounded cursor-pointer transition-colors",
+                                                                                                (i + 1 >= 13 && i + 1 <= 19) ? "bg-[#635bff]/10 text-[#635bff]" : "text-[#32325d] hover:bg-gray-50",
+                                                                                                (i + 1 === 13 || i + 1 === 19) && "bg-[#635bff] text-white"
+                                                                                            )}>{i + 1}</div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="flex justify-end gap-2 mt-8">
+                                                                                <button onClick={() => setShowDateDropdown(false)} className="px-4 py-1.5 border border-gray-200 rounded-lg text-[14px] text-[#32325d] font-semibold hover:bg-gray-50">Borra</button>
+                                                                                <button onClick={() => setShowDateDropdown(false)} className="px-4 py-1.5 bg-[#635bff] text-white rounded-lg text-[14px] font-semibold hover:bg-[#5851e0]">Aplica</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
+
+                                                    {/* Diario */}
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowDailyDropdown(!showDailyDropdown);
+                                                                setShowDateDropdown(false);
+                                                                setShowCompareDropdown(false);
+                                                            }}
+                                                            className="flex items-center px-3 py-1.5 bg-white border border-gray-200 rounded-full text-[13px] text-[#635bff] font-semibold hover:border-gray-300 transition-colors gap-1.5 shadow-sm"
+                                                        >
+                                                            {selectedDaily} <ChevronDown className="w-3.5 h-3.5 text-[#635bff]" />
+                                                        </button>
+
+                                                        <AnimatePresence>
+                                                            {showDailyDropdown && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[120] w-[180px]"
+                                                                >
+                                                                    {["Por hora", "Diario"].map((opt) => (
+                                                                        <button
+                                                                            key={opt}
+                                                                            onClick={() => {
+                                                                                setSelectedDaily(opt);
+                                                                                setShowDailyDropdown(false);
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-[14px] text-[#32325d] hover:bg-gray-50 flex items-center justify-between"
+                                                                        >
+                                                                            {opt}
+                                                                            {selectedDaily === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
+                                                                        </button>
+                                                                    ))}
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
+
+                                                    <div className="relative">
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowCompareDropdown(!showCompareDropdown);
+                                                                setShowDateDropdown(false);
+                                                                setShowDailyDropdown(false);
+                                                            }}
+                                                            className="flex items-center bg-white border border-gray-200 rounded-full text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
+                                                        >
+                                                            <div className="px-3 py-1.5 flex items-center gap-2 border-r border-gray-200 bg-gray-50/30">
+                                                                <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
+                                                                    <X className="w-2.5 h-2.5 text-gray-500" />
+                                                                </div>
+                                                                <span className="text-[#697386] font-medium">Compara</span>
+                                                            </div>
+                                                            <span className="px-3 py-1.5 text-[#635bff] font-semibold flex items-center gap-1.5 hover:bg-gray-50">
+                                                                {selectedCompare} <ChevronDown className="w-3.5 h-3.5" />
+                                                            </span>
+                                                        </button>
+
+                                                        <AnimatePresence>
+                                                            {showCompareDropdown && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[120] w-[220px]"
+                                                                >
+                                                                    {["Período anterior", "Semana anterior", "Mes anterior", "Año anterior", "Custom"].map((opt) => (
+                                                                        <button
+                                                                            key={opt}
+                                                                            onClick={() => {
+                                                                                setSelectedCompare(opt);
+                                                                                setShowCompareDropdown(false);
+                                                                            }}
+                                                                            className="w-full px-4 py-2 text-left text-[14px] text-[#32325d] hover:bg-gray-50 flex items-center justify-between"
+                                                                        >
+                                                                            {opt}
+                                                                            {selectedCompare === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
+                                                                        </button>
+                                                                    ))}
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <DashboardCardsSection referenceDate={selectedDate} />
+                                        </div>
+                                    </motion.div>
+                                ) : activeView === "payments_links" ? (
+                                    <motion.div
+                                        key="payments_links_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
                                     >
-                                        <Maximize2 className="w-3 h-3" />
-                                    </button>
-                                    <button onClick={() => setShowOnboarding(false)}><X className="w-3 h-3 text-gray-400 hover:text-gray-600" /></button>
-                                </div>
-                            </div>
-                            {isGuideCollapsed ? (
-                                <div className="px-4 py-4">
-                                    <div className="w-full h-1 bg-gray-200 rounded-full mb-3 relative">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${progressPercent}%` }}
-                                            className="absolute left-0 top-0 h-full bg-[#635bff] rounded-full"
+                                        <PaymentLinksView
+                                            onCreateClick={() => navigate("/dashboard/payment-links/create")}
+                                            paymentLinks={paymentLinks}
+                                            onRenameLink={handleRenamePaymentLink}
+                                            onToggleStatus={handleTogglePaymentLinkStatus}
+                                            testMode={isTestMode}
                                         />
-                                        <motion.div
-                                            animate={{ left: `${progressPercent}%` }}
-                                            className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-full border-2 border-white"
-                                        />
-                                    </div>
-                                    <div className="text-[13px] text-[#4f5b76]">
-                                        Siguiente:{" "}
+                                    </motion.div>
+                                ) : activeView === "customers" ? (
+                                    <motion.div
+                                        key="customers-view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <CustomersPage />
+                                    </motion.div>
+                                ) : activeView === "product_catalog" ? (
+                                    <motion.div
+                                        key="product_catalog_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ProductCatalog />
+                                    </motion.div>
+                                ) : activeView === "product_detail" ? (
+                                    <motion.div
+                                        key="product_detail_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <ProductDetail productId={selectedProductId} />
+                                    </motion.div>
+                                ) : activeView === "saldos" ? (
+                                    <motion.div
+                                        key="balances_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <BalancesPage />
+                                    </motion.div>
+                                ) : null}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+
+                    <AnimatePresence>
+                        {showOnboarding && (
+                            <motion.div
+                                key="onboarding-card"
+                                className={cn(
+                                    "fixed bottom-6 right-6 w-[320px] bg-[#f7f9fc] rounded-xl shadow-2xl overflow-hidden transition-all duration-500 z-[102]",
+                                    "ring-4 ring-[#635bff]/20"
+                                )}
+                                initial={{ y: 100, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: 100, opacity: 0 }}
+                            >
+                                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                                    <h3 className="text-[13px] font-bold text-[#32325d]">Guía de configuración</h3>
+                                    <div className="flex items-center gap-3">
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                if (!completedTasks.includes("customize_account")) {
+                                            onClick={() => setIsGuideCollapsed(!isGuideCollapsed)}
+                                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                                            aria-label={isGuideCollapsed ? "Expandir guía de configuración" : "Colapsar guía de configuración"}
+                                        >
+                                            <Maximize2 className="w-3 h-3" />
+                                        </button>
+                                        <button onClick={() => setShowOnboarding(false)}><X className="w-3 h-3 text-gray-400 hover:text-gray-600" /></button>
+                                    </div>
+                                </div>
+                                {isGuideCollapsed ? (
+                                    <div className="px-4 py-4">
+                                        <div className="w-full h-1 bg-gray-200 rounded-full mb-3 relative">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${progressPercent}%` }}
+                                                className="absolute left-0 top-0 h-full bg-[#635bff] rounded-full"
+                                            />
+                                            <motion.div
+                                                animate={{ left: `${progressPercent}%` }}
+                                                className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-full border-2 border-white"
+                                            />
+                                        </div>
+                                        <div className="text-[13px] text-[#4f5b76]">
+                                            Siguiente:{" "}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (!completedTasks.includes("customize_account")) {
+                                                        setCustomizeStep("form");
+                                                        setShowCustomizeModal(true);
+                                                    } else if (!completedTasks.includes("verify_email")) {
+                                                        setShowVerifyEmailModal(true);
+                                                    }
+                                                }}
+                                                className="text-[#635bff] font-semibold hover:underline"
+                                            >
+                                                {!completedTasks.includes("customize_account")
+                                                    ? "Personaliza tu configuración"
+                                                    : !completedTasks.includes("verify_email")
+                                                        ? "Verifica tu correo electrónico"
+                                                        : "Completa tu perfil"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="px-4 py-5">
+                                        <div className="w-full h-1 bg-gray-200 rounded-full mb-5 relative">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${progressPercent}%` }}
+                                                className="absolute left-0 top-0 h-full bg-[#635bff] rounded-full"
+                                            />
+                                            <motion.div
+                                                animate={{ left: `${progressPercent}%` }}
+                                                className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-full border-2 border-white"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
                                                     setCustomizeStep("form");
                                                     setShowCustomizeModal(true);
-                                                } else if (!completedTasks.includes("verify_email")) {
-                                                    setShowVerifyEmailModal(true);
-                                                }
-                                            }}
-                                            className="text-[#635bff] font-semibold hover:underline"
-                                        >
-                                            {!completedTasks.includes("customize_account")
-                                                ? "Personaliza tu configuración"
-                                                : !completedTasks.includes("verify_email")
-                                                    ? "Verifica tu correo electrónico"
-                                                    : "Completa tu perfil"}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="px-4 py-5">
-                                    <div className="w-full h-1 bg-gray-200 rounded-full mb-5 relative">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${progressPercent}%` }}
-                                            className="absolute left-0 top-0 h-full bg-[#635bff] rounded-full"
-                                        />
-                                        <motion.div
-                                            animate={{ left: `${progressPercent}%` }}
-                                            className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-full border-2 border-white"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setCustomizeStep("form");
-                                                setShowCustomizeModal(true);
-                                            }}
-                                            className="w-full bg-white rounded-lg p-3 shadow-sm border border-gray-100 flex items-center justify-between group hover:border-[#cbd5f5] transition-colors"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={cn(
-                                                    "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
-                                                    completedTasks.includes("customize_account") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
-                                                )}>
-                                                    {completedTasks.includes("customize_account") && <Check className="w-2.5 h-2.5 text-white" />}
+                                                }}
+                                                className="w-full bg-white rounded-lg p-3 shadow-sm border border-gray-100 flex items-center justify-between group hover:border-[#cbd5f5] transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn(
+                                                        "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                        completedTasks.includes("customize_account") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
+                                                    )}>
+                                                        {completedTasks.includes("customize_account") && <Check className="w-2.5 h-2.5 text-white" />}
+                                                    </div>
+                                                    <span className="text-[13px] font-bold text-[#32325d]">
+                                                        Personaliza tu configuración
+                                                    </span>
                                                 </div>
-                                                <span className="text-[13px] font-bold text-[#32325d]">
-                                                    Personaliza tu configuración
-                                                </span>
-                                            </div>
-                                            <div className="w-5 h-5 rounded-full bg-[#635bff] text-white flex items-center justify-center">
-                                                <ChevronRight className="w-3.5 h-3.5" />
-                                            </div>
-                                        </button>
+                                                <div className="w-5 h-5 rounded-full bg-[#635bff] text-white flex items-center justify-center">
+                                                    <ChevronRight className="w-3.5 h-3.5" />
+                                                </div>
+                                            </button>
 
-                                        <div className="bg-white/50 rounded-lg p-3 border border-transparent">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="text-[13px] text-[#32325d] font-semibold">Verifica tu empresa</span>
-                                                <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
-                                            </div>
-                                            <div className="space-y-2 ml-1 border-l border-gray-100 pl-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowVerifyEmailModal(true)}
-                                                    className="flex items-center gap-2 text-[12px] text-[#4f5b76] hover:text-[#32325d] transition-colors group"
-                                                >
-                                                    <div className={cn(
-                                                        "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
-                                                        completedTasks.includes("verify_email") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
-                                                    )}>
-                                                        {completedTasks.includes("verify_email") && <Check className="w-2.5 h-2.5 text-white" />}
-                                                    </div>
-                                                    <span>
-                                                        Verifica tu correo electrónico
-                                                    </span>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => completeTask("complete_profile")}
-                                                    className="flex items-center gap-2 text-[12px] text-[#4f5b76] hover:text-[#32325d] transition-colors group text-left"
-                                                >
-                                                    <div className={cn(
-                                                        "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
-                                                        completedTasks.includes("complete_profile") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
-                                                    )}>
-                                                        {completedTasks.includes("complete_profile") && <Check className="w-2.5 h-2.5 text-white" />}
-                                                    </div>
-                                                    <span>
-                                                        Completa tu perfil
-                                                    </span>
-                                                </button>
+                                            <div className="bg-white/50 rounded-lg p-3 border border-transparent">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <span className="text-[13px] text-[#32325d] font-semibold">Verifica tu empresa</span>
+                                                    <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+                                                </div>
+                                                <div className="space-y-2 ml-1 border-l border-gray-100 pl-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowVerifyEmailModal(true)}
+                                                        className="flex items-center gap-2 text-[12px] text-[#4f5b76] hover:text-[#32325d] transition-colors group"
+                                                    >
+                                                        <div className={cn(
+                                                            "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                            completedTasks.includes("verify_email") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
+                                                        )}>
+                                                            {completedTasks.includes("verify_email") && <Check className="w-2.5 h-2.5 text-white" />}
+                                                        </div>
+                                                        <span>
+                                                            Verifica tu correo electrónico
+                                                        </span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => completeTask("complete_profile")}
+                                                        className="flex items-center gap-2 text-[12px] text-[#4f5b76] hover:text-[#32325d] transition-colors group text-left"
+                                                    >
+                                                        <div className={cn(
+                                                            "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                            completedTasks.includes("complete_profile") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
+                                                        )}>
+                                                            {completedTasks.includes("complete_profile") && <Check className="w-2.5 h-2.5 text-white" />}
+                                                        </div>
+                                                        <span>
+                                                            Completa tu perfil
+                                                        </span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </main>
-        </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </main>
+            </div>
         </div>
     );
 }
