@@ -2940,23 +2940,10 @@ export default function Dashboard() {
                         </div>
 
                         <SidebarItem
-                            icon={CreditCard}
-                            label="Pagos"
-                            hasSubmenu
-                            subItems={["Payments Links"]}
-                            active={false}
-                            onSubItemClick={(item) => {
-                                if (item === "Payments Links") {
-                                    navigate("/dashboard/payment-links");
-                                }
-                            }}
-                            activeSubItem={activeView === "payments_links" ? "Payments Links" : null}
-                        />
-                        <SidebarItem
-                            icon={FileText}
-                            label="Facturación"
-                            hasSubmenu
-                            subItems={["Suscripciones"]}
+                            icon={Link2}
+                            label="Payment Links"
+                            active={activeView === "payments_links"}
+                            onClick={() => navigate("/dashboard/payment-links")}
                         />
                     </nav>
 
