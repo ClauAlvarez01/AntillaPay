@@ -284,9 +284,17 @@ export default function CustomerDetail({ customerId }) {
                     <Copy className="w-3.5 h-3.5" />
                     Copiar ID
                 </button>
+                <button
+                    type="button"
+                    onClick={() => handleCopyText(customer.email)}
+                    className="inline-flex items-center gap-1 text-[#635bff] font-semibold hover:underline"
+                >
+                    <Copy className="w-3.5 h-3.5" />
+                    Copiar email
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+            <div className="max-w-[720px]">
                 <div className="rounded-2xl border border-gray-100 bg-white p-6 space-y-6">
                     <div className="text-[14px] font-semibold text-[#32325d]">Información básica</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -306,39 +314,6 @@ export default function CustomerDetail({ customerId }) {
                             <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Tipo</span>
                             <div className="text-[14px] text-[#32325d]">{customer.type}</div>
                         </div>
-                    </div>
-                </div>
-
-                <div className="rounded-2xl border border-gray-100 bg-white p-6 space-y-4">
-                    <div className="text-[14px] font-semibold text-[#32325d]">Resumen</div>
-                    <div className="space-y-2 text-[13px] text-[#4f5b76]">
-                        <div className="flex items-center justify-between">
-                            <span>Saldo registrado</span>
-                            <span className="font-semibold text-[#32325d]">{formatCurrency(customer.balance || 0)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <span>Estado</span>
-                            <span className={cn(
-                                "px-2 py-0.5 rounded-full border text-[11px] font-semibold",
-                                customer.status === "Activo"
-                                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                    : customer.status === "Moroso"
-                                        ? "border-rose-200 bg-rose-50 text-rose-700"
-                                        : "border-blue-200 bg-blue-50 text-blue-700"
-                            )}>
-                                {customer.status}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="pt-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full h-9 rounded-lg text-[13px] font-semibold"
-                            onClick={() => handleCopyText(customer.email)}
-                        >
-                            Copiar email
-                        </Button>
                     </div>
                 </div>
             </div>

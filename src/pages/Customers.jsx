@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import {
     Table,
     TableBody,
@@ -103,11 +104,9 @@ const STATUS_STYLES = {
 };
 
 const FILTERS = [
-    { id: "email", label: "Correo" },
-    { id: "name", label: "Nombre" },
     { id: "created", label: "Fecha de creacion" },
     { id: "type", label: "Tipo" },
-    { id: "more", label: "Mas filtros" }
+    { id: "more", label: "Estado" }
 ];
 
 const DEFAULT_COLUMNS = [
@@ -182,19 +181,18 @@ export default function CustomersPage() {
     });
     const [searchQuery, setSearchQuery] = useState("");
     const [chipFilters, setChipFilters] = useState(() => ({
-        email: false,
-        name: false,
         created: false,
         type: false,
         more: false
     }));
     const [typeFilter, setTypeFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [balanceFilter, setBalanceFilter] = useState("all");
     const [sortOrder, setSortOrder] = useState("desc");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isEditColumnsOpen, setIsEditColumnsOpen] = useState(false);
+    const [createdDate, setCreatedDate] = useState(undefined);
+    const [isCreatedCalendarOpen, setIsCreatedCalendarOpen] = useState(false);
     const [formState, setFormState] = useState({
         name: "",
         email: "",
@@ -219,6 +217,22 @@ export default function CustomersPage() {
     const visibleColumns = activeColumns.filter((column) => column.visible || column.locked);
 
     const handleToggleFilter = (filterId) => {
+        if (filterId === "created") {
+            setChipFilters((prev) => {
+                const nextValue = !prev[filterId];
+                if (!nextValue) {
+                    setCreatedDate(undefined);
+                    setIsCreatedCalendarOpen(false);
+                } else {
+                    setIsCreatedCalendarOpen(true);
+                }
+                return {
+                    ...prev,
+                    [filterId]: nextValue
+                };
+            });
+            return;
+        }
         setChipFilters((prev) => ({
             ...prev,
             [filterId]: !prev[filterId]
@@ -231,48 +245,42 @@ export default function CustomersPage() {
 
     const filteredCustomers = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
-        const onlyName = chipFilters.name && !chipFilters.email;
-        const onlyEmail = chipFilters.email && !chipFilters.name;
-        const recentThreshold = new Date();
-        recentThreshold.setDate(recentThreshold.getDate() - 30);
+        const selectedDate = createdDate ? new Date(createdDate) : null;
+        if (selectedDate) selectedDate.setHours(0, 0, 0, 0);
 
         return customers
             .filter((customer) => {
-                if (balanceFilter === "positive" && customer.balance <= 0) {
-                    return false;
-                }
-                if (balanceFilter === "zero" && customer.balance !== 0) {
-                    return false;
-                }
                 if (chipFilters.type && typeFilter !== "all" && customer.type !== typeFilter) {
                     return false;
                 }
                 if (chipFilters.more && statusFilter !== "all" && customer.status !== statusFilter) {
                     return false;
                 }
-                if (chipFilters.created && new Date(customer.createdAt) < recentThreshold) {
-                    return false;
-                }
                 if (!query) {
                     return true;
-                }
-                if (onlyName) {
-                    return customer.name.toLowerCase().includes(query);
-                }
-                if (onlyEmail) {
-                    return customer.email.toLowerCase().includes(query);
                 }
                 return (
                     customer.name.toLowerCase().includes(query) ||
                     customer.email.toLowerCase().includes(query)
                 );
             })
+            .filter((customer) => {
+                if (!chipFilters.created || !selectedDate) {
+                    return true;
+                }
+                const createdAt = new Date(customer.createdAt);
+                if (Number.isNaN(createdAt.getTime())) return false;
+                const createdAtStart = new Date(createdAt);
+                createdAtStart.setHours(0, 0, 0, 0);
+                return createdAtStart.getTime() === selectedDate.getTime();
+            })
             .sort((a, b) => {
                 const dateA = new Date(a.createdAt).getTime();
                 const dateB = new Date(b.createdAt).getTime();
                 return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
             });
-    }, [balanceFilter, chipFilters, customers, searchQuery, sortOrder, statusFilter, typeFilter]);
+    }, [chipFilters, createdDate, customers, searchQuery, sortOrder, statusFilter, typeFilter]);
+
 
     const renderHeaderCell = (column, index) => {
         const baseClass = "text-[12px] font-semibold text-[#8792a2]";
@@ -441,10 +449,7 @@ export default function CustomersPage() {
                 <h1 className="text-[28px] font-bold text-[#32325d]">Clientes</h1>
 
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                    <div className="inline-flex h-9 items-center rounded-full border border-[#635bff] bg-[#635bff] px-4 text-[13px] font-semibold text-white">
-                        Todos
-                    </div>
-                    <div className="relative flex-1">
+                    <div className="relative w-full max-w-[420px]">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
                         <Input
                             value={searchQuery}
@@ -453,57 +458,72 @@ export default function CustomersPage() {
                             className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
                         />
                     </div>
-                    <div className="w-full sm:w-[220px]">
-                        <Select value={balanceFilter} onValueChange={setBalanceFilter}>
-                            <SelectTrigger className="h-9 rounded-full border-gray-200 bg-white text-[13px]">
-                                <SelectValue placeholder="Saldos pendientes" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Saldos pendientes</SelectItem>
-                                <SelectItem value="positive">Saldo &gt; 0</SelectItem>
-                                <SelectItem value="zero">Saldo = 0</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-                {FILTERS.map((filter) => (
-                    <FilterPill
-                        key={filter.id}
-                        label={filter.label}
-                        active={chipFilters[filter.id]}
-                        onClick={() => handleToggleFilter(filter.id)}
-                    />
-                ))}
-                {chipFilters.type && (
-                    <div className="min-w-[160px]">
-                        <Select value={typeFilter} onValueChange={setTypeFilter}>
-                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px]">
-                                <SelectValue placeholder="Tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos los tipos</SelectItem>
-                                <SelectItem value="Individual">Individual</SelectItem>
-                                <SelectItem value="Empresa">Empresa</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
-                {chipFilters.more && (
-                    <div className="min-w-[160px]">
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px]">
-                                <SelectValue placeholder="Estado" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos los estados</SelectItem>
-                                <SelectItem value="Activo">Activo</SelectItem>
-                                <SelectItem value="Moroso">Moroso</SelectItem>
-                                <SelectItem value="Nuevo">Nuevo</SelectItem>
-                            </SelectContent>
-                        </Select>
+            <div className="relative">
+                <div className="flex flex-wrap items-center gap-2">
+                    {FILTERS.map((filter) => (
+                        <FilterPill
+                            key={filter.id}
+                            label={filter.label}
+                            active={chipFilters[filter.id]}
+                            onClick={() => handleToggleFilter(filter.id)}
+                        />
+                    ))}
+                    {chipFilters.created && createdDate && (
+                        <span className="text-[12px] font-semibold text-[#635bff] ml-1">
+                            {new Date(createdDate).toLocaleDateString("es-ES", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric"
+                            })}
+                        </span>
+                    )}
+                    {chipFilters.type && (
+                        <div className="min-w-[160px]">
+                            <Select value={typeFilter} onValueChange={setTypeFilter}>
+                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px]">
+                                    <SelectValue placeholder="Tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todos los tipos</SelectItem>
+                                    <SelectItem value="Individual">Individual</SelectItem>
+                                    <SelectItem value="Empresa">Empresa</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    {chipFilters.more && (
+                        <div className="min-w-[160px]">
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px]">
+                                    <SelectValue placeholder="Estado" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todos los estados</SelectItem>
+                                    <SelectItem value="Activo">Activo</SelectItem>
+                                    <SelectItem value="Moroso">Moroso</SelectItem>
+                                    <SelectItem value="Nuevo">Nuevo</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                </div>
+
+                {isCreatedCalendarOpen && (
+                    <div className="absolute left-0 top-full mt-2 z-20">
+                        <Calendar
+                            mode="single"
+                            selected={createdDate}
+                            onSelect={(date) => {
+                                setCreatedDate(date);
+                                if (date) {
+                                    setIsCreatedCalendarOpen(false);
+                                }
+                            }}
+                            className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                        />
                     </div>
                 )}
             </div>
