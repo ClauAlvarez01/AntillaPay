@@ -3144,7 +3144,12 @@ export default function Dashboard() {
                                                                 <div className="text-[13px] text-[#32325d] mb-1">Saldo en USD</div>
                                                                 <div className="text-[20px] font-normal text-[#32325d]">{formatUsd(totals.balance)}</div>
                                                             </div>
-                                                            <button className="text-[12px] text-[#635bff] font-semibold hover:underline">Ver datos</button>
+                                                            <button
+                                                                onClick={() => navigate("/dashboard/balances")}
+                                                                className="text-[12px] text-[#635bff] font-semibold hover:underline"
+                                                            >
+                                                                Ver datos
+                                                            </button>
                                                         </div>
                                                         <div className="flex items-start justify-between">
                                                             <div>
