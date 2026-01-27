@@ -1507,8 +1507,7 @@ export default function ProductCatalog() {
                     {filteredProducts.map((product) => (
                         <div
                             key={product.id}
-                            onClick={() => navigate(`/dashboard/products/${product.id}`)}
-                            className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50"
+                            className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
                         >
                             <div className="font-semibold">{product.name}</div>
                             <div className="flex items-center gap-2 text-[#4f5b76]">
@@ -1552,10 +1551,20 @@ export default function ProductCatalog() {
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    navigate("/dashboard/products/create", { state: { productToEdit: product } });
+                                                    navigate(`/dashboard/products/${product.id}`);
                                                     setOpenMenuId(null);
                                                 }}
                                                 className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50 rounded-t-xl"
+                                            >
+                                                Ver detalles
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigate("/dashboard/products/create", { state: { productToEdit: product } });
+                                                    setOpenMenuId(null);
+                                                }}
+                                                className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
                                             >
                                                 Editar producto
                                             </button>

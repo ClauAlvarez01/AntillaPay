@@ -604,14 +604,12 @@ export default function BalancesPage({ onOpenReport }) {
                                                                         onClick={() => openTransferDetails(transfer)}
                                                                         className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
                                                                     >
-                                                                        <FileText className="w-4 h-4" />
-                                                                        Ver detalle
+                                                                        Ver detalles
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem
                                                                         onClick={() => handleDownloadReceipt(transfer)}
                                                                         className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
                                                                     >
-                                                                        <Download className="w-4 h-4" />
                                                                         Descargar comprobante
                                                                     </DropdownMenuItem>
                                                                 </>
@@ -622,7 +620,6 @@ export default function BalancesPage({ onOpenReport }) {
                                                                     onClick={() => openTransferDetails(transfer)}
                                                                     className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
                                                                 >
-                                                                    <FileText className="w-4 h-4" />
                                                                     Ver estado
                                                                 </DropdownMenuItem>
                                                             )}
@@ -633,14 +630,12 @@ export default function BalancesPage({ onOpenReport }) {
                                                                         onClick={() => openTransferDetails(transfer)}
                                                                         className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
                                                                     >
-                                                                        <FileText className="w-4 h-4" />
-                                                                        Ver detalle
+                                                                        Ver detalles
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem
                                                                         onClick={() => openReviewRequest(transfer)}
                                                                         className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
                                                                     >
-                                                                        <HelpCircle className="w-4 h-4" />
                                                                         Solicitar revision
                                                                     </DropdownMenuItem>
                                                                 </>
@@ -650,7 +645,6 @@ export default function BalancesPage({ onOpenReport }) {
                                                                 onClick={() => handleCopyTransferId(transfer)}
                                                                 className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
                                                             >
-                                                                <Clipboard className="w-4 h-4" />
                                                                 Copiar ID de la transferencia
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
