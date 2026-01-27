@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Plus, Search, Upload, User } from "lucide-react";
+import { MoreHorizontal, Plus, Search, Upload, User } from "lucide-react";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -282,6 +282,14 @@ export default function CustomersPage() {
             );
         }
 
+        if (isActions) {
+            return (
+                <TableHead key={column.key} className={headerClass}>
+                    <span className="sr-only">Acciones</span>
+                </TableHead>
+            );
+        }
+
         return (
             <TableHead key={column.key} className={headerClass}>
                 {column.label}
@@ -339,9 +347,9 @@ export default function CustomersPage() {
                     <TableCell key={column.key} className="py-4 text-right pr-6">
                         <button
                             type="button"
-                            className="text-[12px] font-semibold text-[#635bff] hover:underline"
+                            className="text-[#aab2c4] hover:text-[#32325d] transition-colors"
                         >
-                            Ver
+                            <MoreHorizontal className="w-5 h-5" />
                         </button>
                     </TableCell>
                 );
