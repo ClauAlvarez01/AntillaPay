@@ -43,6 +43,7 @@ import {
 } from "recharts";
 import CustomersPage from "./Customers";
 import BalancesPage from "./Balances";
+import BalanceSummaryReport from "./BalanceSummaryReport";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -2161,6 +2162,9 @@ export default function Dashboard() {
         if (path.startsWith("/dashboard/balances") || path.startsWith("/dashboard/saldos")) {
             return "saldos";
         }
+        if (path.startsWith("/dashboard/balance-report")) {
+            return "balance_report";
+        }
         return "home";
     });
 
@@ -2229,6 +2233,11 @@ export default function Dashboard() {
         }
         if (path.startsWith("/dashboard/balances") || path.startsWith("/dashboard/saldos")) {
             setActiveView("saldos");
+            setSelectedProductId(null);
+            return;
+        }
+        if (path.startsWith("/dashboard/balance-report")) {
+            setActiveView("balance_report");
             setSelectedProductId(null);
             return;
         }
@@ -3433,7 +3442,17 @@ export default function Dashboard() {
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        <BalancesPage />
+                                        <BalancesPage onOpenReport={() => navigate("/dashboard/balance-report")} />
+                                    </motion.div>
+                                ) : activeView === "balance_report" ? (
+                                    <motion.div
+                                        key="balance_report_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <BalanceSummaryReport onBack={() => navigate("/dashboard/balances")} />
                                     </motion.div>
                                 ) : null}
                             </AnimatePresence>

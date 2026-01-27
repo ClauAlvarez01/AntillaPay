@@ -107,7 +107,7 @@ const formatDate = (dateString) => {
     });
 };
 
-export default function BalancesPage() {
+export default function BalancesPage({ onOpenReport }) {
     const [transfers, setTransfers] = useState(INITIAL_TRANSFERS);
     const [bankAccounts, setBankAccounts] = useState(INITIAL_BANK_ACCOUNTS);
     const [availableBalance] = useState(1240.50);
@@ -321,21 +321,16 @@ export default function BalancesPage() {
                     <section className="space-y-4">
                         <h3 className="text-[13px] font-bold text-[#8792a2] uppercase tracking-wider">Informes</h3>
                         <div className="space-y-3">
-                            <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all group">
+                            <button
+                                onClick={onOpenReport}
+                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all group"
+                            >
                                 <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-[#635bff]/10 transition-colors">
                                     <Clock className="w-4 h-4 text-gray-500 group-hover:text-[#635bff]" />
                                 </div>
                                 <div className="text-left">
                                     <div className="text-[13px] font-semibold text-[#32325d]">Resumen del saldo</div>
                                     <div className="text-[11px] text-[#8792a2]">ene 2026</div>
-                                </div>
-                            </button>
-                            <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all group">
-                                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-[#635bff]/10 transition-colors">
-                                    <ArrowLeftRight className="w-4 h-4 text-gray-500 group-hover:text-[#635bff]" />
-                                </div>
-                                <div className="text-left">
-                                    <div className="text-[13px] font-semibold text-[#32325d]">Conciliación de transferencias</div>
                                 </div>
                             </button>
                         </div>
