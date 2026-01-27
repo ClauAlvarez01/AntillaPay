@@ -42,6 +42,7 @@ import {
     YAxis
 } from "recharts";
 import CustomersPage from "./Customers";
+import CustomerDetail from "./CustomerDetail";
 import BalancesPage from "./Balances";
 import BalanceSummaryReport from "./BalanceSummaryReport";
 
@@ -2146,6 +2147,7 @@ export default function Dashboard() {
     const [showCustomizeModal, setShowCustomizeModal] = useState(false);
     const [customizeStep, setCustomizeStep] = useState("form");
     const [selectedProductId, setSelectedProductId] = useState(null);
+    const [selectedCustomerId, setSelectedCustomerId] = useState(null);
     const [paymentLinks, setPaymentLinks] = useState(() => {
         if (typeof window === "undefined") return [];
         const stored = window.localStorage.getItem("antillapay_payment_links");
@@ -2153,6 +2155,9 @@ export default function Dashboard() {
     });
     const [activeView, setActiveView] = useState(() => {
         const path = location.pathname.toLowerCase();
+        if (path.startsWith("/dashboard/customers/")) {
+            return "customer_detail";
+        }
         if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
             return "customers";
         }
@@ -2210,40 +2215,54 @@ export default function Dashboard() {
 
     useEffect(() => {
         const path = location.pathname.toLowerCase();
+        if (path.startsWith("/dashboard/customers/")) {
+            const parts = path.split("/");
+            setSelectedCustomerId(parts[3] || null);
+            setActiveView("customer_detail");
+            setSelectedProductId(null);
+            return;
+        }
         if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
             setActiveView("customers");
             setSelectedProductId(null);
+            setSelectedCustomerId(null);
             return;
         }
         if (path.startsWith("/dashboard/payment-links")) {
             setActiveView("payments_links");
             setSelectedProductId(null);
+            setSelectedCustomerId(null);
             return;
         }
         if (path.startsWith("/dashboard/products/")) {
             const parts = path.split("/");
             setSelectedProductId(parts[3] || null);
             setActiveView("product_detail");
+            setSelectedCustomerId(null);
             return;
         }
         if (path.startsWith("/dashboard/product-catalog")) {
             setActiveView("product_catalog");
             setSelectedProductId(null);
+            setSelectedCustomerId(null);
             return;
         }
         if (path.startsWith("/dashboard/balances") || path.startsWith("/dashboard/saldos")) {
             setActiveView("saldos");
             setSelectedProductId(null);
+            setSelectedCustomerId(null);
             return;
         }
         if (path.startsWith("/dashboard/balance-report")) {
             setActiveView("balance_report");
             setSelectedProductId(null);
+            setSelectedCustomerId(null);
             return;
         }
         if (path.startsWith("/dashboard")) {
             setActiveView("home");
             setSelectedProductId(null);
+            setSelectedCustomerId(null);
         }
     }, [location.pathname]);
 
@@ -2429,7 +2448,7 @@ export default function Dashboard() {
     return (
         <div className={cn(
             "flex h-screen w-full overflow-hidden font-sans relative flex-col",
-            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "saldos"
+            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos"
                 ? "bg-white"
                 : "bg-[#f6f9fc]"
         )}>
@@ -2925,7 +2944,7 @@ export default function Dashboard() {
                         <SidebarItem
                             icon={Users}
                             label="Clientes"
-                            active={activeView === "customers"}
+                            active={activeView === "customers" || activeView === "customer_detail"}
                             onClick={() => navigate("/customers")}
                         />
                         <SidebarItem
@@ -2968,13 +2987,13 @@ export default function Dashboard() {
                         ref={contentRef}
                         className={cn(
                             "flex-1 overflow-y-auto",
-                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "saldos"
+                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos"
                                 ? "p-8 bg-white"
                                 : "p-10"
                         )}
                     >
                         <div className={cn(
-                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "saldos"
+                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos"
                                 ? "w-full"
                                 : "max-w-6xl mx-auto"
                         )}>
@@ -3425,6 +3444,16 @@ export default function Dashboard() {
                                         transition={{ duration: 0.2 }}
                                     >
                                         <ProductDetail productId={selectedProductId} />
+                                    </motion.div>
+                                ) : activeView === "customer_detail" ? (
+                                    <motion.div
+                                        key="customer_detail_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <CustomerDetail customerId={selectedCustomerId} />
                                     </motion.div>
                                 ) : activeView === "saldos" ? (
                                     <motion.div

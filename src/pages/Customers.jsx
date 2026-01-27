@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MoreHorizontal, Plus, Search, Upload, User } from "lucide-react";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,12 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import {
     Dialog,
     DialogContent,
@@ -167,7 +174,12 @@ const EmptyState = ({ onAdd }) => (
 );
 
 export default function CustomersPage() {
-    const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
+    const navigate = useNavigate();
+    const [customers, setCustomers] = useState(() => {
+        if (typeof window === "undefined") return INITIAL_CUSTOMERS;
+        const stored = window.localStorage.getItem("antillapay_customers");
+        return stored ? JSON.parse(stored) : INITIAL_CUSTOMERS;
+    });
     const [searchQuery, setSearchQuery] = useState("");
     const [chipFilters, setChipFilters] = useState(() => ({
         email: false,
@@ -197,6 +209,11 @@ export default function CustomersPage() {
         storageKey: COLUMN_STORAGE_KEY,
         defaultColumns: DEFAULT_COLUMNS
     });
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        window.localStorage.setItem("antillapay_customers", JSON.stringify(customers));
+    }, [customers]);
 
     const activeColumns = columns ?? DEFAULT_COLUMNS;
     const visibleColumns = activeColumns.filter((column) => column.visible || column.locked);
@@ -345,17 +362,57 @@ export default function CustomersPage() {
             case "actions":
                 return (
                     <TableCell key={column.key} className="py-4 text-right pr-6">
-                        <button
-                            type="button"
-                            className="text-[#aab2c4] hover:text-[#32325d] transition-colors"
-                        >
-                            <MoreHorizontal className="w-5 h-5" />
-                        </button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    type="button"
+                                    className="text-[#aab2c4] hover:text-[#32325d] transition-colors"
+                                >
+                                    <MoreHorizontal className="w-5 h-5" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-[220px] rounded-xl p-1 shadow-xl border-gray-100">
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        navigate(`/dashboard/customers/${customer.id}`, { state: { customer } });
+                                    }}
+                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                >
+                                    Ver detalles
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => handleCopyText(customer.email)}
+                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                >
+                                    Copiar email
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => handleCopyText(customer.id)}
+                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                >
+                                    Copiar ID del cliente
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </TableCell>
                 );
             default:
                 return null;
         }
+    };
+
+    const handleCopyText = (value) => {
+        if (!value) return;
+        if (navigator?.clipboard?.writeText) {
+            navigator.clipboard.writeText(value);
+            return;
+        }
+        const input = document.createElement("input");
+        input.value = value;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
     };
 
     const handleSaveCustomer = () => {
