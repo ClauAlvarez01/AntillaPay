@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import {
     ArrowLeftRight,
+    Clipboard,
     Banknote,
     Check,
     ChevronDown,
     Clock,
     CreditCard,
     DollarSign,
+    Download,
     ExternalLink,
+    FileText,
     HelpCircle,
     Info,
     MoreHorizontal,
@@ -15,6 +18,7 @@ import {
     X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,26 +48,44 @@ const INITIAL_TRANSFERS = [
     {
         id: "tr_001",
         amount: 450.00,
+        grossAmount: 455.00,
+        netAmount: 450.00,
         status: "completada",
         date: "2026-01-15T10:30:00Z",
+        createdAt: "2026-01-14T12:10:00Z",
+        executedAt: "2026-01-15T10:30:00Z",
+        failedAt: null,
         destination: "Banco Metropolitano ****4567",
-        type: "Manual"
+        type: "Manual",
+        failureReason: null
     },
     {
         id: "tr_002",
         amount: 120.50,
+        grossAmount: 120.50,
+        netAmount: 120.50,
         status: "pendiente",
         date: "2026-01-20T14:45:00Z",
+        createdAt: "2026-01-20T14:45:00Z",
+        executedAt: null,
+        failedAt: null,
         destination: "Banco de Crédito ****8821",
-        type: "Manual"
+        type: "Manual",
+        failureReason: null
     },
     {
         id: "tr_003",
         amount: 890.00,
+        grossAmount: 890.00,
+        netAmount: 880.00,
         status: "fallida",
         date: "2026-01-10T09:15:00Z",
+        createdAt: "2026-01-09T16:40:00Z",
+        executedAt: null,
+        failedAt: "2026-01-10T09:15:00Z",
         destination: "Banco Metropolitano ****4567",
-        type: "Automática"
+        type: "Automática",
+        failureReason: "Cuenta destino rechazada por el banco receptor."
     }
 ];
 
@@ -99,6 +121,7 @@ const formatCurrency = (value) => `${value.toLocaleString("en-US", {
 })} US$`;
 
 const formatDate = (dateString) => {
+    if (!dateString) return "—";
     const date = new Date(dateString);
     return date.toLocaleDateString("es-ES", {
         day: "2-digit",
@@ -107,17 +130,230 @@ const formatDate = (dateString) => {
     });
 };
 
+const formatPdfDateTime = (dateValue) => {
+    if (!dateValue) return "--";
+    const date = new Date(dateValue);
+    return date.toLocaleString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+};
+
+const sanitizePdfText = (value = "") => {
+    return value
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\x20-\x7E]/g, "");
+};
+
+const escapePdfText = (value = "") => (
+    sanitizePdfText(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)")
+);
+
+const wrapPdfText = (text, maxWidth, fontSize) => {
+    const sanitized = sanitizePdfText(text);
+    if (!sanitized) return ["--"];
+    const approxCharWidth = fontSize * 0.5;
+    const maxChars = Math.max(12, Math.floor(maxWidth / approxCharWidth));
+    const words = sanitized.split(" ");
+    const lines = [];
+    let current = "";
+
+    words.forEach((word) => {
+        if (!current) {
+            current = word;
+            return;
+        }
+        if (`${current} ${word}`.length <= maxChars) {
+            current = `${current} ${word}`;
+        } else {
+            lines.push(current);
+            current = word;
+        }
+    });
+
+    if (current) lines.push(current);
+    return lines;
+};
+
+const buildReceiptPdf = (transfer) => {
+    const pageWidth = 595.28;
+    const pageHeight = 841.89;
+    const margin = 48;
+    const headerHeight = 96;
+    const colGap = 24;
+    const colWidth = (pageWidth - margin * 2 - colGap) / 2;
+    const col2X = margin + colWidth + colGap;
+
+    const colors = {
+        accent: [0.388, 0.357, 1],
+        primary: [0.196, 0.208, 0.365],
+        muted: [0.53, 0.58, 0.64],
+        border: [0.88, 0.9, 0.93],
+        headerBg: [0.965, 0.97, 0.985]
+    };
+
+    const lines = [];
+    const add = (command) => lines.push(command);
+
+    const drawText = (text, x, y, size = 11, font = "F1", color = colors.primary) => {
+        const safeText = escapePdfText(text);
+        add(`${color[0]} ${color[1]} ${color[2]} rg`);
+        add(`BT /${font} ${size} Tf 1 0 0 1 ${x} ${y} Tm (${safeText}) Tj ET`);
+    };
+
+    const drawLine = (x1, y1, x2, y2, color = colors.border, width = 1) => {
+        add(`${color[0]} ${color[1]} ${color[2]} RG`);
+        add(`${width} w`);
+        add(`${x1} ${y1} m ${x2} ${y2} l S`);
+    };
+
+    const drawRect = (x, y, width, height, color) => {
+        add(`${color[0]} ${color[1]} ${color[2]} rg`);
+        add(`${x} ${y} ${width} ${height} re f`);
+    };
+
+    const drawField = (label, value, x, y) => {
+        drawText(label, x, y, 8, "F1", colors.muted);
+        drawText(value, x, y - 12, 11, "F2", colors.primary);
+    };
+
+    drawRect(0, pageHeight - headerHeight, pageWidth, headerHeight, colors.headerBg);
+    drawRect(0, pageHeight - headerHeight, pageWidth, 2, colors.accent);
+
+    drawText("Comprobante de transferencia", margin, pageHeight - 50, 18, "F2", colors.primary);
+    drawText("AntillaPay - Payouts", margin, pageHeight - 72, 10, "F1", colors.muted);
+
+    let cursorY = pageHeight - headerHeight - 28;
+
+    drawText("RESUMEN DEL PAYOUT", margin, cursorY, 9, "F2", colors.muted);
+    cursorY -= 8;
+    drawLine(margin, cursorY, pageWidth - margin, cursorY);
+    cursorY -= 18;
+
+    const statusLabel = getStatusLabel(transfer.status);
+    drawField("ID DEL PAYOUT", transfer.id, margin, cursorY);
+    drawField("ESTADO", statusLabel, col2X, cursorY);
+    cursorY -= 34;
+
+    drawField("FECHA DE CREACION", formatPdfDateTime(transfer.createdAt), margin, cursorY);
+    drawField("FECHA DE EJECUCION", formatPdfDateTime(transfer.executedAt), col2X, cursorY);
+    cursorY -= 34;
+
+    drawField("FECHA DE FALLO", formatPdfDateTime(transfer.failedAt), margin, cursorY);
+    cursorY -= 40;
+
+    drawText("MONTOS", margin, cursorY, 9, "F2", colors.muted);
+    cursorY -= 8;
+    drawLine(margin, cursorY, pageWidth - margin, cursorY);
+    cursorY -= 18;
+
+    drawField("MONTO BRUTO", formatCurrency(transfer.grossAmount ?? transfer.amount), margin, cursorY);
+    drawField("MONTO NETO", formatCurrency(transfer.netAmount ?? transfer.amount), col2X, cursorY);
+    cursorY -= 40;
+
+    drawText("DESTINO", margin, cursorY, 9, "F2", colors.muted);
+    cursorY -= 8;
+    drawLine(margin, cursorY, pageWidth - margin, cursorY);
+    cursorY -= 18;
+
+    drawText("CUENTA DESTINO", margin, cursorY, 8, "F1", colors.muted);
+    cursorY -= 12;
+    const destinationLines = wrapPdfText(transfer.destination, pageWidth - margin * 2, 11);
+    destinationLines.forEach((line) => {
+        drawText(line, margin, cursorY, 11, "F2", colors.primary);
+        cursorY -= 14;
+    });
+
+    if (transfer.failureReason) {
+        cursorY -= 10;
+        drawText("MOTIVO DEL FALLO", margin, cursorY, 9, "F2", colors.muted);
+        cursorY -= 8;
+        drawLine(margin, cursorY, pageWidth - margin, cursorY);
+        cursorY -= 18;
+        const failureLines = wrapPdfText(transfer.failureReason, pageWidth - margin * 2, 11);
+        failureLines.forEach((line) => {
+            drawText(line, margin, cursorY, 11, "F1", colors.primary);
+            cursorY -= 14;
+        });
+    }
+
+    const footerY = 64;
+    drawLine(margin, footerY + 20, pageWidth - margin, footerY + 20);
+    drawText(`Generado el ${formatPdfDateTime(new Date().toISOString())}`, margin, footerY + 6, 9, "F1", colors.muted);
+    drawText("Documento para uso contable y soporte.", margin, footerY - 6, 9, "F1", colors.muted);
+
+    const contentStream = lines.join("\n");
+    const objects = [];
+
+    const addObject = (content) => {
+        objects.push(content);
+        return objects.length;
+    };
+
+    addObject("<< /Type /Catalog /Pages 2 0 R >>");
+    addObject("<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+    addObject(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>`);
+    addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+    addObject("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+    addObject(`<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream`);
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((obj, index) => {
+        offsets.push(pdf.length);
+        pdf += `${index + 1} 0 obj\n${obj}\nendobj\n`;
+    });
+
+    const xrefPosition = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n`;
+    pdf += "0000000000 65535 f \n";
+    offsets.slice(1).forEach((offset) => {
+        pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPosition}\n%%EOF`;
+
+    return pdf;
+};
+
+const getStatusTone = (status) => {
+    if (status === "pendiente" || status === "procesando") return "pendiente";
+    if (status === "fallida") return "fallida";
+    return "completada";
+};
+
+const getStatusLabel = (status) => {
+    const labels = {
+        completada: "Completada",
+        pendiente: "Pendiente",
+        procesando: "Pendiente",
+        fallida: "Fallida"
+    };
+
+    return labels[status] || "Pendiente";
+};
+
 export default function BalancesPage({ onOpenReport }) {
     const [transfers, setTransfers] = useState(INITIAL_TRANSFERS);
     const [bankAccounts, setBankAccounts] = useState(INITIAL_BANK_ACCOUNTS);
     const [availableBalance] = useState(1240.50);
     const [pendingBalance] = useState(350.25);
+    const [selectedTransfer, setSelectedTransfer] = useState(null);
 
     // Modals
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isManageBanksModalOpen, setIsManageBanksModalOpen] = useState(false);
     const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+    const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] = useState(false);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
     // Form states
     const [transferAmount, setTransferAmount] = useState("");
@@ -125,23 +361,78 @@ export default function BalancesPage({ onOpenReport }) {
     const [newBankName, setNewBankName] = useState("");
     const [newBankLast4, setNewBankLast4] = useState("");
     const [transferType, setTransferType] = useState("manual");
+    const [reviewMessage, setReviewMessage] = useState("");
 
     const handleTransfer = () => {
         if (!transferAmount || isNaN(transferAmount) || parseFloat(transferAmount) <= 0) return;
 
+        const parsedAmount = parseFloat(transferAmount);
         const selectedBank = bankAccounts.find(b => b.id === selectedBankId);
         const newTransfer = {
             id: `tr_${Date.now()}`,
-            amount: parseFloat(transferAmount),
-            status: "procesando",
+            amount: parsedAmount,
+            grossAmount: parsedAmount,
+            netAmount: parsedAmount,
+            status: "pendiente",
             date: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            executedAt: null,
+            failedAt: null,
             destination: `${selectedBank?.bankName} ****${selectedBank?.last4}`,
-            type: "Manual"
+            type: "Manual",
+            failureReason: null
         };
 
         setTransfers([newTransfer, ...transfers]);
         setIsTransferModalOpen(false);
         setTransferAmount("");
+    };
+
+    const openTransferDetails = (transfer) => {
+        setSelectedTransfer(transfer);
+        setIsTransferDetailModalOpen(true);
+    };
+
+    const openReviewRequest = (transfer) => {
+        setSelectedTransfer(transfer);
+        setReviewMessage("");
+        setIsReviewModalOpen(true);
+    };
+
+    const handleSendReviewRequest = () => {
+        if (!selectedTransfer) return;
+        setIsReviewModalOpen(false);
+        setReviewMessage("");
+    };
+
+    const handleDownloadReceipt = (transfer) => {
+        if (!transfer) return;
+
+        const pdfContent = buildReceiptPdf(transfer);
+        const blob = new Blob([pdfContent], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `comprobante_${transfer.id}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+    };
+
+    const handleCopyTransferId = async (transfer) => {
+        if (!transfer?.id) return;
+        const text = transfer.id;
+
+        if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+
+        const input = document.createElement("input");
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
     };
 
     const handleAddBank = () => {
@@ -260,12 +551,6 @@ export default function BalancesPage({ onOpenReport }) {
                                 <button className="pb-3 text-[14px] font-semibold text-[#635bff] border-b-2 border-[#635bff]">
                                     Transferencias
                                 </button>
-                                <button className="pb-3 text-[14px] font-semibold text-[#4f5b76] hover:text-[#32325d] transition-colors">
-                                    Recargas
-                                </button>
-                                <button className="pb-3 text-[14px] font-semibold text-[#4f5b76] hover:text-[#32325d] transition-colors">
-                                    Toda la actividad
-                                </button>
                             </div>
                         </div>
 
@@ -305,10 +590,71 @@ export default function BalancesPage({ onOpenReport }) {
                                                 <TableCell className="py-4 text-[13px] text-[#4f5b76]">
                                                     {transfer.destination}
                                                 </TableCell>
-                                                <TableCell className="pr-6 py-4 text-right">
-                                                    <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors">
-                                                        <MoreHorizontal className="w-5 h-5" />
-                                                    </button>
+                                            <TableCell className="pr-6 py-4 text-right">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors">
+                                                                <MoreHorizontal className="w-5 h-5" />
+                                                            </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-[240px] rounded-xl p-1 shadow-xl border-gray-100">
+                                                            {getStatusTone(transfer.status) === "completada" && (
+                                                                <>
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => openTransferDetails(transfer)}
+                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                                    >
+                                                                        <FileText className="w-4 h-4" />
+                                                                        Ver detalle
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => handleDownloadReceipt(transfer)}
+                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                                    >
+                                                                        <Download className="w-4 h-4" />
+                                                                        Descargar comprobante
+                                                                    </DropdownMenuItem>
+                                                                </>
+                                                            )}
+
+                                                            {getStatusTone(transfer.status) === "pendiente" && (
+                                                                <DropdownMenuItem
+                                                                    onClick={() => openTransferDetails(transfer)}
+                                                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                                >
+                                                                    <FileText className="w-4 h-4" />
+                                                                    Ver estado
+                                                                </DropdownMenuItem>
+                                                            )}
+
+                                                            {getStatusTone(transfer.status) === "fallida" && (
+                                                                <>
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => openTransferDetails(transfer)}
+                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                                    >
+                                                                        <FileText className="w-4 h-4" />
+                                                                        Ver detalle
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => openReviewRequest(transfer)}
+                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                                    >
+                                                                        <HelpCircle className="w-4 h-4" />
+                                                                        Solicitar revision
+                                                                    </DropdownMenuItem>
+                                                                </>
+                                                            )}
+
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleCopyTransferId(transfer)}
+                                                                className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                            >
+                                                                <Clipboard className="w-4 h-4" />
+                                                                Copiar ID de la transferencia
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -440,6 +786,183 @@ export default function BalancesPage({ onOpenReport }) {
                                 Transferir fondos
                             </Button>
                         </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal: Transfer Detail */}
+            <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
+                <DialogContent className="sm:max-w-[560px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                    {selectedTransfer && (
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <h2 className="text-[20px] font-bold text-[#32325d]">Detalle del payout</h2>
+                                    <p className="text-[13px] text-[#8792a2]">Consulta el estado y trazabilidad del payout.</p>
+                                </div>
+                                <button onClick={() => setIsTransferDetailModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">ID del payout</span>
+                                        <div className="text-[14px] font-semibold text-[#32325d]">{selectedTransfer.id}</div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Estado</span>
+                                        <Badge
+                                            variant="outline"
+                                            className={cn(
+                                                "w-fit text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full",
+                                                STATUS_STYLES[selectedTransfer.status]
+                                            )}
+                                        >
+                                            {getStatusLabel(selectedTransfer.status)}
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Fecha de creacion</span>
+                                        <div className="text-[14px] text-[#32325d]">{formatDate(selectedTransfer.createdAt)}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Ejecucion</span>
+                                        <div className="text-[14px] text-[#32325d]">{formatDate(selectedTransfer.executedAt)}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Fallo</span>
+                                        <div className="text-[14px] text-[#32325d]">{formatDate(selectedTransfer.failedAt)}</div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Monto bruto</span>
+                                        <div className="text-[16px] font-semibold text-[#32325d]">
+                                            {formatCurrency(selectedTransfer.grossAmount ?? selectedTransfer.amount)}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Monto neto</span>
+                                        <div className="text-[16px] font-semibold text-[#32325d]">
+                                            {formatCurrency(selectedTransfer.netAmount ?? selectedTransfer.amount)}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Cuenta destino</span>
+                                    <div className="text-[14px] text-[#32325d]">{selectedTransfer.destination}</div>
+                                </div>
+
+                                {getStatusTone(selectedTransfer.status) === "fallida" && (
+                                    <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4 space-y-3">
+                                        <div className="text-[12px] font-semibold uppercase tracking-wider text-rose-600">Fallo detectado</div>
+                                        <div className="space-y-2">
+                                            <div className="text-[13px] text-[#32325d] font-semibold">Motivo del fallo</div>
+                                            <div className="text-[13px] text-rose-600">{selectedTransfer.failureReason || "Motivo no disponible por el momento."}</div>
+                                        </div>
+                                        <div className="space-y-1 text-[12px] text-[#4f5b76]">
+                                            <div className="font-semibold text-[#32325d]">Que puedes hacer</div>
+                                            <div>• Verificar que la cuenta destino siga activa.</div>
+                                            <div>• Confirmar que los datos bancarios sean correctos.</div>
+                                            <div>• Intentar nuevamente mas tarde si hay mantenimiento bancario.</div>
+                                        </div>
+                                        <Button
+                                            onClick={() => openReviewRequest(selectedTransfer)}
+                                            className="h-9 px-4 rounded-lg bg-white border border-rose-200 text-rose-600 text-[13px] font-semibold hover:bg-rose-50"
+                                        >
+                                            Solicitar revision
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {selectedTransfer.failureReason && getStatusTone(selectedTransfer.status) !== "fallida" && (
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Motivo del fallo</span>
+                                        <div className="text-[14px] text-rose-600">{selectedTransfer.failureReason}</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100">
+                                <Button
+                                    onClick={() => setIsTransferDetailModalOpen(false)}
+                                    variant="outline"
+                                    className="h-10 px-6 rounded-lg font-semibold text-[#4f5b76]"
+                                >
+                                    Cerrar
+                                </Button>
+                                {getStatusTone(selectedTransfer.status) === "completada" && (
+                                    <Button
+                                        onClick={() => handleDownloadReceipt(selectedTransfer)}
+                                        className="h-10 px-6 rounded-lg bg-[#635bff] hover:bg-[#5851e0] text-white font-bold"
+                                    >
+                                        Descargar comprobante
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal: Review Request */}
+            <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
+                <DialogContent className="sm:max-w-[520px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                    <div className="p-8 space-y-6">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <h2 className="text-[20px] font-bold text-[#32325d]">Solicitar revision</h2>
+                                <p className="text-[13px] text-[#8792a2]">
+                                    Esto no reintenta la transferencia. Nuestro equipo revisara el fallo y te contactara si necesita informacion.
+                                </p>
+                            </div>
+                            <button onClick={() => setIsReviewModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold text-[#4f5b76]">Asunto</label>
+                                <div className="h-11 px-4 rounded-xl border border-gray-200 bg-gray-50 flex items-center text-[13px] text-[#32325d]">
+                                    {selectedTransfer ? `Payout fallido - ID ${selectedTransfer.id}` : "Payout fallido"}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold text-[#4f5b76]">Describe brevemente el problema</label>
+                                <textarea
+                                    value={reviewMessage}
+                                    onChange={(e) => setReviewMessage(e.target.value)}
+                                    rows={4}
+                                    placeholder="Ej. El banco indica que la cuenta esta activa, pero el payout fallo."
+                                    className="w-full rounded-xl border border-gray-200 p-3 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff]/10 focus:border-[#635bff]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#f7f9fc] px-8 py-6 flex items-center justify-end gap-3">
+                        <Button
+                            onClick={() => setIsReviewModalOpen(false)}
+                            variant="outline"
+                            className="h-10 px-6 rounded-lg font-semibold text-[#4f5b76]"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSendReviewRequest}
+                            disabled={!selectedTransfer}
+                            className="h-10 px-6 rounded-lg bg-[#635bff] hover:bg-[#5851e0] text-white font-bold"
+                        >
+                            Enviar solicitud
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
