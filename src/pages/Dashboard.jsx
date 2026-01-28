@@ -27,6 +27,13 @@ import { AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
 import ProductCatalog from "@/pages/ProductCatalog";
 import ProductDetail from "@/pages/ProductDetail";
@@ -45,6 +52,7 @@ import CustomersPage from "./Customers";
 import CustomerDetail from "./CustomerDetail";
 import BalancesPage from "./Balances";
 import BalanceSummaryReport from "./BalanceSummaryReport";
+import TransactionsPage from "./Transactions";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -93,6 +101,13 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onC
             )}
         </div>
     );
+};
+
+const getInitials = (value) => {
+    if (!value) return "N";
+    const words = value.trim().split(" ").filter(Boolean);
+    if (words.length === 1) return words[0][0]?.toUpperCase() || "N";
+    return `${words[0][0] || ""}${words[1][0] || ""}`.toUpperCase();
 };
 
 const CopyableKey = ({ label, value }) => {
@@ -2161,6 +2176,9 @@ export default function Dashboard() {
         if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
             return "customers";
         }
+        if (path.startsWith("/dashboard/transactions") || path.startsWith("/dashboard/transacciones")) {
+            return "transactions";
+        }
         if (path.startsWith("/dashboard/payment-links")) {
             return "payments_links";
         }
@@ -2224,6 +2242,12 @@ export default function Dashboard() {
         }
         if (path.startsWith("/customers") || path.startsWith("/dashboard/customers")) {
             setActiveView("customers");
+            setSelectedProductId(null);
+            setSelectedCustomerId(null);
+            return;
+        }
+        if (path.startsWith("/dashboard/transactions") || path.startsWith("/dashboard/transacciones")) {
+            setActiveView("transactions");
             setSelectedProductId(null);
             setSelectedCustomerId(null);
             return;
@@ -2443,6 +2467,10 @@ export default function Dashboard() {
     const handleRequestLive = () => {
         setCustomizeStep("form");
         setShowCustomizeModal(true);
+    };
+    const currentUser = {
+        name: "Clara Alvarez",
+        email: "clara@flowli.com"
     };
     const isTestMode = environment === "test";
     return (
@@ -2917,11 +2945,49 @@ export default function Dashboard() {
                 {/* Sidebar */}
                 <aside className="w-[280px] bg-white border-r border-gray-200 flex flex-col z-30">
                     <div className="p-4 mb-4">
-                        <div className="flex items-center gap-3 px-2 py-1.5 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors group">
-                            <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">N</div>
-                            <div className="flex-1 text-sm font-bold text-[#32325d]">Nueva empresa</div>
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
-                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="w-full flex items-center gap-3 px-2 py-1.5 hover:bg-gray-50 rounded-lg transition-colors group">
+                                    <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">
+                                        {getInitials(companyName || "Nueva empresa")}
+                                    </div>
+                                    <div className="flex-1 text-sm font-bold text-[#32325d] text-left">
+                                        {companyName || "Nueva empresa"}
+                                    </div>
+                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-[260px] rounded-xl p-2 shadow-xl border-gray-100">
+                                <div className="flex items-center gap-3 px-2 py-2">
+                                    <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-[13px] font-bold text-gray-500">
+                                        {getInitials(companyName || "Nueva empresa")}
+                                    </div>
+                                    <div>
+                                        <div className="text-[13px] font-semibold text-[#32325d]">{companyName || "Nueva empresa"}</div>
+                                        <div className="text-[11px] text-[#8792a2]">Workspace actual</div>
+                                    </div>
+                                </div>
+                                <DropdownMenuSeparator className="my-2" />
+                                <DropdownMenuItem
+                                    onClick={handleSettings}
+                                    className="rounded-lg py-2 text-[13px] text-[#32325d] cursor-pointer"
+                                >
+                                    Configuración
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="my-2" />
+                                <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-[#8792a2]">Usuario actual</div>
+                                <div className="px-2 pb-2">
+                                    <div className="text-[13px] font-semibold text-[#32325d]">{currentUser.name}</div>
+                                    <div className="text-[12px] text-[#8792a2]">{currentUser.email}</div>
+                                </div>
+                                <DropdownMenuItem
+                                    onClick={() => navigate("/login")}
+                                    className="rounded-lg py-2 text-[13px] text-[#32325d] cursor-pointer"
+                                >
+                                    Cerrar sesión
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
                     <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
@@ -2940,7 +3006,15 @@ export default function Dashboard() {
                                 navigate("/dashboard/balances");
                             }}
                         />
-                        <SidebarItem icon={ArrowLeftRight} label="Transacciones" />
+                        <SidebarItem
+                            icon={ArrowLeftRight}
+                            label="Transacciones"
+                            active={activeView === "transactions"}
+                            onClick={() => {
+                                setActiveView("transactions");
+                                navigate("/dashboard/transactions");
+                            }}
+                        />
                         <SidebarItem
                             icon={Users}
                             label="Clientes"
@@ -2987,13 +3061,13 @@ export default function Dashboard() {
                         ref={contentRef}
                         className={cn(
                             "flex-1 overflow-y-auto",
-                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos"
+                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos" || activeView === "transactions"
                                 ? "p-8 bg-white"
                                 : "p-10"
                         )}
                     >
                         <div className={cn(
-                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos"
+                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos" || activeView === "transactions"
                                 ? "w-full"
                                 : "max-w-6xl mx-auto"
                         )}>
@@ -3464,6 +3538,16 @@ export default function Dashboard() {
                                         transition={{ duration: 0.2 }}
                                     >
                                         <BalancesPage onOpenReport={() => navigate("/dashboard/balance-report")} />
+                                    </motion.div>
+                                ) : activeView === "transactions" ? (
+                                    <motion.div
+                                        key="transactions_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <TransactionsPage />
                                     </motion.div>
                                 ) : activeView === "balance_report" ? (
                                     <motion.div
