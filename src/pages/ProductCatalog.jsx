@@ -10,11 +10,13 @@ import {
     ChevronUp,
     CornerDownRight,
     Plus,
+    Search,
     Upload,
     X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const PRODUCT_TABS = [
@@ -88,6 +90,7 @@ export default function ProductCatalog() {
     const [showEndCalendar, setShowEndCalendar] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
     const [showCopyHintId, setShowCopyHintId] = useState(null);
+    const [searchQuery, setSearchQuery] = useState("");
     const [exportStep, setExportStep] = useState(null);
     const [exportType, setExportType] = useState("products");
     const [exportFormat, setExportFormat] = useState("csv");
@@ -563,6 +566,11 @@ export default function ProductCatalog() {
     };
 
     const filteredProducts = products
+        .filter((product) => {
+            const query = searchQuery.trim().toLowerCase();
+            if (!query) return true;
+            return product.name?.toLowerCase().includes(query);
+        })
         .filter((product) => appliedStatusFilter === "Todo" || product.status === appliedStatusFilter)
         .filter((product) => {
             if (!appliedDateFilter) return true;
@@ -725,6 +733,18 @@ export default function ProductCatalog() {
                         {archivedCount}
                     </p>
                 </button>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="relative w-full max-w-[420px]">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
+                    <Input
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        placeholder="Buscar por nombre del producto"
+                        className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                    />
+                </div>
             </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
@@ -1473,7 +1493,12 @@ export default function ProductCatalog() {
                         </button>
                     )}
                 </div>
+            </div>
 
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-[13px] text-[#697386]">
+                    Mostrando {filteredProducts.length} productos
+                </div>
                 <div className="flex items-center gap-3">
                     <button
                         type="button"
