@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import {
     Select,
     SelectContent,
@@ -249,11 +250,13 @@ const FilterPill = ({ label, active, onClick }) => (
 );
 
 const FILTERS = [
+    { id: "created", label: "Fecha de creacion" },
     { id: "status", label: "Estado" },
     { id: "method", label: "Método" }
 ];
 
 const TRANSFER_FILTERS = [
+    { id: "created", label: "Fecha de creacion" },
     { id: "status", label: "Estado" },
     { id: "destination", label: "Destino" }
 ];
@@ -268,19 +271,25 @@ export default function TransactionsPage() {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [chipFilters, setChipFilters] = useState(() => ({
+        created: false,
         status: false,
         method: false
     }));
     const [statusFilter, setStatusFilter] = useState("all");
     const [methodFilter, setMethodFilter] = useState("all");
+    const [createdDate, setCreatedDate] = useState(undefined);
+    const [isCreatedCalendarOpen, setIsCreatedCalendarOpen] = useState(false);
 
     const [transferSearchQuery, setTransferSearchQuery] = useState("");
     const [transferChipFilters, setTransferChipFilters] = useState(() => ({
+        created: false,
         status: false,
         destination: false
     }));
     const [transferStatusFilter, setTransferStatusFilter] = useState("all");
     const [transferDestinationFilter, setTransferDestinationFilter] = useState("all");
+    const [transferCreatedDate, setTransferCreatedDate] = useState(undefined);
+    const [isTransferCreatedCalendarOpen, setIsTransferCreatedCalendarOpen] = useState(false);
 
     const [selectedTransfer, setSelectedTransfer] = useState(null);
     const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] = useState(false);
@@ -732,6 +741,22 @@ export default function TransactionsPage() {
     const isExportReady = !isCustomExportRange || (exportCustomStart && exportCustomEnd);
 
     const handleToggleFilter = (filterId) => {
+        if (filterId === "created") {
+            setChipFilters((prev) => {
+                const nextValue = !prev[filterId];
+                if (!nextValue) {
+                    setCreatedDate(undefined);
+                    setIsCreatedCalendarOpen(false);
+                } else {
+                    setIsCreatedCalendarOpen(true);
+                }
+                return {
+                    ...prev,
+                    [filterId]: nextValue
+                };
+            });
+            return;
+        }
         setChipFilters((prev) => ({
             ...prev,
             [filterId]: !prev[filterId]
@@ -745,6 +770,22 @@ export default function TransactionsPage() {
     };
 
     const handleToggleTransferFilter = (filterId) => {
+        if (filterId === "created") {
+            setTransferChipFilters((prev) => {
+                const nextValue = !prev[filterId];
+                if (!nextValue) {
+                    setTransferCreatedDate(undefined);
+                    setIsTransferCreatedCalendarOpen(false);
+                } else {
+                    setIsTransferCreatedCalendarOpen(true);
+                }
+                return {
+                    ...prev,
+                    [filterId]: nextValue
+                };
+            });
+            return;
+        }
         setTransferChipFilters((prev) => ({
             ...prev,
             [filterId]: !prev[filterId]
@@ -850,39 +891,55 @@ export default function TransactionsPage() {
 
     const filteredPayments = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
+        const selectedDate = createdDate ? new Date(createdDate) : null;
+        if (selectedDate) selectedDate.setHours(0, 0, 0, 0);
 
-        return paymentsWithCustomer.filter((payment) => {
-            if (chipFilters.status && statusFilter !== "all" && payment.status !== statusFilter) {
-                return false;
-            }
-            if (chipFilters.method && methodFilter !== "all" && payment.method !== methodFilter) {
-                return false;
-            }
+        return paymentsWithCustomer
+            .filter((payment) => {
+                if (chipFilters.status && statusFilter !== "all" && payment.status !== statusFilter) {
+                    return false;
+                }
+                if (chipFilters.method && methodFilter !== "all" && payment.method !== methodFilter) {
+                    return false;
+                }
 
-            if (!query) {
-                return true;
-            }
+                if (!query) {
+                    return true;
+                }
 
-            const customerName = payment.customer?.name ? String(payment.customer.name).toLowerCase() : "";
-            const customerId = payment.customer?.id ? String(payment.customer.id).toLowerCase() : "";
-            const email = payment.email ? String(payment.email).toLowerCase() : "";
-            const paymentId = payment.id ? String(payment.id).toLowerCase() : "";
-            const reference = payment.reference ? String(payment.reference).toLowerCase() : "";
-            const origin = payment.origin ? String(payment.origin).toLowerCase() : "";
+                const customerName = payment.customer?.name ? String(payment.customer.name).toLowerCase() : "";
+                const customerId = payment.customer?.id ? String(payment.customer.id).toLowerCase() : "";
+                const email = payment.email ? String(payment.email).toLowerCase() : "";
+                const paymentId = payment.id ? String(payment.id).toLowerCase() : "";
+                const reference = payment.reference ? String(payment.reference).toLowerCase() : "";
+                const origin = payment.origin ? String(payment.origin).toLowerCase() : "";
 
-            return (
-                customerName.includes(query) ||
-                customerId.includes(query) ||
-                email.includes(query) ||
-                paymentId.includes(query) ||
-                reference.includes(query) ||
-                origin.includes(query)
-            );
-        });
-    }, [chipFilters.method, chipFilters.status, methodFilter, paymentsWithCustomer, searchQuery, statusFilter]);
+                return (
+                    customerName.includes(query) ||
+                    customerId.includes(query) ||
+                    email.includes(query) ||
+                    paymentId.includes(query) ||
+                    reference.includes(query) ||
+                    origin.includes(query)
+                );
+            })
+            .filter((payment) => {
+                if (!chipFilters.created || !selectedDate) {
+                    return true;
+                }
+                const createdAt = new Date(payment.createdAt);
+                if (Number.isNaN(createdAt.getTime())) return false;
+                const createdAtStart = new Date(createdAt);
+                createdAtStart.setHours(0, 0, 0, 0);
+                return createdAtStart.getTime() === selectedDate.getTime();
+            });
+    }, [chipFilters.created, chipFilters.method, chipFilters.status, createdDate, methodFilter, paymentsWithCustomer, searchQuery, statusFilter]);
 
     const filteredTransfers = useMemo(() => {
         const query = transferSearchQuery.trim().toLowerCase();
+        const selectedDate = transferCreatedDate ? new Date(transferCreatedDate) : null;
+        if (selectedDate) selectedDate.setHours(0, 0, 0, 0);
+
         return transfers
             .filter((transfer) => {
                 const matchesQuery = !query
@@ -894,8 +951,18 @@ export default function TransactionsPage() {
 
                 return matchesQuery && matchesStatus && matchesDestination;
             })
+            .filter((transfer) => {
+                if (!transferChipFilters.created || !selectedDate) {
+                    return true;
+                }
+                const createdAt = new Date(transfer.createdAt || transfer.date);
+                if (Number.isNaN(createdAt.getTime())) return false;
+                const createdAtStart = new Date(createdAt);
+                createdAtStart.setHours(0, 0, 0, 0);
+                return createdAtStart.getTime() === selectedDate.getTime();
+            })
             .sort((a, b) => new Date(b.date || b.createdAt || 0).getTime() - new Date(a.date || a.createdAt || 0).getTime());
-    }, [transferDestinationFilter, transferSearchQuery, transferStatusFilter, transfers]);
+    }, [transferChipFilters.created, transferDestinationFilter, transferSearchQuery, transferStatusFilter, transferCreatedDate, transfers]);
 
     return (
         <div className="w-full space-y-6">
@@ -944,43 +1011,70 @@ export default function TransactionsPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                        {FILTERS.map((filter) => (
-                            <FilterPill
-                                key={filter.id}
-                                label={filter.label}
-                                active={chipFilters[filter.id]}
-                                onClick={() => handleToggleFilter(filter.id)}
-                            />
-                        ))}
-                        {chipFilters.status && (
-                            <div className="min-w-[180px]">
-                                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                    <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                        <SelectValue placeholder="Estado" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todos los estados</SelectItem>
-                                        {availableStatuses.map((status) => (
-                                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-                        {chipFilters.method && (
-                            <div className="min-w-[180px]">
-                                <Select value={methodFilter} onValueChange={setMethodFilter}>
-                                    <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                        <SelectValue placeholder="Método" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todos los métodos</SelectItem>
-                                        {availableMethods.map((method) => (
-                                            <SelectItem key={method} value={method}>{method}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                    <div className="relative">
+                        <div className="flex flex-wrap items-center gap-2">
+                            {FILTERS.map((filter) => (
+                                <FilterPill
+                                    key={filter.id}
+                                    label={filter.label}
+                                    active={chipFilters[filter.id]}
+                                    onClick={() => handleToggleFilter(filter.id)}
+                                />
+                            ))}
+                            {chipFilters.created && createdDate && (
+                                <span className="text-[12px] font-semibold text-[#635bff] ml-1">
+                                    {new Date(createdDate).toLocaleDateString("es-ES", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                    })}
+                                </span>
+                            )}
+                            {chipFilters.status && (
+                                <div className="min-w-[180px]">
+                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                            <SelectValue placeholder="Estado" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todos los estados</SelectItem>
+                                            {availableStatuses.map((status) => (
+                                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+                            {chipFilters.method && (
+                                <div className="min-w-[180px]">
+                                    <Select value={methodFilter} onValueChange={setMethodFilter}>
+                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                            <SelectValue placeholder="Método" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todos los métodos</SelectItem>
+                                            {availableMethods.map((method) => (
+                                                <SelectItem key={method} value={method}>{method}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+                        </div>
+
+                        {isCreatedCalendarOpen && (
+                            <div className="absolute left-0 top-full mt-2 z-20">
+                                <Calendar
+                                    mode="single"
+                                    selected={createdDate}
+                                    onSelect={(date) => {
+                                        setCreatedDate(date);
+                                        if (date) {
+                                            setIsCreatedCalendarOpen(false);
+                                        }
+                                    }}
+                                    className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                                />
                             </div>
                         )}
                     </div>
@@ -1103,47 +1197,72 @@ export default function TransactionsPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                        <FilterPill
-                            label="Estado"
-                            active={transferChipFilters.status}
-                            onClick={() => handleToggleTransferFilter("status")}
-                        />
-                        <FilterPill
-                            label="Cuenta destino"
-                            active={transferChipFilters.destination}
-                            onClick={() => handleToggleTransferFilter("destination")}
-                        />
+                    <div className="relative">
+                        <div className="flex flex-wrap items-center gap-2">
+                            {TRANSFER_FILTERS.map((filter) => (
+                                <FilterPill
+                                    key={filter.id}
+                                    label={filter.label}
+                                    active={transferChipFilters[filter.id]}
+                                    onClick={() => handleToggleTransferFilter(filter.id)}
+                                />
+                            ))}
+                            {transferChipFilters.created && transferCreatedDate && (
+                                <span className="text-[12px] font-semibold text-[#635bff] ml-1">
+                                    {new Date(transferCreatedDate).toLocaleDateString("es-ES", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                    })}
+                                </span>
+                            )}
 
-                        {transferChipFilters.status && (
-                            <div className="min-w-[200px]">
-                                <Select value={transferStatusFilter} onValueChange={setTransferStatusFilter}>
-                                    <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                        <SelectValue placeholder="Estado" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todos los estados</SelectItem>
-                                        {availableTransferStatuses.map((status) => (
-                                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
+                            {transferChipFilters.status && (
+                                <div className="min-w-[200px]">
+                                    <Select value={transferStatusFilter} onValueChange={setTransferStatusFilter}>
+                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                            <SelectValue placeholder="Estado" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todos los estados</SelectItem>
+                                            {availableTransferStatuses.map((status) => (
+                                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
 
-                        {transferChipFilters.destination && (
-                            <div className="min-w-[240px]">
-                                <Select value={transferDestinationFilter} onValueChange={setTransferDestinationFilter}>
-                                    <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                        <SelectValue placeholder="Cuenta destino" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todas las cuentas</SelectItem>
-                                        {availableTransferDestinations.map((destination) => (
-                                            <SelectItem key={destination} value={destination}>{destination}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                            {transferChipFilters.destination && (
+                                <div className="min-w-[240px]">
+                                    <Select value={transferDestinationFilter} onValueChange={setTransferDestinationFilter}>
+                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                            <SelectValue placeholder="Cuenta destino" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todas las cuentas</SelectItem>
+                                            {availableTransferDestinations.map((destination) => (
+                                                <SelectItem key={destination} value={destination}>{destination}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+                        </div>
+
+                        {isTransferCreatedCalendarOpen && (
+                            <div className="absolute left-0 top-full mt-2 z-20">
+                                <Calendar
+                                    mode="single"
+                                    selected={transferCreatedDate}
+                                    onSelect={(date) => {
+                                        setTransferCreatedDate(date);
+                                        if (date) {
+                                            setIsTransferCreatedCalendarOpen(false);
+                                        }
+                                    }}
+                                    className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                                />
                             </div>
                         )}
                     </div>
