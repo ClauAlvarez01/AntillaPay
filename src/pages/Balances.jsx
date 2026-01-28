@@ -361,6 +361,9 @@ export default function BalancesPage({ onOpenReport }) {
     const [newBankName, setNewBankName] = useState("");
     const [newBankLast4, setNewBankLast4] = useState("");
     const [transferType, setTransferType] = useState("manual");
+    const [transferScheduleFrequency, setTransferScheduleFrequency] = useState("Diarias");
+    const [transferWeeklyDays, setTransferWeeklyDays] = useState([]);
+    const [transferMonthlyDays, setTransferMonthlyDays] = useState([]);
     const [reviewMessage, setReviewMessage] = useState("");
 
     const handleTransfer = () => {
@@ -1110,7 +1113,6 @@ export default function BalancesPage({ onOpenReport }) {
                             <h2 className="text-[22px] font-bold text-[#32325d]">Calendario de transferencias</h2>
                             <p className="text-[14px] text-[#4f5b76] leading-relaxed">
                                 Define un calendario personalizado para la transferencia de fondos a tu cuenta bancaria.{" "}
-                                <a href="#" className="text-[#635bff] font-semibold hover:underline">Consultar documentación</a>
                             </p>
                         </div>
 
@@ -1156,14 +1158,168 @@ export default function BalancesPage({ onOpenReport }) {
                                     </div>
 
                                     {transferType === "auto" && (
-                                        <div className="w-full max-w-[200px]">
-                                            <div className="relative">
-                                                <select className="w-full h-10 pl-4 pr-10 rounded-xl border border-gray-200 bg-white appearance-none text-[14px] font-medium text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff]/10">
-                                                    <option>Diarias</option>
-                                                    <option>Semanales</option>
-                                                    <option>Mensuales</option>
-                                                </select>
-                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:items-start">
+                                            {transferScheduleFrequency === "Semanales" && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button
+                                                            type="button"
+                                                            className="relative w-full h-10 pl-4 pr-10 rounded-xl border border-gray-200 bg-white text-left text-[14px] font-medium text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff]/10"
+                                                        >
+                                                            <span className="block truncate">
+                                                                {transferWeeklyDays.length === 0
+                                                                    ? "Selecciona días"
+                                                                    : transferWeeklyDays.join(", ")}
+                                                            </span>
+                                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="start" className="w-[260px] rounded-xl p-2 shadow-xl border-gray-100">
+                                                        <DropdownMenuItem
+                                                            onSelect={(event) => {
+                                                                event.preventDefault();
+                                                                const allDays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+                                                                if (transferWeeklyDays.length === allDays.length) {
+                                                                    setTransferWeeklyDays([]);
+                                                                    return;
+                                                                }
+                                                                setTransferWeeklyDays(allDays);
+                                                            }}
+                                                            className="rounded-lg py-2 text-[14px] text-[#32325d] cursor-pointer"
+                                                        >
+                                                            <span
+                                                                className={cn(
+                                                                    "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                    transferWeeklyDays.length === 7 ? "border-[#635bff]" : "border-gray-300"
+                                                                )}
+                                                            >
+                                                                {transferWeeklyDays.length === 7 && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                            </span>
+                                                            Seleccionar todos
+                                                        </DropdownMenuItem>
+                                                        {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"].map((day) => {
+                                                            const checked = transferWeeklyDays.includes(day);
+                                                            return (
+                                                                <DropdownMenuItem
+                                                                    key={day}
+                                                                    onSelect={(event) => {
+                                                                        event.preventDefault();
+                                                                        setTransferWeeklyDays((prev) => {
+                                                                            if (prev.includes(day)) return prev.filter((d) => d !== day);
+                                                                            return [...prev, day];
+                                                                        });
+                                                                    }}
+                                                                    className="rounded-lg py-2 text-[14px] text-[#32325d] cursor-pointer"
+                                                                >
+                                                                    <span
+                                                                        className={cn(
+                                                                            "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                            checked ? "border-[#635bff]" : "border-gray-300"
+                                                                        )}
+                                                                    >
+                                                                        {checked && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                                    </span>
+                                                                    {day}
+                                                                </DropdownMenuItem>
+                                                            );
+                                                        })}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
+
+                                            {transferScheduleFrequency === "Mensuales" && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button
+                                                            type="button"
+                                                            className="relative w-full h-10 pl-4 pr-10 rounded-xl border border-gray-200 bg-white text-left text-[14px] font-medium text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff]/10"
+                                                        >
+                                                            <span className="block truncate">
+                                                                {transferMonthlyDays.length === 0
+                                                                    ? "Selecciona días"
+                                                                    : transferMonthlyDays.join(", ")}
+                                                            </span>
+                                                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent
+                                                        align="start"
+                                                        className="w-[260px] max-h-[320px] overflow-auto rounded-xl p-2 shadow-xl border-gray-100"
+                                                    >
+                                                        <DropdownMenuItem
+                                                            onSelect={(event) => {
+                                                                event.preventDefault();
+                                                                const allDays = Array.from({ length: 31 }, (_, i) => `${i + 1}.°`);
+                                                                if (transferMonthlyDays.length === allDays.length) {
+                                                                    setTransferMonthlyDays([]);
+                                                                    return;
+                                                                }
+                                                                setTransferMonthlyDays(allDays);
+                                                            }}
+                                                            className="rounded-lg py-2 text-[14px] text-[#32325d] cursor-pointer"
+                                                        >
+                                                            <span
+                                                                className={cn(
+                                                                    "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                    transferMonthlyDays.length === 31 ? "border-[#635bff]" : "border-gray-300"
+                                                                )}
+                                                            >
+                                                                {transferMonthlyDays.length === 31 && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                            </span>
+                                                            Seleccionar todos
+                                                        </DropdownMenuItem>
+                                                        {Array.from({ length: 31 }, (_, i) => `${i + 1}.°`).map((day) => {
+                                                            const checked = transferMonthlyDays.includes(day);
+                                                            return (
+                                                                <DropdownMenuItem
+                                                                    key={day}
+                                                                    onSelect={(event) => {
+                                                                        event.preventDefault();
+                                                                        setTransferMonthlyDays((prev) => {
+                                                                            if (prev.includes(day)) return prev.filter((d) => d !== day);
+                                                                            return [...prev, day];
+                                                                        });
+                                                                    }}
+                                                                    className="rounded-lg py-2 text-[14px] text-[#32325d] cursor-pointer"
+                                                                >
+                                                                    <span
+                                                                        className={cn(
+                                                                            "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                            checked ? "border-[#635bff]" : "border-gray-300"
+                                                                        )}
+                                                                    >
+                                                                        {checked && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                                    </span>
+                                                                    {day}
+                                                                </DropdownMenuItem>
+                                                            );
+                                                        })}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
+
+                                            <div className="w-full max-w-[200px]">
+                                                <div className="relative">
+                                                    <select
+                                                        value={transferScheduleFrequency}
+                                                        onChange={(event) => {
+                                                            const next = event.target.value;
+                                                            setTransferScheduleFrequency(next);
+                                                            if (next !== "Semanales") {
+                                                                setTransferWeeklyDays([]);
+                                                            }
+                                                            if (next !== "Mensuales") {
+                                                                setTransferMonthlyDays([]);
+                                                            }
+                                                        }}
+                                                        className="w-full h-10 pl-4 pr-10 rounded-xl border border-gray-200 bg-white appearance-none text-[14px] font-medium text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff]/10"
+                                                    >
+                                                        <option>Diarias</option>
+                                                        <option>Semanales</option>
+                                                        <option>Mensuales</option>
+                                                    </select>
+                                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                                </div>
                                             </div>
                                         </div>
                                     )}
