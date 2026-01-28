@@ -141,10 +141,12 @@ const FilterPill = ({ label, active, onClick }) => (
             "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
             active
                 ? "border-[#635bff] bg-[#635bff] text-white"
-                : "border-gray-200 bg-white text-[#4f5b76] hover:border-gray-300"
+                : "border-dashed border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
         )}
     >
-        <Plus className="h-3.5 w-3.5" />
+        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-400">
+            <Plus className="h-3 w-3" />
+        </span>
         {label}
     </button>
 );
@@ -482,7 +484,7 @@ export default function CustomersPage() {
                     {chipFilters.type && (
                         <div className="min-w-[160px]">
                             <Select value={typeFilter} onValueChange={setTypeFilter}>
-                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px]">
+                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
                                     <SelectValue placeholder="Tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -496,7 +498,7 @@ export default function CustomersPage() {
                     {chipFilters.more && (
                         <div className="min-w-[160px]">
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px]">
+                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
                                     <SelectValue placeholder="Estado" />
                                 </SelectTrigger>
                                 <SelectContent>
