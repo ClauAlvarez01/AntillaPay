@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Upload, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, Upload, X, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
     Select,
     SelectContent,
@@ -19,6 +20,61 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent
+} from "@/components/ui/dialog";
+
+ const DEMO_TRANSFERS = [
+     {
+         id: "tr_001",
+         amount: 450.0,
+         grossAmount: 455.0,
+         netAmount: 450.0,
+         currency: "USD",
+         status: "completada",
+         date: "2026-01-15T10:30:00Z",
+         createdAt: "2026-01-14T12:10:00Z",
+         executedAt: "2026-01-15T10:30:00Z",
+         failedAt: null,
+         destination: "Banco Metropolitano ****4567",
+         failureReason: null
+     },
+     {
+         id: "tr_002",
+         amount: 120.5,
+         grossAmount: 120.5,
+         netAmount: 120.5,
+         currency: "USD",
+         status: "pendiente",
+         date: "2026-01-20T14:45:00Z",
+         createdAt: "2026-01-20T14:45:00Z",
+         executedAt: null,
+         failedAt: null,
+         destination: "Banco de Crédito ****8821",
+         failureReason: null
+     },
+     {
+         id: "tr_003",
+         amount: 890.0,
+         grossAmount: 890.0,
+         netAmount: 880.0,
+         currency: "USD",
+         status: "fallida",
+         date: "2026-01-10T09:15:00Z",
+         createdAt: "2026-01-09T16:40:00Z",
+         executedAt: null,
+         failedAt: "2026-01-10T09:15:00Z",
+         destination: "Banco Metropolitano ****4567",
+         failureReason: "Cuenta destino rechazada por el banco receptor."
+     }
+ ];
 
 const DEMO_CUSTOMERS = [
     {
@@ -152,11 +208,22 @@ const PAYMENT_STATUS_STYLES = {
     Reembolsado: "bg-slate-50 text-slate-700 border-slate-200"
 };
 
-const formatDate = (value) => new Date(value).toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-});
+ const TRANSFER_STATUS_STYLES = {
+     completada: "bg-emerald-50 text-emerald-700 border-emerald-200",
+     pendiente: "bg-amber-50 text-amber-700 border-amber-200",
+     fallida: "bg-rose-50 text-rose-700 border-rose-200"
+ };
+
+const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
+};
 
 const formatCurrency = (value, currency = "USD") => `${value.toLocaleString("es-ES", {
     minimumFractionDigits: 2,
@@ -186,11 +253,18 @@ const FILTERS = [
     { id: "method", label: "Método" }
 ];
 
+const TRANSFER_FILTERS = [
+    { id: "status", label: "Estado" },
+    { id: "destination", label: "Destino" }
+];
+
 export default function TransactionsPage() {
     const navigate = useNavigate();
+
     const [activeTab, setActiveTab] = useState("pagos");
     const [payments, setPayments] = useState([]);
     const [customers, setCustomers] = useState([]);
+    const [transfers, setTransfers] = useState([]);
 
     const [searchQuery, setSearchQuery] = useState("");
     const [chipFilters, setChipFilters] = useState(() => ({
@@ -199,7 +273,22 @@ export default function TransactionsPage() {
     }));
     const [statusFilter, setStatusFilter] = useState("all");
     const [methodFilter, setMethodFilter] = useState("all");
+
+    const [transferSearchQuery, setTransferSearchQuery] = useState("");
+    const [transferChipFilters, setTransferChipFilters] = useState(() => ({
+        status: false,
+        destination: false
+    }));
+    const [transferStatusFilter, setTransferStatusFilter] = useState("all");
+    const [transferDestinationFilter, setTransferDestinationFilter] = useState("all");
+
+    const [selectedTransfer, setSelectedTransfer] = useState(null);
+    const [isTransferDetailModalOpen, setIsTransferDetailModalOpen] = useState(false);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [reviewMessage, setReviewMessage] = useState("");
+
     const [exportStep, setExportStep] = useState(null);
+    const [exportType, setExportType] = useState("payments");
     const [exportFormat, setExportFormat] = useState("csv");
     const [exportTimezone, setExportTimezone] = useState("GMT-5");
     const [exportRange, setExportRange] = useState("Hoy");
@@ -220,48 +309,29 @@ export default function TransactionsPage() {
         "Personalizado"
     ];
 
-    const exportColumns = [
-        "Cliente",
-        "Correo del cliente",
-        "ID del cliente",
-        "Fecha",
-        "Importe",
-        "Moneda",
-        "Estado",
-        "Método",
-        "Referencia",
-        "Origen"
-    ];
+    const exportColumnsByType = {
+        payments: [
+            "Cliente",
+            "Correo del cliente",
+            "ID del cliente",
+            "Fecha",
+            "Importe",
+            "Moneda",
+            "Estado",
+            "Método",
+            "Referencia",
+            "Origen"
+        ],
+        transfers: [
+            "Fecha",
+            "Importe",
+            "Estado",
+            "Cuenta destino",
+            "ID de payout"
+        ]
+    };
 
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-
-        const storedPayments = window.localStorage.getItem("antillapay_payments");
-        if (storedPayments) {
-            setPayments(JSON.parse(storedPayments));
-        } else {
-            window.localStorage.setItem("antillapay_payments", JSON.stringify(DEMO_PAYMENTS));
-            setPayments(DEMO_PAYMENTS);
-        }
-
-        const storedCustomers = window.localStorage.getItem("antillapay_customers");
-        if (storedCustomers) {
-            setCustomers(JSON.parse(storedCustomers));
-        } else {
-            window.localStorage.setItem("antillapay_customers", JSON.stringify(DEMO_CUSTOMERS));
-            setCustomers(DEMO_CUSTOMERS);
-        }
-    }, []);
-
-    const customersByEmail = useMemo(() => {
-        const map = new Map();
-        customers.forEach((customer) => {
-            if (customer?.email) {
-                map.set(String(customer.email).toLowerCase(), customer);
-            }
-        });
-        return map;
-    }, [customers]);
+    const exportColumns = exportColumnsByType[exportType] || exportColumnsByType.payments;
 
     const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -275,11 +345,7 @@ export default function TransactionsPage() {
         return {
             year: tzDate.getUTCFullYear(),
             month: tzDate.getUTCMonth(),
-            day: tzDate.getUTCDate(),
-            hour: tzDate.getUTCHours(),
-            minute: tzDate.getUTCMinutes(),
-            second: tzDate.getUTCSeconds(),
-            ms: tzDate.getUTCMilliseconds()
+            day: tzDate.getUTCDate()
         };
     };
     const toUtcMsFromTimezone = (year, month, day, hour = 0, minute = 0, second = 0, ms = 0, timezone) => {
@@ -334,12 +400,8 @@ export default function TransactionsPage() {
                 }
                 const startParts = parseDateInput(exportCustomStart);
                 const endParts = parseDateInput(exportCustomEnd);
-                let startUtcMs = toUtcMsFromTimezone(startParts.year, startParts.month, startParts.day, 0, 0, 0, 0, exportTimezone);
-                let endUtcMs = toUtcMsFromTimezone(endParts.year, endParts.month, endParts.day, 23, 59, 59, 999, exportTimezone);
-                const nowUtcMsLimit = Date.now();
-                if (endUtcMs > nowUtcMsLimit) {
-                    endUtcMs = nowUtcMsLimit;
-                }
+                const startUtcMs = toUtcMsFromTimezone(startParts.year, startParts.month, startParts.day, 0, 0, 0, 0, exportTimezone);
+                const endUtcMs = toUtcMsFromTimezone(endParts.year, endParts.month, endParts.day, 23, 59, 59, 999, exportTimezone);
                 if (startUtcMs > endUtcMs) {
                     return { startUtcMs: null, endUtcMs: null, isInvalid: true };
                 }
@@ -350,41 +412,16 @@ export default function TransactionsPage() {
         }
     };
     const getExportRangeLabel = (option) => {
-        const nowParts = getNowPartsForTimezone(exportTimezone);
-        const shiftDays = (parts, days) => {
-            const baseMs = Date.UTC(parts.year, parts.month, parts.day) + days * DAY_MS;
-            const date = new Date(baseMs);
-            return { year: date.getUTCFullYear(), month: date.getUTCMonth(), day: date.getUTCDate() };
-        };
-
         switch (option) {
-            case "Hoy":
-                return "Hoy";
-            case "Mes en curso":
-                return `${nowParts.month + 1}/${nowParts.year}`;
-            case "Últimos 7 días":
-                return "Últimos 7 días";
-            case "Últimas 4 semanas":
-                return "Últimas 4 semanas";
-            case "Último mes":
-                const lastMonth = shiftDays(nowParts, -30);
-                return `${lastMonth.month + 1}/${lastMonth.year}`;
             case "Todos":
                 return "Siempre";
-            case "Personalizado": {
-                if (!exportCustomStart || !exportCustomEnd) {
-                    return "Selecciona fechas";
-                }
-                const startParts = parseDateInput(exportCustomStart);
-                const endParts = parseDateInput(exportCustomEnd);
-                const startFormatted = `${startParts.day}/${startParts.month + 1}/${startParts.year}`;
-                const endFormatted = `${endParts.day}/${endParts.month + 1}/${endParts.year}`;
-                return `${startFormatted} - ${endFormatted}`;
-            }
+            case "Personalizado":
+                return exportCustomStart && exportCustomEnd ? "Personalizado" : "Selecciona fechas";
             default:
-                return "--";
+                return option;
         }
     };
+
     const buildSpreadsheetHtml = (headers, rows) => {
         const escapeHtml = (value) => String(value ?? "")
             .replace(/&/g, "&amp;")
@@ -408,6 +445,133 @@ export default function TransactionsPage() {
         link.remove();
         URL.revokeObjectURL(url);
     };
+
+    const openTransferDetails = (transfer) => {
+        setSelectedTransfer(transfer);
+        setIsTransferDetailModalOpen(true);
+    };
+
+    const handleCopyTransferId = async (transfer) => {
+        if (!transfer?.id) return;
+        const text = transfer.id;
+
+        if (navigator?.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        textarea.remove();
+    };
+
+    const getStatusTone = (status) => {
+        if (status === "pendiente" || status === "procesando") return "pendiente";
+        if (status === "fallida") return "fallida";
+        return "completada";
+    };
+
+    const getStatusLabel = (status) => {
+        const labels = {
+            completada: "Completada",
+            pendiente: "Pendiente",
+            procesando: "Procesando",
+            fallida: "Fallida"
+        };
+        return labels[status] || status;
+    };
+
+    const buildTransferReceiptPdf = (transfer) => {
+        const safe = (value) => String(value ?? "").replace(/\(/g, "\\(").replace(/\)/g, "\\)").replace(/\\/g, "\\\\");
+        const lines = [
+            "%PDF-1.3",
+            "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
+            "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
+            "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj",
+            "5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj"
+        ];
+
+        const textLines = [
+            "AntillaPay - Comprobante de transferencia",
+            `ID de payout: ${transfer?.id || "--"}`,
+            `Estado: ${transfer?.status || "--"}`,
+            `Fecha: ${transfer?.date ? new Date(transfer.date).toISOString() : "--"}`,
+            `Importe: ${transfer?.amount ?? "--"} ${transfer?.currency || "USD"}`,
+            `Cuenta destino: ${transfer?.destination || "--"}`
+        ];
+
+        let contentStream = "BT\n/F1 12 Tf\n72 740 Td\n";
+        textLines.forEach((line, idx) => {
+            if (idx === 0) {
+                contentStream += `(${safe(line)}) Tj\n`;
+                contentStream += "0 -24 Td\n";
+                return;
+            }
+            contentStream += `(${safe(line)}) Tj\n`;
+            contentStream += "0 -18 Td\n";
+        });
+        contentStream += "ET";
+
+        const streamBytes = new TextEncoder().encode(contentStream).length;
+        const contentObj = `4 0 obj << /Length ${streamBytes} >> stream\n${contentStream}\nendstream endobj`;
+        lines.splice(4, 0, contentObj);
+
+        let offset = 0;
+        const offsets = [];
+        const fullParts = [];
+        lines.forEach((part) => {
+            offsets.push(offset);
+            fullParts.push(part + "\n");
+            offset += new TextEncoder().encode(part + "\n").length;
+        });
+
+        const xrefStart = offset;
+        const xref = [
+            "xref",
+            "0 6",
+            "0000000000 65535 f ",
+            ...offsets.map((value) => String(value).padStart(10, "0") + " 00000 n ")
+        ].join("\n");
+        const trailer = [
+            "trailer << /Size 6 /Root 1 0 R >>",
+            "startxref",
+            String(xrefStart),
+            "%%EOF"
+        ].join("\n");
+
+        return fullParts.join("") + xref + "\n" + trailer;
+    };
+
+    const handleDownloadTransferReceipt = (transfer) => {
+        if (!transfer) return;
+        const pdfContent = buildTransferReceiptPdf(transfer);
+        const blob = new Blob([pdfContent], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `comprobante-${transfer.id || "transfer"}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    };
+
+    const openReviewRequest = (transfer) => {
+        setSelectedTransfer(transfer);
+        setReviewMessage("");
+        setIsReviewModalOpen(true);
+    };
+
+    const handleSendReviewRequest = () => {
+        setIsReviewModalOpen(false);
+        setReviewMessage("");
+    };
     const resetExportFlow = () => {
         if (exportTimerRef.current) {
             clearTimeout(exportTimerRef.current);
@@ -418,11 +582,12 @@ export default function TransactionsPage() {
         setExportFilename("");
         setExportMimeType("text/csv;charset=utf-8;");
     };
-    const openExportModal = () => {
+    const openExportModal = (type = "payments") => {
         if (exportTimerRef.current) {
             clearTimeout(exportTimerRef.current);
             exportTimerRef.current = null;
         }
+        setExportType(type);
         setExportFormat("csv");
         setExportTimezone("GMT-5");
         setExportRange("Hoy");
@@ -434,9 +599,11 @@ export default function TransactionsPage() {
         const { startUtcMs, endUtcMs, isInvalid } = getExportRangeBounds();
         if (isInvalid) return;
         setExportStep("loading");
+
         if (exportTimerRef.current) {
             clearTimeout(exportTimerRef.current);
         }
+
         exportTimerRef.current = setTimeout(() => {
             const isInRange = (dateValue) => {
                 if (startUtcMs == null || endUtcMs == null) return true;
@@ -445,37 +612,60 @@ export default function TransactionsPage() {
                 const dateMs = date.getTime();
                 return dateMs >= startUtcMs && dateMs <= endUtcMs;
             };
-            let csvContent = "";
-            let mimeType = "text/csv;charset=utf-8;";
-            let rowsCount = 0;
 
-            const paymentRows = filteredPayments.filter((payment) => isInRange(payment.createdAt));
-            rowsCount = paymentRows.length;
-            if (rowsCount > 0) {
-                const header = exportColumns.join(",");
-                const body = paymentRows.map((payment) => {
-                    const createdAt = new Date(payment.createdAt || "");
-                    const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
-                    return [
-                        payment.customer?.name || "",
-                        payment.email || "",
-                        payment.customer?.id || "",
-                        createdAtValue,
-                        payment.amount || "",
-                        payment.currency || "",
-                        payment.status || "",
-                        payment.method || "",
-                        payment.reference || "",
-                        payment.origin || ""
-                    ].map((v) => {
-                        const safeValue = v === null || v === undefined ? "" : String(v);
-                        if (/[",\n]/.test(safeValue)) {
-                            return `"${safeValue.replace(/"/g, "\"\"")}"`;
-                        }
-                        return safeValue;
-                    }).join(",");
-                }).join("\n");
-                csvContent = `${header}\n${body}`;
+            const escapeCsv = (v) => {
+                const safeValue = v === null || v === undefined ? "" : String(v);
+                if (/[",\n]/.test(safeValue)) {
+                    return `"${safeValue.replace(/"/g, "\"\"")}"`;
+                }
+                return safeValue;
+            };
+
+            let rowsCount = 0;
+            let content = "";
+            let mimeType = "text/csv;charset=utf-8;";
+            let filenamePrefix = "export";
+
+            if (exportType === "transfers") {
+                const transferRows = filteredTransfers.filter((transfer) => isInRange(transfer.date || transfer.createdAt));
+                rowsCount = transferRows.length;
+                filenamePrefix = "transferencias";
+
+                if (rowsCount === 0) {
+                    setExportStep("empty");
+                    return;
+                }
+
+                if (exportFormat === "xlsx") {
+                    const rows = transferRows.map((transfer) => [
+                        new Date(transfer.date || transfer.createdAt || "").toISOString(),
+                        transfer.amount ?? "",
+                        transfer.status || "",
+                        transfer.destination || "",
+                        transfer.id || ""
+                    ]);
+                    content = buildSpreadsheetHtml(exportColumns, rows);
+                    mimeType = "application/vnd.ms-excel";
+                } else {
+                    const header = exportColumns.map(escapeCsv).join(",");
+                    const body = transferRows.map((transfer) => [
+                        new Date(transfer.date || transfer.createdAt || "").toISOString(),
+                        transfer.amount ?? "",
+                        transfer.status || "",
+                        transfer.destination || "",
+                        transfer.id || ""
+                    ].map(escapeCsv).join(",")).join("\n");
+                    content = `${header}\n${body}`;
+                }
+            } else {
+                const paymentRows = filteredPayments.filter((payment) => isInRange(payment.createdAt));
+                rowsCount = paymentRows.length;
+                filenamePrefix = "pagos";
+
+                if (rowsCount === 0) {
+                    setExportStep("empty");
+                    return;
+                }
 
                 if (exportFormat === "xlsx") {
                     const rows = paymentRows.map((payment) => [
@@ -483,33 +673,44 @@ export default function TransactionsPage() {
                         payment.email || "",
                         payment.customer?.id || "",
                         new Date(payment.createdAt || "").toISOString(),
-                        payment.amount || "",
+                        payment.amount ?? "",
                         payment.currency || "",
                         payment.status || "",
                         payment.method || "",
                         payment.reference || "",
                         payment.origin || ""
                     ]);
-                    csvContent = buildSpreadsheetHtml(exportColumns, rows);
+                    content = buildSpreadsheetHtml(exportColumns, rows);
                     mimeType = "application/vnd.ms-excel";
+                } else {
+                    const header = exportColumns.map(escapeCsv).join(",");
+                    const body = paymentRows.map((payment) => [
+                        payment.customer?.name || "",
+                        payment.email || "",
+                        payment.customer?.id || "",
+                        new Date(payment.createdAt || "").toISOString(),
+                        payment.amount ?? "",
+                        payment.currency || "",
+                        payment.status || "",
+                        payment.method || "",
+                        payment.reference || "",
+                        payment.origin || ""
+                    ].map(escapeCsv).join(",")).join("\n");
+                    content = `${header}\n${body}`;
                 }
-            }
-
-            if (rowsCount === 0) {
-                setExportStep("empty");
-                return;
             }
 
             const nowParts = getNowPartsForTimezone(exportTimezone);
             const fileDate = `${nowParts.year}-${String(nowParts.month + 1).padStart(2, "0")}-${String(nowParts.day).padStart(2, "0")}`;
             const extension = exportFormat === "xlsx" ? "xlsx" : "csv";
-            const filename = `pagos-${fileDate}.${extension}`;
-            setExportCsvContent(csvContent);
+            const filename = `${filenamePrefix}-${fileDate}.${extension}`;
+
+            setExportCsvContent(content);
             setExportFilename(filename);
             setExportMimeType(mimeType);
             setExportStep("success");
-            downloadFile(csvContent, filename, mimeType);
-        }, 1200);
+            downloadFile(content, filename, mimeType);
+        }, 900);
     };
     const handleExportDownload = () => {
         if (!exportCsvContent) return;
@@ -518,17 +719,6 @@ export default function TransactionsPage() {
     const cancelExportLoading = () => {
         resetExportFlow();
     };
-
-    useEffect(() => {
-        if (!exportCustomStart && !exportCustomEnd) return;
-        const todayValue = getTodayInputValue(exportTimezone);
-        if (exportCustomEnd && exportCustomEnd > todayValue) {
-            setExportCustomEnd(todayValue);
-        }
-        if (exportCustomStart && exportCustomStart > todayValue) {
-            setExportCustomStart(todayValue);
-        }
-    }, [exportTimezone, exportCustomStart, exportCustomEnd]);
 
     useEffect(() => {
         return () => {
@@ -540,6 +730,70 @@ export default function TransactionsPage() {
 
     const isCustomExportRange = exportRange === "Personalizado";
     const isExportReady = !isCustomExportRange || (exportCustomStart && exportCustomEnd);
+
+    const handleToggleFilter = (filterId) => {
+        setChipFilters((prev) => ({
+            ...prev,
+            [filterId]: !prev[filterId]
+        }));
+        if (filterId === "status") {
+            setStatusFilter("all");
+        }
+        if (filterId === "method") {
+            setMethodFilter("all");
+        }
+    };
+
+    const handleToggleTransferFilter = (filterId) => {
+        setTransferChipFilters((prev) => ({
+            ...prev,
+            [filterId]: !prev[filterId]
+        }));
+        if (filterId === "status") {
+            setTransferStatusFilter("all");
+        }
+        if (filterId === "destination") {
+            setTransferDestinationFilter("all");
+        }
+    };
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const storedPayments = window.localStorage.getItem("antillapay_payments");
+        if (storedPayments) {
+            setPayments(JSON.parse(storedPayments));
+        } else {
+            window.localStorage.setItem("antillapay_payments", JSON.stringify(DEMO_PAYMENTS));
+            setPayments(DEMO_PAYMENTS);
+        }
+
+        const storedCustomers = window.localStorage.getItem("antillapay_customers");
+        if (storedCustomers) {
+            setCustomers(JSON.parse(storedCustomers));
+        } else {
+            window.localStorage.setItem("antillapay_customers", JSON.stringify(DEMO_CUSTOMERS));
+            setCustomers(DEMO_CUSTOMERS);
+        }
+
+        const storedTransfers = window.localStorage.getItem("antillapay_transfers");
+        if (storedTransfers) {
+            setTransfers(JSON.parse(storedTransfers));
+        } else {
+            window.localStorage.setItem("antillapay_transfers", JSON.stringify(DEMO_TRANSFERS));
+            setTransfers(DEMO_TRANSFERS);
+        }
+    }, []);
+
+    const customersByEmail = useMemo(() => {
+        const map = new Map();
+        customers.forEach((customer) => {
+            if (customer?.email) {
+                map.set(String(customer.email).toLowerCase(), customer);
+            }
+        });
+        return map;
+    }, [customers]);
 
     const paymentsWithCustomer = useMemo(() => {
         return payments
@@ -574,18 +828,25 @@ export default function TransactionsPage() {
         return Array.from(statuses).sort((a, b) => String(a).localeCompare(String(b), "es"));
     }, [paymentsWithCustomer]);
 
-    const handleToggleFilter = (filterId) => {
-        setChipFilters((prev) => ({
-            ...prev,
-            [filterId]: !prev[filterId]
-        }));
-        if (filterId === "status") {
-            setStatusFilter("all");
-        }
-        if (filterId === "method") {
-            setMethodFilter("all");
-        }
-    };
+    const availableTransferStatuses = useMemo(() => {
+        const statuses = new Set();
+        transfers.forEach((transfer) => {
+            if (transfer?.status) {
+                statuses.add(transfer.status);
+            }
+        });
+        return Array.from(statuses).sort((a, b) => String(a).localeCompare(String(b), "es"));
+    }, [transfers]);
+
+    const availableTransferDestinations = useMemo(() => {
+        const destinations = new Set();
+        transfers.forEach((transfer) => {
+            if (transfer?.destination) {
+                destinations.add(transfer.destination);
+            }
+        });
+        return Array.from(destinations).sort((a, b) => String(a).localeCompare(String(b), "es"));
+    }, [transfers]);
 
     const filteredPayments = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
@@ -619,6 +880,22 @@ export default function TransactionsPage() {
             );
         });
     }, [chipFilters.method, chipFilters.status, methodFilter, paymentsWithCustomer, searchQuery, statusFilter]);
+
+    const filteredTransfers = useMemo(() => {
+        const query = transferSearchQuery.trim().toLowerCase();
+        return transfers
+            .filter((transfer) => {
+                const matchesQuery = !query
+                    || String(transfer.id || "").toLowerCase().includes(query)
+                    || String(transfer.destination || "").toLowerCase().includes(query);
+
+                const matchesStatus = transferStatusFilter === "all" || transfer.status === transferStatusFilter;
+                const matchesDestination = transferDestinationFilter === "all" || transfer.destination === transferDestinationFilter;
+
+                return matchesQuery && matchesStatus && matchesDestination;
+            })
+            .sort((a, b) => new Date(b.date || b.createdAt || 0).getTime() - new Date(a.date || a.createdAt || 0).getTime());
+    }, [transferDestinationFilter, transferSearchQuery, transferStatusFilter, transfers]);
 
     return (
         <div className="w-full space-y-6">
@@ -718,7 +995,7 @@ export default function TransactionsPage() {
                                 variant="outline"
                                 size="sm"
                                 disabled={!filteredPayments.length}
-                                onClick={openExportModal}
+                                onClick={() => openExportModal("payments")}
                                 className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
                             >
                                 <Upload className="w-4 h-4 text-[#8792a2]" />
@@ -813,16 +1090,346 @@ export default function TransactionsPage() {
                     )}
                 </div>
             ) : (
-                <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center text-[#8792a2]">
-                    Esta pestaña se configurará a continuación.
+                <div className="space-y-6">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="relative w-full max-w-[520px]">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
+                            <Input
+                                value={transferSearchQuery}
+                                onChange={(event) => setTransferSearchQuery(event.target.value)}
+                                placeholder="Buscar por ID de payout o cuenta destino"
+                                className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <FilterPill
+                            label="Estado"
+                            active={transferChipFilters.status}
+                            onClick={() => handleToggleTransferFilter("status")}
+                        />
+                        <FilterPill
+                            label="Cuenta destino"
+                            active={transferChipFilters.destination}
+                            onClick={() => handleToggleTransferFilter("destination")}
+                        />
+
+                        {transferChipFilters.status && (
+                            <div className="min-w-[200px]">
+                                <Select value={transferStatusFilter} onValueChange={setTransferStatusFilter}>
+                                    <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                        <SelectValue placeholder="Estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos los estados</SelectItem>
+                                        {availableTransferStatuses.map((status) => (
+                                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {transferChipFilters.destination && (
+                            <div className="min-w-[240px]">
+                                <Select value={transferDestinationFilter} onValueChange={setTransferDestinationFilter}>
+                                    <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                        <SelectValue placeholder="Cuenta destino" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todas las cuentas</SelectItem>
+                                        {availableTransferDestinations.map((destination) => (
+                                            <SelectItem key={destination} value={destination}>{destination}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-[13px] text-[#697386]">
+                            Mostrando {filteredTransfers.length} transferencias
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={!filteredTransfers.length}
+                                onClick={() => openExportModal("transfers")}
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
+                            >
+                                <Upload className="w-4 h-4 text-[#8792a2]" />
+                                Exportar
+                            </Button>
+                        </div>
+                    </div>
+
+                    {filteredTransfers.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
+                            No se encontraron transferencias con los filtros actuales.
+                        </div>
+                    ) : (
+                        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-gray-50/60">
+                                        <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
+                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
+                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cuenta destino</TableHead>
+                                        <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">ID de payout</TableHead>
+                                        <TableHead className="pr-6 py-3" />
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredTransfers.map((transfer) => (
+                                        <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
+                                            <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
+                                                {formatDate(transfer.date)}
+                                            </TableCell>
+                                            <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
+                                                {formatCurrency(transfer.amount, transfer.currency || "USD")}
+                                            </TableCell>
+                                            <TableCell className="py-4">
+                                                <span
+                                                    className={cn(
+                                                        "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                        TRANSFER_STATUS_STYLES[transfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                                                    )}
+                                                >
+                                                    {transfer.status}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                {transfer.destination || "—"}
+                                            </TableCell>
+                                            <TableCell className="pr-6 py-4 text-[13px] font-semibold text-[#32325d]">
+                                                {transfer.id}
+                                            </TableCell>
+                                            <TableCell className="pr-6 py-4 text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button
+                                                            type="button"
+                                                            className="text-[#aab2c4] hover:text-[#32325d] transition-colors"
+                                                            aria-label="Acciones"
+                                                        >
+                                                            <MoreHorizontal className="w-5 h-5" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-[240px] rounded-xl p-1 shadow-xl border-gray-100">
+                                                        <DropdownMenuItem
+                                                            onClick={() => openTransferDetails(transfer)}
+                                                            className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                        >
+                                                            Ver detalles
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleDownloadTransferReceipt(transfer)}
+                                                            className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                        >
+                                                            Descargar comprobante
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleCopyTransferId(transfer)}
+                                                            className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
+                                                        >
+                                                            Copiar ID de la transferencia
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
                 </div>
             )}
+            <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
+                <DialogContent className="sm:max-w-[560px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                    {selectedTransfer && (
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <h2 className="text-[20px] font-bold text-[#32325d]">Detalle del payout</h2>
+                                    <p className="text-[13px] text-[#8792a2]">Consulta el estado y trazabilidad del payout.</p>
+                                </div>
+                                <button onClick={() => setIsTransferDetailModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">ID del payout</span>
+                                        <div className="text-[14px] font-semibold text-[#32325d]">{selectedTransfer.id}</div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Estado</span>
+                                        <Badge
+                                            variant="outline"
+                                            className={cn(
+                                                "w-fit text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full",
+                                                TRANSFER_STATUS_STYLES[selectedTransfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                                            )}
+                                        >
+                                            {getStatusLabel(selectedTransfer.status)}
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Fecha de creacion</span>
+                                        <div className="text-[14px] text-[#32325d]">{formatDate(selectedTransfer.createdAt)}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Ejecucion</span>
+                                        <div className="text-[14px] text-[#32325d]">{formatDate(selectedTransfer.executedAt)}</div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Fallo</span>
+                                        <div className="text-[14px] text-[#32325d]">{formatDate(selectedTransfer.failedAt)}</div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Monto bruto</span>
+                                        <div className="text-[16px] font-semibold text-[#32325d]">
+                                            {formatCurrency(selectedTransfer.grossAmount ?? selectedTransfer.amount, selectedTransfer.currency || "USD")}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Monto neto</span>
+                                        <div className="text-[16px] font-semibold text-[#32325d]">
+                                            {formatCurrency(selectedTransfer.netAmount ?? selectedTransfer.amount, selectedTransfer.currency || "USD")}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Cuenta destino</span>
+                                    <div className="text-[14px] text-[#32325d]">{selectedTransfer.destination}</div>
+                                </div>
+
+                                {getStatusTone(selectedTransfer.status) === "fallida" && (
+                                    <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4 space-y-3">
+                                        <div className="text-[12px] font-semibold uppercase tracking-wider text-rose-600">Fallo detectado</div>
+                                        <div className="space-y-2">
+                                            <div className="text-[13px] text-[#32325d] font-semibold">Motivo del fallo</div>
+                                            <div className="text-[13px] text-rose-600">{selectedTransfer.failureReason || "Motivo no disponible por el momento."}</div>
+                                        </div>
+                                        <div className="space-y-1 text-[12px] text-[#4f5b76]">
+                                            <div className="font-semibold text-[#32325d]">Que puedes hacer</div>
+                                            <div>• Verificar que la cuenta destino siga activa.</div>
+                                            <div>• Confirmar que los datos bancarios sean correctos.</div>
+                                            <div>• Intentar nuevamente mas tarde si hay mantenimiento bancario.</div>
+                                        </div>
+                                        <Button
+                                            onClick={() => openReviewRequest(selectedTransfer)}
+                                            className="h-9 px-4 rounded-lg bg-white border border-rose-200 text-rose-600 text-[13px] font-semibold hover:bg-rose-50"
+                                        >
+                                            Solicitar revision
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {selectedTransfer.failureReason && getStatusTone(selectedTransfer.status) !== "fallida" && (
+                                    <div className="space-y-1">
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Motivo del fallo</span>
+                                        <div className="text-[14px] text-rose-600">{selectedTransfer.failureReason}</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-2 flex items-center justify-end gap-3 border-t border-gray-100">
+                                <Button
+                                    onClick={() => setIsTransferDetailModalOpen(false)}
+                                    variant="outline"
+                                    className="h-10 px-6 rounded-lg font-semibold text-[#4f5b76]"
+                                >
+                                    Cerrar
+                                </Button>
+                                {getStatusTone(selectedTransfer.status) === "completada" && (
+                                    <Button
+                                        onClick={() => handleDownloadTransferReceipt(selectedTransfer)}
+                                        className="h-10 px-6 rounded-lg bg-[#635bff] hover:bg-[#5851e0] text-white font-bold"
+                                    >
+                                        Descargar comprobante
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
+                <DialogContent className="sm:max-w-[520px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                    <div className="p-8 space-y-6">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <h2 className="text-[20px] font-bold text-[#32325d]">Solicitar revision</h2>
+                                <p className="text-[13px] text-[#8792a2]">
+                                    Esto no reintenta la transferencia. Nuestro equipo revisara el fallo y te contactara si necesita informacion.
+                                </p>
+                            </div>
+                            <button onClick={() => setIsReviewModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold text-[#4f5b76]">Asunto</label>
+                                <div className="h-11 px-4 rounded-xl border border-gray-200 bg-gray-50 flex items-center text-[13px] text-[#32325d]">
+                                    {selectedTransfer ? `Payout fallido - ID ${selectedTransfer.id}` : "Payout fallido"}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold text-[#4f5b76]">Describe brevemente el problema</label>
+                                <textarea
+                                    value={reviewMessage}
+                                    onChange={(e) => setReviewMessage(e.target.value)}
+                                    rows={4}
+                                    placeholder="Ej. El banco indica que la cuenta esta activa, pero el payout fallo."
+                                    className="w-full rounded-xl border border-gray-200 p-3 text-[13px] text-[#32325d] focus:outline-none focus:ring-2 focus:ring-[#635bff]/10 focus:border-[#635bff]"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#f7f9fc] px-8 py-6 flex items-center justify-end gap-3">
+                        <Button
+                            onClick={() => setIsReviewModalOpen(false)}
+                            variant="outline"
+                            className="h-10 px-6 rounded-lg font-semibold text-[#4f5b76]"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSendReviewRequest}
+                            disabled={!selectedTransfer}
+                            className="h-10 px-6 rounded-lg bg-[#635bff] hover:bg-[#5851e0] text-white font-bold"
+                        >
+                            Enviar solicitud
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
             {exportStep && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 px-4">
                     {exportStep === "form" && (
                         <div className="w-full max-w-[600px] rounded-2xl bg-white shadow-2xl border border-gray-200">
                             <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
-                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar pagos</h3>
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">{exportType === "transfers" ? "Exportar transferencias" : "Exportar pagos"}</h3>
                                 <button
                                     type="button"
                                     onClick={resetExportFlow}
