@@ -655,24 +655,7 @@ export default function ProductCatalog() {
                 </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-6 text-[14px] border-b border-gray-200 pb-2">
-                {PRODUCT_TABS.map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={cn(
-                            "pb-2 text-[14px] font-semibold transition-colors",
-                            activeTab === tab
-                                ? "text-[#635bff] border-b-2 border-[#635bff]"
-                                : "text-[#6b7280] hover:text-[#32325d]"
-                        )}
-                    >
-                        {tab}
-                    </button>
-                ))}
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
                 <button
                     type="button"
                     onClick={() => {
@@ -702,14 +685,14 @@ export default function ProductCatalog() {
                     className={cn(
                         "rounded-xl border px-4 py-3 text-left transition-colors",
                         appliedStatusFilter === "Activo"
-                            ? "border-[#635bff] bg-[#f6f5ff]"
+                            ? "border-emerald-200 bg-emerald-50"
                             : "border-gray-200 bg-white hover:border-[#cbd5f5]"
                     )}
                 >
-                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Activo" ? "text-[#635bff]" : "text-[#6b7280]")}>
+                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Activo" ? "text-emerald-700" : "text-[#6b7280]")}>
                         Activo
                     </p>
-                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Activo" ? "text-[#635bff]" : "text-[#4b5563]")}>
+                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Activo" ? "text-emerald-700" : "text-[#4b5563]")}>
                         {activeCount}
                     </p>
                 </button>
@@ -722,20 +705,20 @@ export default function ProductCatalog() {
                     className={cn(
                         "rounded-xl border px-4 py-3 text-left transition-colors",
                         appliedStatusFilter === "Archivado"
-                            ? "border-[#635bff] bg-[#f6f5ff]"
+                            ? "border-slate-200 bg-slate-50"
                             : "border-gray-200 bg-white hover:border-[#cbd5f5]"
                     )}
                 >
-                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Archivado" ? "text-[#635bff]" : "text-[#6b7280]")}>
+                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Archivado" ? "text-slate-700" : "text-[#6b7280]")}>
                         Archivado
                     </p>
-                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Archivado" ? "text-[#635bff]" : "text-[#4b5563]")}>
+                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Archivado" ? "text-slate-700" : "text-[#4b5563]")}>
                         {archivedCount}
                     </p>
                 </button>
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center">
                 <div className="relative w-full max-w-[420px]">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
                     <Input

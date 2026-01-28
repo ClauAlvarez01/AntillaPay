@@ -239,6 +239,9 @@ export default function CustomersPage() {
             ...prev,
             [filterId]: !prev[filterId]
         }));
+        if (filterId === "more") {
+            setStatusFilter("all");
+        }
     };
 
     const handleEditColumns = () => {
@@ -282,6 +285,14 @@ export default function CustomersPage() {
                 return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
             });
     }, [chipFilters, createdDate, customers, searchQuery, sortOrder, statusFilter, typeFilter]);
+
+    const customerCounts = useMemo(() => {
+        const active = customers.filter(c => c.status === "Activo").length;
+        const overdue = customers.filter(c => c.status === "Moroso").length;
+        const newCustomers = customers.filter(c => c.status === "Nuevo").length;
+        const total = customers.length;
+        return { active, overdue, newCustomers, total };
+    }, [customers]);
 
     const renderHeaderCell = (column, index) => {
         const baseClass = "text-[12px] font-semibold text-[#8792a2]";
@@ -445,24 +456,121 @@ export default function CustomersPage() {
     };
 
     return (
-        <div className="w-full space-y-8">
-            <div className="flex flex-col gap-4">
+        <div className="w-full">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 className="text-[28px] font-bold text-[#32325d]">Clientes</h1>
 
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                    <div className="relative w-full max-w-[420px]">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
-                        <Input
-                            value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.target.value)}
-                            placeholder="Buscar clientes"
-                            className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
-                        />
-                    </div>
+                <div className="flex items-center gap-3">
+                    <Button
+                        type="button"
+                        onClick={() => setIsDialogOpen(true)}
+                        className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Crear cliente
+                        <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
+                            N
+                        </span>
+                    </Button>
                 </div>
             </div>
 
-            <div className="relative">
+            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStatusFilter("all");
+                            setChipFilters(prev => ({ ...prev, more: false }));
+                        }}
+                        className={cn(
+                            "rounded-xl border px-4 py-3 text-left transition-colors",
+                            statusFilter === "all"
+                                ? "border-[#635bff] bg-[#f6f5ff]"
+                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                        )}
+                    >
+                        <p className={cn("text-[13px] font-semibold", statusFilter === "all" ? "text-[#635bff]" : "text-[#6b7280]")}>
+                            Todos
+                        </p>
+                        <p className={cn("text-[18px] font-semibold mt-1", statusFilter === "all" ? "text-[#635bff]" : "text-[#4b5563]")}>
+                            {customerCounts.total}
+                        </p>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStatusFilter("Activo");
+                            setChipFilters(prev => ({ ...prev, more: true }));
+                        }}
+                        className={cn(
+                            "rounded-xl border px-4 py-3 text-left transition-colors",
+                            chipFilters.more && statusFilter === "Activo"
+                                ? "border-emerald-200 bg-emerald-50"
+                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                        )}
+                    >
+                        <p className={cn("text-[13px] font-semibold", chipFilters.more && statusFilter === "Activo" ? "text-emerald-700" : "text-[#6b7280]")}>
+                            Activo
+                        </p>
+                        <p className={cn("text-[18px] font-semibold mt-1", chipFilters.more && statusFilter === "Activo" ? "text-emerald-700" : "text-[#4b5563]")}>
+                            {customerCounts.active}
+                        </p>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStatusFilter("Moroso");
+                            setChipFilters(prev => ({ ...prev, more: true }));
+                        }}
+                        className={cn(
+                            "rounded-xl border px-4 py-3 text-left transition-colors",
+                            chipFilters.more && statusFilter === "Moroso"
+                                ? "border-rose-200 bg-rose-50"
+                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                        )}
+                    >
+                        <p className={cn("text-[13px] font-semibold", chipFilters.more && statusFilter === "Moroso" ? "text-rose-700" : "text-[#6b7280]")}>
+                            Moroso
+                        </p>
+                        <p className={cn("text-[18px] font-semibold mt-1", chipFilters.more && statusFilter === "Moroso" ? "text-rose-700" : "text-[#4b5563]")}>
+                            {customerCounts.overdue}
+                        </p>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStatusFilter("Nuevo");
+                            setChipFilters(prev => ({ ...prev, more: true }));
+                        }}
+                        className={cn(
+                            "rounded-xl border px-4 py-3 text-left transition-colors",
+                            chipFilters.more && statusFilter === "Nuevo"
+                                ? "border-blue-200 bg-blue-50"
+                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                        )}
+                    >
+                        <p className={cn("text-[13px] font-semibold", chipFilters.more && statusFilter === "Nuevo" ? "text-blue-700" : "text-[#6b7280]")}>
+                            Nuevo
+                        </p>
+                        <p className={cn("text-[18px] font-semibold mt-1", chipFilters.more && statusFilter === "Nuevo" ? "text-blue-700" : "text-[#4b5563]")}>
+                            {customerCounts.newCustomers}
+                        </p>
+                    </button>
+                </div>
+
+            <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="relative w-full max-w-[420px]">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
+                    <Input
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        placeholder="Buscar clientes"
+                        className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                    />
+                </div>
+            </div>
+
+            <div className="relative mt-4 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                     {FILTERS.map((filter) => (
                         <FilterPill
@@ -497,12 +605,11 @@ export default function CustomersPage() {
                     )}
                     {chipFilters.more && (
                         <div className="min-w-[160px]">
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                    <SelectValue placeholder="Estado" />
+                                    <SelectValue placeholder="Seleccione Estado" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Todos los estados</SelectItem>
                                     <SelectItem value="Activo">Activo</SelectItem>
                                     <SelectItem value="Moroso">Moroso</SelectItem>
                                     <SelectItem value="Nuevo">Nuevo</SelectItem>
@@ -529,7 +636,7 @@ export default function CustomersPage() {
                 )}
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-[13px] text-[#697386]">
                     Mostrando {filteredCustomers.length} clientes
                 </div>

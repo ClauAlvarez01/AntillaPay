@@ -889,6 +889,22 @@ export default function TransactionsPage() {
         return Array.from(destinations).sort((a, b) => String(a).localeCompare(String(b), "es"));
     }, [transfers]);
 
+    const paymentCounts = useMemo(() => {
+        const completed = paymentsWithCustomer.filter(p => p.status === "Completado").length;
+        const failed = paymentsWithCustomer.filter(p => p.status === "Fallido").length;
+        const refunded = paymentsWithCustomer.filter(p => p.status === "Reembolsado").length;
+        const total = paymentsWithCustomer.length;
+        return { completed, failed, refunded, total };
+    }, [paymentsWithCustomer]);
+
+    const transferCounts = useMemo(() => {
+        const completed = transfers.filter(t => t.status === "completada").length;
+        const pending = transfers.filter(t => t.status === "pendiente").length;
+        const failed = transfers.filter(t => t.status === "fallida").length;
+        const total = transfers.length;
+        return { completed, pending, failed, total };
+    }, [transfers]);
+
     const filteredPayments = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
         const selectedDate = createdDate ? new Date(createdDate) : null;
@@ -998,8 +1014,92 @@ export default function TransactionsPage() {
             </div>
 
             {activeTab === "pagos" ? (
-                <div className="space-y-6">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <>
+                    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setStatusFilter("all");
+                                setChipFilters(prev => ({ ...prev, status: false }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                statusFilter === "all"
+                                    ? "border-[#635bff] bg-[#f6f5ff]"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", statusFilter === "all" ? "text-[#635bff]" : "text-[#6b7280]")}>
+                                Todos
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", statusFilter === "all" ? "text-[#635bff]" : "text-[#4b5563]")}>
+                                {paymentCounts.total}
+                            </p>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setStatusFilter("Completado");
+                                setChipFilters(prev => ({ ...prev, status: true }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                chipFilters.status && statusFilter === "Completado"
+                                    ? "border-emerald-200 bg-emerald-50"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", chipFilters.status && statusFilter === "Completado" ? "text-emerald-700" : "text-[#6b7280]")}>
+                                Completado
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", chipFilters.status && statusFilter === "Completado" ? "text-emerald-700" : "text-[#4b5563]")}>
+                                {paymentCounts.completed}
+                            </p>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setStatusFilter("Fallido");
+                                setChipFilters(prev => ({ ...prev, status: true }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                chipFilters.status && statusFilter === "Fallido"
+                                    ? "border-rose-200 bg-rose-50"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", chipFilters.status && statusFilter === "Fallido" ? "text-rose-700" : "text-[#6b7280]")}>
+                                Fallido
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", chipFilters.status && statusFilter === "Fallido" ? "text-rose-700" : "text-[#4b5563]")}>
+                                {paymentCounts.failed}
+                            </p>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setStatusFilter("Reembolsado");
+                                setChipFilters(prev => ({ ...prev, status: true }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                chipFilters.status && statusFilter === "Reembolsado"
+                                    ? "border-slate-200 bg-slate-50"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", chipFilters.status && statusFilter === "Reembolsado" ? "text-slate-700" : "text-[#6b7280]")}>
+                                Reembolsado
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", chipFilters.status && statusFilter === "Reembolsado" ? "text-slate-700" : "text-[#4b5563]")}>
+                                {paymentCounts.refunded}
+                            </p>
+                        </button>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                         <div className="relative w-full max-w-[520px]">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
                             <Input
@@ -1032,12 +1132,11 @@ export default function TransactionsPage() {
                             )}
                             {chipFilters.status && (
                                 <div className="min-w-[180px]">
-                                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
                                         <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                            <SelectValue placeholder="Estado" />
+                                            <SelectValue placeholder="Seleccione Estado" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">Todos los estados</SelectItem>
                                             {availableStatuses.map((status) => (
                                                 <SelectItem key={status} value={status}>{status}</SelectItem>
                                             ))}
@@ -1182,10 +1281,95 @@ export default function TransactionsPage() {
                             </Table>
                         </div>
                     )}
-                </div>
+                    </div>
+                </>
             ) : (
-                <div className="space-y-6">
-                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <>
+                    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTransferStatusFilter("all");
+                                setTransferChipFilters(prev => ({ ...prev, status: false }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                transferStatusFilter === "all"
+                                    ? "border-[#635bff] bg-[#f6f5ff]"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", transferStatusFilter === "all" ? "text-[#635bff]" : "text-[#6b7280]")}>
+                                Todos
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", transferStatusFilter === "all" ? "text-[#635bff]" : "text-[#4b5563]")}>
+                                {transferCounts.total}
+                            </p>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTransferStatusFilter("completada");
+                                setTransferChipFilters(prev => ({ ...prev, status: true }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                transferChipFilters.status && transferStatusFilter === "completada"
+                                    ? "border-emerald-200 bg-emerald-50"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", transferChipFilters.status && transferStatusFilter === "completada" ? "text-emerald-700" : "text-[#6b7280]")}>
+                                Completada
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", transferChipFilters.status && transferStatusFilter === "completada" ? "text-emerald-700" : "text-[#4b5563]")}>
+                                {transferCounts.completed}
+                            </p>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTransferStatusFilter("pendiente");
+                                setTransferChipFilters(prev => ({ ...prev, status: true }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                transferChipFilters.status && transferStatusFilter === "pendiente"
+                                    ? "border-amber-200 bg-amber-50"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", transferChipFilters.status && transferStatusFilter === "pendiente" ? "text-amber-700" : "text-[#6b7280]")}>
+                                Pendiente
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", transferChipFilters.status && transferStatusFilter === "pendiente" ? "text-amber-700" : "text-[#4b5563]")}>
+                                {transferCounts.pending}
+                            </p>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setTransferStatusFilter("fallida");
+                                setTransferChipFilters(prev => ({ ...prev, status: true }));
+                            }}
+                            className={cn(
+                                "rounded-xl border px-4 py-3 text-left transition-colors",
+                                transferChipFilters.status && transferStatusFilter === "fallida"
+                                    ? "border-rose-200 bg-rose-50"
+                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
+                            )}
+                        >
+                            <p className={cn("text-[13px] font-semibold", transferChipFilters.status && transferStatusFilter === "fallida" ? "text-rose-700" : "text-[#6b7280]")}>
+                                Fallida
+                            </p>
+                            <p className={cn("text-[18px] font-semibold mt-1", transferChipFilters.status && transferStatusFilter === "fallida" ? "text-rose-700" : "text-[#4b5563]")}>
+                                {transferCounts.failed}
+                            </p>
+                        </button>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                         <div className="relative w-full max-w-[520px]">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
                             <Input
@@ -1219,12 +1403,11 @@ export default function TransactionsPage() {
 
                             {transferChipFilters.status && (
                                 <div className="min-w-[200px]">
-                                    <Select value={transferStatusFilter} onValueChange={setTransferStatusFilter}>
+                                    <Select value={transferStatusFilter === "all" ? "" : transferStatusFilter} onValueChange={setTransferStatusFilter}>
                                         <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                            <SelectValue placeholder="Estado" />
+                                            <SelectValue placeholder="Seleccione Estado" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">Todos los estados</SelectItem>
                                             {availableTransferStatuses.map((status) => (
                                                 <SelectItem key={status} value={status}>{status}</SelectItem>
                                             ))}
@@ -1367,7 +1550,8 @@ export default function TransactionsPage() {
                             </Table>
                         </div>
                     )}
-                </div>
+                    </div>
+                </>
             )}
             <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
                 <DialogContent className="sm:max-w-[560px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
