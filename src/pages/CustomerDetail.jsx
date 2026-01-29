@@ -255,16 +255,6 @@ export default function CustomerDetail({ customerId }) {
                         <div>
                             <div className="flex items-center gap-2">
                                 <h1 className="text-[26px] font-bold text-[#32325d]">{customer.name}</h1>
-                                <span className={cn(
-                                    "px-2.5 py-0.5 rounded-full text-[11px] font-semibold",
-                                    customer.status === "Moroso"
-                                        ? "bg-rose-50 text-rose-600"
-                                        : customer.status === "Nuevo"
-                                            ? "bg-blue-50 text-blue-600"
-                                            : "bg-[#e8f7e7] text-[#2f855a]"
-                                )}>
-                                    {customer.status}
-                                </span>
                             </div>
                             <p className="text-[13px] text-[#6b7280]">{customer.email}</p>
                         </div>

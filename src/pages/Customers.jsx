@@ -5,7 +5,6 @@ import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import {
     Table,
@@ -97,16 +96,11 @@ const INITIAL_CUSTOMERS = [
     }
 ];
 
-const STATUS_STYLES = {
-    Activo: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    Moroso: "bg-rose-50 text-rose-700 border-rose-200",
-    Nuevo: "bg-blue-50 text-blue-700 border-blue-200"
-};
+
 
 const FILTERS = [
     { id: "created", label: "Fecha de Creación" },
-    { id: "type", label: "Tipo" },
-    { id: "more", label: "Estado" }
+    { id: "type", label: "Tipo" }
 ];
 
 const DEFAULT_COLUMNS = [
@@ -115,7 +109,6 @@ const DEFAULT_COLUMNS = [
     { key: "createdAt", label: "Creado", visible: true },
     { key: "type", label: "Tipo", visible: true },
     { key: "balance", label: "Saldo", visible: true },
-    { key: "status", label: "Estado", visible: true },
     { key: "actions", label: "Acciones", visible: true, locked: true }
 ];
 
@@ -184,11 +177,9 @@ export default function CustomersPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [chipFilters, setChipFilters] = useState(() => ({
         created: false,
-        type: false,
-        more: false
+        type: false
     }));
     const [typeFilter, setTypeFilter] = useState("all");
-    const [statusFilter, setStatusFilter] = useState("all");
     const [sortOrder, setSortOrder] = useState("desc");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -239,9 +230,7 @@ export default function CustomersPage() {
             ...prev,
             [filterId]: !prev[filterId]
         }));
-        if (filterId === "more") {
-            setStatusFilter("all");
-        }
+
     };
 
     const handleEditColumns = () => {
@@ -256,9 +245,6 @@ export default function CustomersPage() {
         return customers
             .filter((customer) => {
                 if (chipFilters.type && typeFilter !== "all" && customer.type !== typeFilter) {
-                    return false;
-                }
-                if (chipFilters.more && statusFilter !== "all" && customer.status !== statusFilter) {
                     return false;
                 }
                 if (!query) {
@@ -284,14 +270,11 @@ export default function CustomersPage() {
                 const dateB = new Date(b.createdAt).getTime();
                 return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
             });
-    }, [chipFilters, createdDate, customers, searchQuery, sortOrder, statusFilter, typeFilter]);
+    }, [chipFilters, createdDate, customers, searchQuery, sortOrder, typeFilter]);
 
     const customerCounts = useMemo(() => {
-        const active = customers.filter(c => c.status === "Activo").length;
-        const overdue = customers.filter(c => c.status === "Moroso").length;
-        const newCustomers = customers.filter(c => c.status === "Nuevo").length;
         const total = customers.length;
-        return { active, overdue, newCustomers, total };
+        return { total };
     }, [customers]);
 
     const renderHeaderCell = (column, index) => {
@@ -368,17 +351,7 @@ export default function CustomersPage() {
                         {formatCurrency(customer.balance)}
                     </TableCell>
                 );
-            case "status":
-                return (
-                    <TableCell key={column.key} className={cn("py-4", addLeftPadding && "px-6")}>
-                        <Badge
-                            variant="outline"
-                            className={cn("rounded-full border text-[11px]", STATUS_STYLES[customer.status])}
-                        >
-                            {customer.status}
-                        </Badge>
-                    </TableCell>
-                );
+
             case "actions":
                 return (
                     <TableCell key={column.key} className="py-4 text-right pr-6">
@@ -434,8 +407,7 @@ export default function CustomersPage() {
             email: formState.email.trim(),
             createdAt: new Date().toISOString().slice(0, 10),
             type: formState.type,
-            balance: 0,
-            status: "Nuevo"
+            balance: 0
         };
 
         setCustomers((prev) => [newCustomer, ...prev]);
@@ -448,90 +420,9 @@ export default function CustomersPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 className="text-[28px] font-bold text-[#32325d]">Clientes</h1>
 
-                </div>
+            </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setStatusFilter("all");
-                            setChipFilters(prev => ({ ...prev, more: false }));
-                        }}
-                        className={cn(
-                            "rounded-xl border px-4 py-3 text-left transition-colors",
-                            statusFilter === "all"
-                                ? "border-[#635bff] bg-[#f6f5ff]"
-                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                        )}
-                    >
-                        <p className={cn("text-[13px] font-semibold", statusFilter === "all" ? "text-[#635bff]" : "text-[#6b7280]")}>
-                            Todos
-                        </p>
-                        <p className={cn("text-[18px] font-semibold mt-1", statusFilter === "all" ? "text-[#635bff]" : "text-[#4b5563]")}>
-                            {customerCounts.total}
-                        </p>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setStatusFilter("Activo");
-                            setChipFilters(prev => ({ ...prev, more: true }));
-                        }}
-                        className={cn(
-                            "rounded-xl border px-4 py-3 text-left transition-colors",
-                            chipFilters.more && statusFilter === "Activo"
-                                ? "border-emerald-200 bg-emerald-50"
-                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                        )}
-                    >
-                        <p className={cn("text-[13px] font-semibold", chipFilters.more && statusFilter === "Activo" ? "text-emerald-700" : "text-[#6b7280]")}>
-                            Activo
-                        </p>
-                        <p className={cn("text-[18px] font-semibold mt-1", chipFilters.more && statusFilter === "Activo" ? "text-emerald-700" : "text-[#4b5563]")}>
-                            {customerCounts.active}
-                        </p>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setStatusFilter("Moroso");
-                            setChipFilters(prev => ({ ...prev, more: true }));
-                        }}
-                        className={cn(
-                            "rounded-xl border px-4 py-3 text-left transition-colors",
-                            chipFilters.more && statusFilter === "Moroso"
-                                ? "border-rose-200 bg-rose-50"
-                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                        )}
-                    >
-                        <p className={cn("text-[13px] font-semibold", chipFilters.more && statusFilter === "Moroso" ? "text-rose-700" : "text-[#6b7280]")}>
-                            Moroso
-                        </p>
-                        <p className={cn("text-[18px] font-semibold mt-1", chipFilters.more && statusFilter === "Moroso" ? "text-rose-700" : "text-[#4b5563]")}>
-                            {customerCounts.overdue}
-                        </p>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setStatusFilter("Nuevo");
-                            setChipFilters(prev => ({ ...prev, more: true }));
-                        }}
-                        className={cn(
-                            "rounded-xl border px-4 py-3 text-left transition-colors",
-                            chipFilters.more && statusFilter === "Nuevo"
-                                ? "border-blue-200 bg-blue-50"
-                                : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                        )}
-                    >
-                        <p className={cn("text-[13px] font-semibold", chipFilters.more && statusFilter === "Nuevo" ? "text-blue-700" : "text-[#6b7280]")}>
-                            Nuevo
-                        </p>
-                        <p className={cn("text-[18px] font-semibold mt-1", chipFilters.more && statusFilter === "Nuevo" ? "text-blue-700" : "text-[#4b5563]")}>
-                            {customerCounts.newCustomers}
-                        </p>
-                    </button>
-                </div>
+
 
             <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center">
                 <div className="relative w-full max-w-[420px]">
@@ -578,20 +469,7 @@ export default function CustomersPage() {
                             </Select>
                         </div>
                     )}
-                    {chipFilters.more && (
-                        <div className="min-w-[160px]">
-                            <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                    <SelectValue placeholder="Seleccione Estado" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Activo">Activo</SelectItem>
-                                    <SelectItem value="Moroso">Moroso</SelectItem>
-                                    <SelectItem value="Nuevo">Nuevo</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
+
                 </div>
 
                 {isCreatedCalendarOpen && (

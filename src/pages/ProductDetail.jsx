@@ -38,14 +38,23 @@ export default function ProductDetail({ productId: productIdProp }) {
     const [products, setProducts] = useState(() => {
         if (typeof window === "undefined") return [];
         const stored = window.localStorage.getItem("antillapay_products");
-        return stored ? JSON.parse(stored) : [];
+        if (!stored) return [];
+        const parsed = JSON.parse(stored);
+        return parsed.map(p => ({
+            ...p,
+            status: p.status === "Archivado" ? "Inactivo" : p.status,
+            prices: (p.prices || []).map(pr => ({
+                ...pr,
+                status: pr.status === "Archivado" ? "Inactivo" : pr.status
+            }))
+        }));
     });
     const product = products.find((item) => item.id === productId);
 
     const prices = product?.prices?.length ? product.prices : [];
     const productStatus = product?.status || "Activo";
     const productUsed = product?.used || prices.some((price) => price.used);
-    const isArchived = productStatus === "Archivado";
+    const isInactive = productStatus === "Inactivo";
     const defaultPrice = prices.find((price) => price.isDefault) || prices[0];
     const otherPrices = prices.filter((price) => price.id !== defaultPrice?.id);
     const availableCurrencies = Array.from(
@@ -74,7 +83,7 @@ export default function ProductDetail({ productId: productIdProp }) {
 
     const handleArchiveProduct = () => {
         const nextProducts = products.map((item) =>
-            item.id === productId ? { ...item, status: "Archivado" } : item
+            item.id === productId ? { ...item, status: "Inactivo" } : item
         );
         handleSaveProducts(nextProducts);
         setOpenProductMenu(false);
@@ -127,10 +136,10 @@ export default function ProductDetail({ productId: productIdProp }) {
             if (price.used) {
                 const nextPrices = (item.prices || []).map((itemPrice) =>
                     itemPrice.id === price.id
-                        ? { ...itemPrice, status: "Archivado", isDefault: false }
+                        ? { ...itemPrice, status: "Inactivo", isDefault: false }
                         : itemPrice
                 );
-                const nextDefault = nextPrices.find((itemPrice) => itemPrice.status !== "Archivado");
+                const nextDefault = nextPrices.find((itemPrice) => itemPrice.status !== "Inactivo");
                 const normalized = nextDefault
                     ? nextPrices.map((itemPrice) => ({
                         ...itemPrice,
@@ -235,11 +244,11 @@ export default function ProductDetail({ productId: productIdProp }) {
                                 <h1 className="text-[26px] font-bold text-[#32325d]">{product.name}</h1>
                                 <span className={cn(
                                     "px-2.5 py-0.5 rounded-full text-[11px] font-semibold",
-                                    productStatus === "Archivado"
+                                    productStatus === "Inactivo"
                                         ? "bg-gray-100 text-[#6b7280]"
                                         : "bg-[#e8f7e7] text-[#2f855a]"
                                 )}>
-                                    {productStatus === "Archivado" ? "Archivado" : "Activo"}
+                                    {productStatus === "Inactivo" ? "Inactivo" : "Activo"}
                                 </span>
                             </div>
                             <p className="text-[13px] text-[#6b7280]">
@@ -280,7 +289,7 @@ export default function ProductDetail({ productId: productIdProp }) {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            const nextStatus = productStatus === "Archivado" ? "Activo" : "Archivado";
+                                            const nextStatus = productStatus === "Inactivo" ? "Activo" : "Inactivo";
                                             const nextProducts = products.map((item) =>
                                                 item.id === productId ? { ...item, status: nextStatus } : item
                                             );
@@ -289,7 +298,7 @@ export default function ProductDetail({ productId: productIdProp }) {
                                         }}
                                         className="w-full text-left px-4 py-3 text-[14px] text-[#32325d] hover:bg-gray-50"
                                     >
-                                        {productStatus === "Archivado" ? "Activar producto" : "Archivar producto"}
+                                        {productStatus === "Inactivo" ? "Activar producto" : "Inactivar producto"}
                                     </button>
                                     {!productUsed && (
                                         <button
@@ -314,10 +323,10 @@ export default function ProductDetail({ productId: productIdProp }) {
                         <button
                             type="button"
                             onClick={() => navigate("/dashboard/products/create", { state: { productToEdit: product, openAddPrice: true } })}
-                            disabled={isArchived}
+                            disabled={isInactive}
                             className={cn(
                                 "w-9 h-9 rounded-lg border border-gray-200 text-[#6b7280]",
-                                isArchived ? "cursor-not-allowed opacity-50" : "hover:border-[#cbd5f5]"
+                                isInactive ? "cursor-not-allowed opacity-50" : "hover:border-[#cbd5f5]"
                             )}
                         >
                             <Plus className="w-4 h-4 mx-auto" />
@@ -394,7 +403,7 @@ export default function ProductDetail({ productId: productIdProp }) {
                                                     onClick={() => handleArchiveOrDeletePrice(price)}
                                                     className="w-full text-left px-4 py-3 text-[14px] text-[#ef4444] hover:bg-red-50"
                                                 >
-                                                    {price.used ? "Archivar precio" : "Eliminar precio"}
+                                                    {price.used ? "Inactivar precio" : "Eliminar precio"}
                                                 </button>
                                             </div>
                                         </div>

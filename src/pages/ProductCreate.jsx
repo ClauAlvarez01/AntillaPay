@@ -150,7 +150,15 @@ export default function ProductCreate() {
         if (!canSubmit) return;
         const now = new Date();
         const stored = window.localStorage.getItem("antillapay_products");
-        const existing = stored ? JSON.parse(stored) : [];
+        const rawExisting = stored ? JSON.parse(stored) : [];
+        const existing = rawExisting.map(p => ({
+            ...p,
+            status: p.status === "Archivado" ? "Inactivo" : p.status,
+            prices: (p.prices || []).map(pr => ({
+                ...pr,
+                status: pr.status === "Archivado" ? "Inactivo" : pr.status
+            }))
+        }));
 
         if (editingProduct) {
             const nextPrices = prices.length
@@ -278,11 +286,11 @@ export default function ProductCreate() {
             setPrices((prev) => {
                 const next = prev.map((item) =>
                     item.id === price.id
-                        ? { ...item, status: "Archivado", isDefault: false }
+                        ? { ...item, status: "Inactivo", isDefault: false }
                         : item
                 );
                 if (price.isDefault) {
-                    const nextDefault = next.find((item) => item.status !== "Archivado");
+                    const nextDefault = next.find((item) => item.status !== "Inactivo");
                     if (nextDefault) {
                         return next.map((item) => ({
                             ...item,
@@ -503,7 +511,7 @@ export default function ProductCreate() {
                                                                         }}
                                                                         className="w-full text-left px-4 py-3 text-[14px] text-[#ef4444] hover:bg-red-50"
                                                                     >
-                                                                        {price.used ? "Archivar precio" : "Eliminar precio"}
+                                                                        {price.used ? "Inactivar precio" : "Eliminar precio"}
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -577,16 +585,16 @@ export default function ProductCreate() {
                 >
                     Cancelar
                 </button>
-                    <Button
-                        onClick={handleCreateProduct}
-                        disabled={!canSubmit}
-                        className={cn(
-                            "rounded-lg px-4 py-2 text-[13px] font-semibold text-white",
-                            canSubmit ? "bg-[#635bff] hover:bg-[#5851e0]" : "bg-[#c4c7ff] cursor-not-allowed"
-                        )}
-                    >
-                        {editingProduct ? "Actualizar producto" : "Añadir producto"}
-                    </Button>
+                <Button
+                    onClick={handleCreateProduct}
+                    disabled={!canSubmit}
+                    className={cn(
+                        "rounded-lg px-4 py-2 text-[13px] font-semibold text-white",
+                        canSubmit ? "bg-[#635bff] hover:bg-[#5851e0]" : "bg-[#c4c7ff] cursor-not-allowed"
+                    )}
+                >
+                    {editingProduct ? "Actualizar producto" : "Añadir producto"}
+                </Button>
             </div>
 
             {priceModalOpen && (

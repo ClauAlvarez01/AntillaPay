@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Upload, X, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Upload, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,50 +32,50 @@ import {
     DialogContent
 } from "@/components/ui/dialog";
 
- const DEMO_TRANSFERS = [
-     {
-         id: "tr_001",
-         amount: 450.0,
-         grossAmount: 455.0,
-         netAmount: 450.0,
-         currency: "USD",
-         status: "completada",
-         date: "2026-01-15T10:30:00Z",
-         createdAt: "2026-01-14T12:10:00Z",
-         executedAt: "2026-01-15T10:30:00Z",
-         failedAt: null,
-         destination: "Banco Metropolitano ****4567",
-         failureReason: null
-     },
-     {
-         id: "tr_002",
-         amount: 120.5,
-         grossAmount: 120.5,
-         netAmount: 120.5,
-         currency: "USD",
-         status: "pendiente",
-         date: "2026-01-20T14:45:00Z",
-         createdAt: "2026-01-20T14:45:00Z",
-         executedAt: null,
-         failedAt: null,
-         destination: "Banco de Crédito ****8821",
-         failureReason: null
-     },
-     {
-         id: "tr_003",
-         amount: 890.0,
-         grossAmount: 890.0,
-         netAmount: 880.0,
-         currency: "USD",
-         status: "fallida",
-         date: "2026-01-10T09:15:00Z",
-         createdAt: "2026-01-09T16:40:00Z",
-         executedAt: null,
-         failedAt: "2026-01-10T09:15:00Z",
-         destination: "Banco Metropolitano ****4567",
-         failureReason: "Cuenta destino rechazada por el banco receptor."
-     }
- ];
+const DEMO_TRANSFERS = [
+    {
+        id: "tr_001",
+        amount: 450.0,
+        grossAmount: 455.0,
+        netAmount: 450.0,
+        currency: "USD",
+        status: "completada",
+        date: "2026-01-15T10:30:00Z",
+        createdAt: "2026-01-14T12:10:00Z",
+        executedAt: "2026-01-15T10:30:00Z",
+        failedAt: null,
+        destination: "Banco Metropolitano ****4567",
+        failureReason: null
+    },
+    {
+        id: "tr_002",
+        amount: 120.5,
+        grossAmount: 120.5,
+        netAmount: 120.5,
+        currency: "USD",
+        status: "pendiente",
+        date: "2026-01-20T14:45:00Z",
+        createdAt: "2026-01-20T14:45:00Z",
+        executedAt: null,
+        failedAt: null,
+        destination: "Banco de Crédito ****8821",
+        failureReason: null
+    },
+    {
+        id: "tr_003",
+        amount: 890.0,
+        grossAmount: 890.0,
+        netAmount: 880.0,
+        currency: "USD",
+        status: "fallida",
+        date: "2026-01-10T09:15:00Z",
+        createdAt: "2026-01-09T16:40:00Z",
+        executedAt: null,
+        failedAt: "2026-01-10T09:15:00Z",
+        destination: "Banco Metropolitano ****4567",
+        failureReason: "Cuenta destino rechazada por el banco receptor."
+    }
+];
 
 const DEMO_CUSTOMERS = [
     {
@@ -209,11 +209,11 @@ const PAYMENT_STATUS_STYLES = {
     Reembolsado: "bg-slate-50 text-slate-700 border-slate-200"
 };
 
- const TRANSFER_STATUS_STYLES = {
-     completada: "bg-emerald-50 text-emerald-700 border-emerald-200",
-     pendiente: "bg-amber-50 text-amber-700 border-amber-200",
-     fallida: "bg-rose-50 text-rose-700 border-rose-200"
- };
+const TRANSFER_STATUS_STYLES = {
+    completada: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    pendiente: "bg-amber-50 text-amber-700 border-amber-200",
+    fallida: "bg-rose-50 text-rose-700 border-rose-200"
+};
 
 const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -1100,187 +1100,187 @@ export default function TransactionsPage() {
 
                     <div className="space-y-6">
                         <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="relative w-full max-w-[520px]">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
-                            <Input
-                                value={searchQuery}
-                                onChange={(event) => setSearchQuery(event.target.value)}
-                                placeholder="Buscar por cliente, email, ID de pago, referencia u origen"
-                                className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="relative">
-                        <div className="flex flex-wrap items-center gap-2">
-                            {FILTERS.map((filter) => (
-                                <FilterPill
-                                    key={filter.id}
-                                    label={filter.label}
-                                    active={chipFilters[filter.id]}
-                                    onClick={() => handleToggleFilter(filter.id)}
-                                />
-                            ))}
-                            {chipFilters.created && createdDate && (
-                                <span className="text-[12px] font-semibold text-[#635bff] ml-1">
-                                    {new Date(createdDate).toLocaleDateString("es-ES", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                    })}
-                                </span>
-                            )}
-                            {chipFilters.status && (
-                                <div className="min-w-[180px]">
-                                    <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
-                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                            <SelectValue placeholder="Seleccione Estado" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableStatuses.map((status) => (
-                                                <SelectItem key={status} value={status}>{status}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-                            {chipFilters.method && (
-                                <div className="min-w-[180px]">
-                                    <Select value={methodFilter} onValueChange={setMethodFilter}>
-                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                            <SelectValue placeholder="Método" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">Todos los métodos</SelectItem>
-                                            {availableMethods.map((method) => (
-                                                <SelectItem key={method} value={method}>{method}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-                        </div>
-
-                        {isCreatedCalendarOpen && (
-                            <div className="absolute left-0 top-full mt-2 z-20">
-                                <Calendar
-                                    mode="single"
-                                    selected={createdDate}
-                                    onSelect={(date) => {
-                                        setCreatedDate(date);
-                                        if (date) {
-                                            setIsCreatedCalendarOpen(false);
-                                        }
-                                    }}
-                                    className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                            <div className="relative w-full max-w-[520px]">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
+                                <Input
+                                    value={searchQuery}
+                                    onChange={(event) => setSearchQuery(event.target.value)}
+                                    placeholder="Buscar por cliente, email, ID de pago, referencia u origen"
+                                    className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
                                 />
                             </div>
-                        )}
-                    </div>
-
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-[13px] text-[#697386]">
-                            Mostrando {filteredPayments.length} pagos
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={!filteredPayments.length}
-                                onClick={() => openExportModal("payments")}
-                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
-                            >
-                                <Upload className="w-4 h-4 text-[#8792a2]" />
-                                Exportar
-                            </Button>
-                        </div>
-                    </div>
 
-                    {filteredPayments.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
-                            No se encontraron pagos con los filtros actuales.
-                        </div>
-                    ) : (
-                        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-gray-50/60">
-                                        <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cliente</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Moneda</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Método</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Referencia</TableHead>
-                                        <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Origen</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredPayments.map((payment) => {
-                                        const customerLabel = payment.customer?.name || payment.email || "—";
-                                        const customerId = payment.customer?.id;
+                        <div className="relative">
+                            <div className="flex flex-wrap items-center gap-2">
+                                {FILTERS.map((filter) => (
+                                    <FilterPill
+                                        key={filter.id}
+                                        label={filter.label}
+                                        active={chipFilters[filter.id]}
+                                        onClick={() => handleToggleFilter(filter.id)}
+                                    />
+                                ))}
+                                {chipFilters.created && createdDate && (
+                                    <span className="text-[12px] font-semibold text-[#635bff] ml-1">
+                                        {new Date(createdDate).toLocaleDateString("es-ES", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric"
+                                        })}
+                                    </span>
+                                )}
+                                {chipFilters.status && (
+                                    <div className="min-w-[180px]">
+                                        <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
+                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                                <SelectValue placeholder="Seleccione Estado" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableStatuses.map((status) => (
+                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                                {chipFilters.method && (
+                                    <div className="min-w-[180px]">
+                                        <Select value={methodFilter} onValueChange={setMethodFilter}>
+                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                                <SelectValue placeholder="Método" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">Todos los métodos</SelectItem>
+                                                {availableMethods.map((method) => (
+                                                    <SelectItem key={method} value={method}>{method}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </div>
 
-                                        return (
-                                            <TableRow
-                                                key={payment.id}
-                                                className="border-b border-gray-100 last:border-b-0"
-                                            >
-                                                <TableCell className="px-6 py-4">
-                                                    <div className="space-y-0.5">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                if (!customerId) return;
-                                                                navigate(`/dashboard/customers/${customerId}`, { state: { customer: payment.customer } });
-                                                            }}
+                            {isCreatedCalendarOpen && (
+                                <div className="absolute left-0 top-full mt-2 z-20">
+                                    <Calendar
+                                        mode="single"
+                                        selected={createdDate}
+                                        onSelect={(date) => {
+                                            setCreatedDate(date);
+                                            if (date) {
+                                                setIsCreatedCalendarOpen(false);
+                                            }
+                                        }}
+                                        className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="text-[13px] text-[#697386]">
+                                Mostrando {filteredPayments.length} pagos
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={!filteredPayments.length}
+                                    onClick={() => openExportModal("payments")}
+                                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
+                                >
+                                    <Upload className="w-4 h-4 text-[#8792a2]" />
+                                    Exportar
+                                </Button>
+                            </div>
+                        </div>
+
+                        {filteredPayments.length === 0 ? (
+                            <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
+                                No se encontraron pagos con los filtros actuales.
+                            </div>
+                        ) : (
+                            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="bg-gray-50/60">
+                                            <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cliente</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Moneda</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Método</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Referencia</TableHead>
+                                            <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Origen</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredPayments.map((payment) => {
+                                            const customerLabel = payment.customer?.name || payment.email || "—";
+                                            const customerId = payment.customer?.id;
+
+                                            return (
+                                                <TableRow
+                                                    key={payment.id}
+                                                    className="border-b border-gray-100 last:border-b-0"
+                                                >
+                                                    <TableCell className="px-6 py-4">
+                                                        <div className="space-y-0.5">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (!customerId) return;
+                                                                    navigate(`/dashboard/customers/${customerId}`, { state: { customer: payment.customer } });
+                                                                }}
+                                                                className={cn(
+                                                                    "text-left text-[13px] font-semibold",
+                                                                    customerId
+                                                                        ? "text-[#32325d] hover:text-[#635bff]"
+                                                                        : "text-[#32325d]"
+                                                                )}
+                                                            >
+                                                                {customerLabel}
+                                                            </button>
+                                                            <div className="text-[12px] text-[#8792a2]">{payment.email}</div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                        {formatDate(payment.createdAt)}
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
+                                                        {formatCurrency(payment.amount, payment.currency)}
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                        {payment.currency}
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <span
                                                             className={cn(
-                                                                "text-left text-[13px] font-semibold",
-                                                                customerId
-                                                                    ? "text-[#32325d] hover:text-[#635bff]"
-                                                                    : "text-[#32325d]"
+                                                                "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                                PAYMENT_STATUS_STYLES[payment.status] || "bg-gray-50 text-gray-600 border-gray-200"
                                                             )}
                                                         >
-                                                            {customerLabel}
-                                                        </button>
-                                                        <div className="text-[12px] text-[#8792a2]">{payment.email}</div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                    {formatDate(payment.createdAt)}
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
-                                                    {formatCurrency(payment.amount, payment.currency)}
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                    {payment.currency}
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <span
-                                                        className={cn(
-                                                            "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                                                            PAYMENT_STATUS_STYLES[payment.status] || "bg-gray-50 text-gray-600 border-gray-200"
-                                                        )}
-                                                    >
-                                                        {payment.status}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                    {payment.method}
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                    {payment.reference}
-                                                </TableCell>
-                                                <TableCell className="pr-6 py-4 text-[13px] text-[#4f5b76]">
-                                                    {payment.origin}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
+                                                            {payment.status}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                        {payment.method}
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                        {payment.reference}
+                                                    </TableCell>
+                                                    <TableCell className="pr-6 py-4 text-[13px] text-[#4f5b76]">
+                                                        {payment.origin}
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
                     </div>
                 </>
             ) : (
@@ -1370,186 +1370,152 @@ export default function TransactionsPage() {
 
                     <div className="space-y-6">
                         <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="relative w-full max-w-[520px]">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
-                            <Input
-                                value={transferSearchQuery}
-                                onChange={(event) => setTransferSearchQuery(event.target.value)}
-                                placeholder="Buscar por ID de payout o cuenta destino"
-                                className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="relative">
-                        <div className="flex flex-wrap items-center gap-2">
-                            {TRANSFER_FILTERS.map((filter) => (
-                                <FilterPill
-                                    key={filter.id}
-                                    label={filter.label}
-                                    active={transferChipFilters[filter.id]}
-                                    onClick={() => handleToggleTransferFilter(filter.id)}
-                                />
-                            ))}
-                            {transferChipFilters.created && transferCreatedDate && (
-                                <span className="text-[12px] font-semibold text-[#635bff] ml-1">
-                                    {new Date(transferCreatedDate).toLocaleDateString("es-ES", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric"
-                                    })}
-                                </span>
-                            )}
-
-                            {transferChipFilters.status && (
-                                <div className="min-w-[200px]">
-                                    <Select value={transferStatusFilter === "all" ? "" : transferStatusFilter} onValueChange={setTransferStatusFilter}>
-                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                            <SelectValue placeholder="Seleccione Estado" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableTransferStatuses.map((status) => (
-                                                <SelectItem key={status} value={status}>{status}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-
-                            {transferChipFilters.destination && (
-                                <div className="min-w-[240px]">
-                                    <Select value={transferDestinationFilter} onValueChange={setTransferDestinationFilter}>
-                                        <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                            <SelectValue placeholder="Cuenta destino" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">Todas las cuentas</SelectItem>
-                                            {availableTransferDestinations.map((destination) => (
-                                                <SelectItem key={destination} value={destination}>{destination}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-                        </div>
-
-                        {isTransferCreatedCalendarOpen && (
-                            <div className="absolute left-0 top-full mt-2 z-20">
-                                <Calendar
-                                    mode="single"
-                                    selected={transferCreatedDate}
-                                    onSelect={(date) => {
-                                        setTransferCreatedDate(date);
-                                        if (date) {
-                                            setIsTransferCreatedCalendarOpen(false);
-                                        }
-                                    }}
-                                    className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                            <div className="relative w-full max-w-[520px]">
+                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
+                                <Input
+                                    value={transferSearchQuery}
+                                    onChange={(event) => setTransferSearchQuery(event.target.value)}
+                                    placeholder="Buscar por ID de payout o cuenta destino"
+                                    className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
                                 />
                             </div>
-                        )}
-                    </div>
+                        </div>
 
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-[13px] text-[#697386]">
-                            Mostrando {filteredTransfers.length} transferencias
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={!filteredTransfers.length}
-                                onClick={() => openExportModal("transfers")}
-                                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
-                            >
-                                <Upload className="w-4 h-4 text-[#8792a2]" />
-                                Exportar
-                            </Button>
-                        </div>
-                    </div>
+                        <div className="relative">
+                            <div className="flex flex-wrap items-center gap-2">
+                                {TRANSFER_FILTERS.map((filter) => (
+                                    <FilterPill
+                                        key={filter.id}
+                                        label={filter.label}
+                                        active={transferChipFilters[filter.id]}
+                                        onClick={() => handleToggleTransferFilter(filter.id)}
+                                    />
+                                ))}
+                                {transferChipFilters.created && transferCreatedDate && (
+                                    <span className="text-[12px] font-semibold text-[#635bff] ml-1">
+                                        {new Date(transferCreatedDate).toLocaleDateString("es-ES", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric"
+                                        })}
+                                    </span>
+                                )}
 
-                    {filteredTransfers.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
-                            No se encontraron transferencias con los filtros actuales.
+                                {transferChipFilters.status && (
+                                    <div className="min-w-[200px]">
+                                        <Select value={transferStatusFilter === "all" ? "" : transferStatusFilter} onValueChange={setTransferStatusFilter}>
+                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                                <SelectValue placeholder="Seleccione Estado" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableTransferStatuses.map((status) => (
+                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                {transferChipFilters.destination && (
+                                    <div className="min-w-[240px]">
+                                        <Select value={transferDestinationFilter} onValueChange={setTransferDestinationFilter}>
+                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                                <SelectValue placeholder="Cuenta destino" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">Todas las cuentas</SelectItem>
+                                                {availableTransferDestinations.map((destination) => (
+                                                    <SelectItem key={destination} value={destination}>{destination}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </div>
+
+                            {isTransferCreatedCalendarOpen && (
+                                <div className="absolute left-0 top-full mt-2 z-20">
+                                    <Calendar
+                                        mode="single"
+                                        selected={transferCreatedDate}
+                                        onSelect={(date) => {
+                                            setTransferCreatedDate(date);
+                                            if (date) {
+                                                setIsTransferCreatedCalendarOpen(false);
+                                            }
+                                        }}
+                                        className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                                    />
+                                </div>
+                            )}
                         </div>
-                    ) : (
-                        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="bg-gray-50/60">
-                                        <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                        <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cuenta destino</TableHead>
-                                        <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">ID de payout</TableHead>
-                                        <TableHead className="pr-6 py-3" />
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredTransfers.map((transfer) => (
-                                        <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
-                                            <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
-                                                {formatDate(transfer.date)}
-                                            </TableCell>
-                                            <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
-                                                {formatCurrency(transfer.amount, transfer.currency || "USD")}
-                                            </TableCell>
-                                            <TableCell className="py-4">
-                                                <span
-                                                    className={cn(
-                                                        "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                                                        TRANSFER_STATUS_STYLES[transfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
-                                                    )}
-                                                >
-                                                    {transfer.status}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                {transfer.destination || "—"}
-                                            </TableCell>
-                                            <TableCell className="pr-6 py-4 text-[13px] font-semibold text-[#32325d]">
-                                                {transfer.id}
-                                            </TableCell>
-                                            <TableCell className="pr-6 py-4 text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <button
-                                                            type="button"
-                                                            className="text-[#aab2c4] hover:text-[#32325d] transition-colors"
-                                                            aria-label="Acciones"
-                                                        >
-                                                            <MoreHorizontal className="w-5 h-5" />
-                                                        </button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="w-[240px] rounded-xl p-1 shadow-xl border-gray-100">
-                                                        <DropdownMenuItem
-                                                            onClick={() => openTransferDetails(transfer)}
-                                                            className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                        >
-                                                            Ver detalles
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleDownloadTransferReceipt(transfer)}
-                                                            className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                        >
-                                                            Descargar comprobante
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            onClick={() => handleCopyTransferId(transfer)}
-                                                            className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                        >
-                                                            Copiar ID de la transferencia
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="text-[13px] text-[#697386]">
+                                Mostrando {filteredTransfers.length} transferencias
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={!filteredTransfers.length}
+                                    onClick={() => openExportModal("transfers")}
+                                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
+                                >
+                                    <Upload className="w-4 h-4 text-[#8792a2]" />
+                                    Exportar
+                                </Button>
+                            </div>
+                        </div>
+
+                        {filteredTransfers.length === 0 ? (
+                            <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
+                                No se encontraron transferencias con los filtros actuales.
+                            </div>
+                        ) : (
+                            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="bg-gray-50/60">
+                                            <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cuenta destino</TableHead>
+                                            <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">ID de payout</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filteredTransfers.map((transfer) => (
+                                            <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
+                                                <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
+                                                    {formatDate(transfer.date)}
+                                                </TableCell>
+                                                <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
+                                                    {formatCurrency(transfer.amount, transfer.currency || "USD")}
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <span
+                                                        className={cn(
+                                                            "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                            TRANSFER_STATUS_STYLES[transfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                                                        )}
+                                                    >
+                                                        {transfer.status}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                    {transfer.destination || "—"}
+                                                </TableCell>
+                                                <TableCell className="pr-6 py-4 text-[13px] font-semibold text-[#32325d]">
+                                                    {transfer.id}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
                     </div>
                 </>
             )}

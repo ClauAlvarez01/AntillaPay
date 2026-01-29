@@ -25,7 +25,7 @@ const PRODUCT_TABS = [
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PRODUCT_STATUS_STYLES = {
     Activo: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    Archivado: "bg-slate-50 text-slate-700 border-slate-200"
+    Inactivo: "bg-slate-50 text-slate-700 border-slate-200"
 };
 
 const formatProductDate = (dateValue) => {
@@ -67,7 +67,16 @@ export default function ProductCatalog() {
     const [products, setProducts] = useState(() => {
         if (typeof window === "undefined") return [];
         const stored = window.localStorage.getItem("antillapay_products");
-        return stored ? JSON.parse(stored) : [];
+        if (!stored) return [];
+        const parsed = JSON.parse(stored);
+        return parsed.map(p => ({
+            ...p,
+            status: p.status === "Archivado" ? "Inactivo" : p.status,
+            prices: (p.prices || []).map(pr => ({
+                ...pr,
+                status: pr.status === "Archivado" ? "Inactivo" : pr.status
+            }))
+        }));
     });
 
     const [showStatusFilter, setShowStatusFilter] = useState(false);
@@ -616,7 +625,7 @@ export default function ProductCatalog() {
 
     const totalCount = products.length;
     const activeCount = products.filter((product) => product.status === "Activo").length;
-    const archivedCount = products.filter((product) => product.status === "Archivado").length;
+    const inactiveCount = products.filter((product) => product.status === "Inactivo").length;
     const hasActiveFilters = appliedStatusFilter !== "Todo" || Boolean(appliedDateFilter);
     const todayInputValue = getTodayInputValue(exportTimezone);
     const isCustomExportRange = exportRange === "Personalizado";
@@ -627,7 +636,7 @@ export default function ProductCatalog() {
         setProducts((prev) =>
             prev.map((product) =>
                 product.id === productId
-                    ? { ...product, status: product.status === "Archivado" ? "Activo" : "Archivado" }
+                    ? { ...product, status: product.status === "Inactivo" ? "Activo" : "Inactivo" }
                     : product
             )
         );
@@ -699,21 +708,21 @@ export default function ProductCatalog() {
                 <button
                     type="button"
                     onClick={() => {
-                        setAppliedStatusFilter("Archivado");
-                        setStatusFilterValue("Archivado");
+                        setAppliedStatusFilter("Inactivo");
+                        setStatusFilterValue("Inactivo");
                     }}
                     className={cn(
                         "rounded-xl border px-4 py-3 text-left transition-colors",
-                        appliedStatusFilter === "Archivado"
+                        appliedStatusFilter === "Inactivo"
                             ? "border-slate-200 bg-slate-50"
                             : "border-gray-200 bg-white hover:border-[#cbd5f5]"
                     )}
                 >
-                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Archivado" ? "text-slate-700" : "text-[#6b7280]")}>
-                        Archivado
+                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Inactivo" ? "text-slate-700" : "text-[#6b7280]")}>
+                        Inactivo
                     </p>
-                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Archivado" ? "text-slate-700" : "text-[#4b5563]")}>
-                        {archivedCount}
+                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Inactivo" ? "text-slate-700" : "text-[#4b5563]")}>
+                        {inactiveCount}
                     </p>
                 </button>
             </div>
@@ -810,7 +819,7 @@ export default function ProductCatalog() {
                                                     exit={{ opacity: 0, scale: 0.95 }}
                                                     className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-[70] overflow-hidden"
                                                 >
-                                                    {["Todo", "Activo", "Archivado"].map((opt) => (
+                                                    {["Todo", "Activo", "Inactivo"].map((opt) => (
                                                         <button
                                                             key={opt}
                                                             onClick={() => {
@@ -1505,104 +1514,104 @@ export default function ProductCatalog() {
             <div className="mt-10">
                 {filteredProducts.length > 0 ? (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[13px] font-semibold text-[#6b7280] border-b border-gray-200">
-                        <div>Producto</div>
-                        <div>Precio</div>
-                        <div>Estado</div>
-                        <div>Creación</div>
-                        <div />
-                    </div>
-                    {filteredProducts.map((product) => (
-                        <div
-                            key={product.id}
-                            className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
-                        >
-                            <div className="font-semibold">{product.name}</div>
-                            <div className="flex items-center gap-2 text-[#4f5b76]">
-                                <span>{formatProductPrice(product)}</span>
-                                {product.prices && product.prices.length > 1 && (
-                                    <span className="px-2 py-0.5 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
-                                        {product.prices.length} tarifas
-                                    </span>
-                                )}
-                            </div>
-                            <div className="text-[#4f5b76]">
-                                <Badge
-                                    variant="outline"
-                                    className={cn("rounded-full border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
-                                >
-                                    {product.status}
-                                </Badge>
-                            </div>
-                            <div className="text-[#4f5b76]">{formatProductDate(product.createdAt)}</div>
-                            <div className="relative flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                        setOpenMenuId(openMenuId === product.id ? null : product.id);
-                                        setShowCopyHintId(null);
-                                    }}
-                                    className="text-[#aab2c4] text-lg leading-none hover:text-[#6b7280]"
-                                >
-                                    ...
-                                </button>
-                                {openMenuId === product.id && (
-                                    <div
-                                        className="absolute right-0 top-6 z-20"
-                                        onClick={(event) => event.stopPropagation()}
-                                    >
-                                        <div
-                                            ref={menuRef}
-                                            className="w-64 rounded-xl border border-gray-200 bg-white shadow-xl"
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    navigate(`/dashboard/products/${product.id}`);
-                                                    setOpenMenuId(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50 rounded-t-xl"
-                                            >
-                                                Ver detalles
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    navigate("/dashboard/products/create", { state: { productToEdit: product } });
-                                                    setOpenMenuId(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
-                                            >
-                                                Editar producto
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    handleArchiveProduct(product.id);
-                                                    setOpenMenuId(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
-                                            >
-                                                {product.status === "Archivado" ? "Activar producto" : "Archivar producto"}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    handleDeleteProduct(product.id);
-                                                    setOpenMenuId(null);
-                                                }}
-                                                className="w-full text-left px-4 py-2.5 text-[14px] text-[#ef4444] hover:bg-red-50 rounded-b-xl"
-                                            >
-                                                Eliminar producto
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[13px] font-semibold text-[#6b7280] border-b border-gray-200">
+                            <div>Producto</div>
+                            <div>Precio</div>
+                            <div>Estado</div>
+                            <div>Creación</div>
+                            <div />
                         </div>
-                    ))}
-                </div>
+                        {filteredProducts.map((product) => (
+                            <div
+                                key={product.id}
+                                className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+                            >
+                                <div className="font-semibold">{product.name}</div>
+                                <div className="flex items-center gap-2 text-[#4f5b76]">
+                                    <span>{formatProductPrice(product)}</span>
+                                    {product.prices && product.prices.length > 1 && (
+                                        <span className="px-2 py-0.5 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
+                                            {product.prices.length} tarifas
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="text-[#4f5b76]">
+                                    <Badge
+                                        variant="outline"
+                                        className={cn("rounded-full border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
+                                    >
+                                        {product.status}
+                                    </Badge>
+                                </div>
+                                <div className="text-[#4f5b76]">{formatProductDate(product.createdAt)}</div>
+                                <div className="relative flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            setOpenMenuId(openMenuId === product.id ? null : product.id);
+                                            setShowCopyHintId(null);
+                                        }}
+                                        className="text-[#aab2c4] text-lg leading-none hover:text-[#6b7280]"
+                                    >
+                                        ...
+                                    </button>
+                                    {openMenuId === product.id && (
+                                        <div
+                                            className="absolute right-0 top-6 z-20"
+                                            onClick={(event) => event.stopPropagation()}
+                                        >
+                                            <div
+                                                ref={menuRef}
+                                                className="w-64 rounded-xl border border-gray-200 bg-white shadow-xl"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        navigate(`/dashboard/products/${product.id}`);
+                                                        setOpenMenuId(null);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50 rounded-t-xl"
+                                                >
+                                                    Ver detalles
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        navigate("/dashboard/products/create", { state: { productToEdit: product } });
+                                                        setOpenMenuId(null);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
+                                                >
+                                                    Editar producto
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleArchiveProduct(product.id);
+                                                        setOpenMenuId(null);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
+                                                >
+                                                    {product.status === "Inactivo" ? "Activar producto" : "Inactivar producto"}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleDeleteProduct(product.id);
+                                                        setOpenMenuId(null);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#ef4444] hover:bg-red-50 rounded-b-xl"
+                                                >
+                                                    Eliminar producto
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 ) : totalCount === 0 ? (
                     <div className="flex flex-col items-center text-center gap-3 py-16">
                         <div className="w-12 h-12 rounded-xl bg-[#f4f5f7] flex items-center justify-center">
