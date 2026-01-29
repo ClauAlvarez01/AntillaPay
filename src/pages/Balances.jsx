@@ -15,12 +15,13 @@ import {
     Info,
     MoreHorizontal,
     Plus,
+    Upload,
     X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPageUrl } from "@/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
     Table,
     TableBody,
@@ -35,7 +36,8 @@ import {
     DialogDescription,
     DialogFooter,
     DialogHeader,
-    DialogTitle
+    DialogTitle,
+    DialogTrigger
 } from "@/components/ui/dialog";
 import {
     DropdownMenu,
@@ -43,6 +45,14 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { Calendar } from "@/components/ui/calendar";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select";
 
 const INITIAL_TRANSFERS = [
     {
@@ -228,7 +238,7 @@ const buildReceiptPdf = (transfer) => {
     drawRect(0, pageHeight - headerHeight, pageWidth, headerHeight, colors.headerBg);
     drawRect(0, pageHeight - headerHeight, pageWidth, 2, colors.accent);
 
-    drawText("Comprobante de transferencia", margin, pageHeight - 50, 18, "F2", colors.primary);
+    drawText("Comprobante de extracción", margin, pageHeight - 50, 18, "F2", colors.primary);
     drawText("AntillaPay - Payouts", margin, pageHeight - 72, 10, "F1", colors.muted);
 
     let cursorY = pageHeight - headerHeight - 28;
@@ -340,6 +350,29 @@ const getStatusLabel = (status) => {
     return labels[status] || "Pendiente";
 };
 
+const FilterPill = ({ label, active, onClick }) => (
+    <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
+            active
+                ? "border-[#635bff] bg-[#635bff] text-white"
+                : "border-dashed border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
+        )}
+    >
+        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-400">
+            <Plus className="h-3 w-3" />
+        </span>
+        {label}
+    </button>
+);
+
+const EXTRACTION_FILTERS = [
+    { id: "created", label: "Fecha de Creación" },
+    { id: "status", label: "Estado" }
+];
+
 export default function BalancesPage({ onOpenReport }) {
     const [transfers, setTransfers] = useState(INITIAL_TRANSFERS);
     const [bankAccounts, setBankAccounts] = useState(INITIAL_BANK_ACCOUNTS);
@@ -348,7 +381,6 @@ export default function BalancesPage({ onOpenReport }) {
     const [selectedTransfer, setSelectedTransfer] = useState(null);
 
     // Modals
-    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isManageBanksModalOpen, setIsManageBanksModalOpen] = useState(false);
     const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
@@ -356,8 +388,6 @@ export default function BalancesPage({ onOpenReport }) {
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
     // Form states
-    const [transferAmount, setTransferAmount] = useState("");
-    const [selectedBankId, setSelectedBankId] = useState(bankAccounts.find(b => b.isDefault)?.id || "");
     const [newBankName, setNewBankName] = useState("");
     const [newBankLast4, setNewBankLast4] = useState("");
     const [transferType, setTransferType] = useState("manual");
@@ -366,30 +396,17 @@ export default function BalancesPage({ onOpenReport }) {
     const [transferMonthlyDays, setTransferMonthlyDays] = useState([]);
     const [reviewMessage, setReviewMessage] = useState("");
 
-    const handleTransfer = () => {
-        if (!transferAmount || isNaN(transferAmount) || parseFloat(transferAmount) <= 0) return;
+    // Filter states
+    const [chipFilters, setChipFilters] = useState(() => ({
+        created: false,
+        status: false
+    }));
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [createdDate, setCreatedDate] = useState(undefined);
+    const [isCreatedCalendarOpen, setIsCreatedCalendarOpen] = useState(false);
 
-        const parsedAmount = parseFloat(transferAmount);
-        const selectedBank = bankAccounts.find(b => b.id === selectedBankId);
-        const newTransfer = {
-            id: `tr_${Date.now()}`,
-            amount: parsedAmount,
-            grossAmount: parsedAmount,
-            netAmount: parsedAmount,
-            status: "pendiente",
-            date: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            executedAt: null,
-            failedAt: null,
-            destination: `${selectedBank?.bankName} ****${selectedBank?.last4}`,
-            type: "Manual",
-            failureReason: null
-        };
-
-        setTransfers([newTransfer, ...transfers]);
-        setIsTransferModalOpen(false);
-        setTransferAmount("");
-    };
+    // Export states
+    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
     const openTransferDetails = (transfer) => {
         setSelectedTransfer(transfer);
@@ -467,30 +484,49 @@ export default function BalancesPage({ onOpenReport }) {
         setBankAccounts(prev => prev.filter(bank => bank.id !== id));
     };
 
+    const handleToggleFilter = (filterId) => {
+        setChipFilters(prev => {
+            const nextValue = !prev[filterId];
+            if (!nextValue) {
+                setCreatedDate(undefined);
+                setIsCreatedCalendarOpen(false);
+            }
+            return {
+                ...prev,
+                [filterId]: nextValue
+            };
+        });
+    };
+
+    const availableStatuses = ["completada", "pendiente", "fallida"];
+
+    const filteredTransfers = transfers.filter(transfer => {
+        if (chipFilters.created && createdDate) {
+            const transferDate = new Date(transfer.createdAt).toDateString();
+            const filterDate = new Date(createdDate).toDateString();
+            if (transferDate !== filterDate) return false;
+        }
+        if (chipFilters.status && statusFilter !== "all") {
+            if (transfer.status !== statusFilter) return false;
+        }
+        return true;
+    });
+
     return (
         <div className="w-full space-y-8 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex flex-col gap-6">
                 <div className="flex items-center gap-2 text-[28px] font-bold text-[#32325d]">
                     <h1>Saldos {formatCurrency(availableBalance)}</h1>
-                    <HelpCircle className="w-5 h-5 text-[#aab2c4] cursor-help" />
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Button
-                        onClick={() => setIsTransferModalOpen(true)}
-                        className="h-8 rounded-md bg-white border border-gray-200 text-[#32325d] text-[13px] font-semibold hover:bg-gray-50 flex items-center gap-1.5 shadow-sm"
-                    >
-                        <ArrowLeftRight className="w-3.5 h-3.5" />
-                        Transferir
-                    </Button>
-
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
                                 className="h-8 rounded-md bg-white border border-gray-200 text-[#32325d] text-[13px] font-semibold hover:bg-gray-50 flex items-center gap-1.5 shadow-sm"
                             >
-                                Gestionar las transferencias
+                                Gestionar extracciones
                                 <ChevronDown className="w-3.5 h-3.5 opacity-50" />
                             </Button>
                         </DropdownMenuTrigger>
@@ -499,7 +535,7 @@ export default function BalancesPage({ onOpenReport }) {
                                 onClick={() => setIsCalendarModalOpen(true)}
                                 className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
                             >
-                                Gestionar calendario de transferencias
+                                Gestionar calendario de extracciones
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => setIsManageBanksModalOpen(true)}
@@ -517,8 +553,6 @@ export default function BalancesPage({ onOpenReport }) {
                 <div className="space-y-12">
                     {/* Balance Summary */}
                     <section className="space-y-6">
-                        <h2 className="text-[17px] font-bold text-[#32325d]">Resumen del saldo</h2>
-
                         <div className="space-y-0 relative">
                             {/* Horizontal Bar Visualizer */}
                             <div className="h-2 w-full bg-[#e3e8ee] rounded-full overflow-hidden mb-6">
@@ -552,31 +586,167 @@ export default function BalancesPage({ onOpenReport }) {
                         <div className="flex items-center justify-between border-b border-gray-100">
                             <div className="flex gap-8">
                                 <button className="pb-3 text-[14px] font-semibold text-[#635bff] border-b-2 border-[#635bff]">
-                                    Transferencias
+                                    Extracciones
                                 </button>
                             </div>
                         </div>
 
-                        {transfers.length === 0 ? (
+                        <div className="relative">
+                            <div className="flex flex-wrap items-center gap-2">
+                                {EXTRACTION_FILTERS.map((filter) => (
+                                    <FilterPill
+                                        key={filter.id}
+                                        label={filter.label}
+                                        active={chipFilters[filter.id]}
+                                        onClick={() => handleToggleFilter(filter.id)}
+                                    />
+                                ))}
+                                {chipFilters.created && createdDate && (
+                                    <span className="text-[12px] font-semibold text-[#635bff] ml-1">
+                                        {new Date(createdDate).toLocaleDateString("es-ES", {
+                                            day: "2-digit",
+                                            month: "short",
+                                            year: "numeric"
+                                        })}
+                                    </span>
+                                )}
+                                {chipFilters.status && (
+                                    <div className="min-w-[180px]">
+                                        <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
+                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                                <SelectValue placeholder="Seleccione Estado" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableStatuses.map((status) => (
+                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between mt-4">
+                                <span className="text-[12px] text-[#6b7280]">
+                                    Mostrando {filteredTransfers.length} extracciones
+                                </span>
+                                <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
+                                    
+                                    <DialogContent className="sm:max-w-[600px] rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
+                                        <div className="p-6 space-y-6">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <h2 className="text-[18px] font-semibold text-[#1a1f36]">Exportar extracciones</h2>
+                                                    <p className="text-[14px] text-[#4f5b76] mt-1">Exporta tus extracciones en formato CSV o Excel</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setIsExportModalOpen(false)}
+                                                    className="rounded-lg border border-transparent p-1.5 text-[#9ca3af] hover:text-[#4b5563] transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[13px] font-semibold text-[#32325d] mb-2 block">Formato</label>
+                                                    <div className="flex gap-4">
+                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                            <input
+                                                                type="radio"
+                                                                name="format"
+                                                                value="csv"
+                                                                defaultChecked
+                                                                className="w-4 h-4 text-[#635bff] border-gray-300"
+                                                            />
+                                                            <span className="text-[12px] text-[#4f5b76]">CSV</span>
+                                                        </label>
+                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                            <input
+                                                                type="radio"
+                                                                name="format"
+                                                                value="xlsx"
+                                                                className="w-4 h-4 text-[#635bff] border-gray-300"
+                                                            />
+                                                            <span className="text-[12px] text-[#4f5b76]">Excel (.xlsx)</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label className="text-[13px] font-semibold text-[#32325d] mb-2 block">Intervalo de fechas</label>
+                                                    <select className="w-full h-9 px-3 rounded-lg border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#635bff]/20">
+                                                        <option>Hoy</option>
+                                                        <option>Últimos 7 días</option>
+                                                        <option>Últimos 30 días</option>
+                                                        <option>Mes en curso</option>
+                                                        <option>Mes anterior</option>
+                                                        <option>Todos</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setIsExportModalOpen(false)}
+                                                    className="h-9 px-5 rounded-lg text-[13px] font-semibold text-[#4f5b76] border-gray-200"
+                                                >
+                                                    Cancelar
+                                                </Button>
+                                                <Button
+                                                    onClick={() => {
+                                                        alert('Export functionality coming soon');
+                                                        setIsExportModalOpen(false);
+                                                    }}
+                                                    className="h-9 px-5 rounded-lg text-[13px] font-semibold bg-[#635bff] hover:bg-[#5851e0] text-white"
+                                                >
+                                                    Exportar
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+
+                            {isCreatedCalendarOpen && (
+                                <div className="absolute left-0 top-full mt-2 z-20">
+                                    <Calendar
+                                        mode="single"
+                                        selected={createdDate}
+                                        onSelect={(date) => {
+                                            setCreatedDate(date);
+                                            if (date) {
+                                                setIsCreatedCalendarOpen(false);
+                                            }
+                                        }}
+                                        className="rounded-2xl border border-gray-200 bg-white shadow-xl"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {filteredTransfers.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/30">
-                                <p className="text-[14px] text-[#8792a2]">No se han encontrado transferencias</p>
+                                <p className="text-[14px] text-[#8792a2]">No se han encontrado extracciones</p>
                             </div>
                         ) : (
-                            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm">
+                            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-gray-50/50">
-                                            <TableHead className="px-6 py-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">Importe</TableHead>
-                                            <TableHead className="py-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">Estado</TableHead>
-                                            <TableHead className="py-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">Fecha</TableHead>
-                                            <TableHead className="py-3 text-[12px] font-bold text-[#8792a2] uppercase tracking-wider">Destino</TableHead>
-                                            <TableHead className="pr-6 py-3 text-right" />
+                                        <TableRow className="bg-gray-50/60">
+                                            <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
+                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {transfers.map((transfer) => (
-                                            <TableRow key={transfer.id} className="hover:bg-gray-50 transition-colors">
-                                                <TableCell className="px-6 py-4 text-[14px] font-semibold text-[#32325d]">
+                                        {filteredTransfers.map((transfer) => (
+                                            <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
+                                                <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
+                                                    {formatDate(transfer.date)}
+                                                </TableCell>
+                                                <TableCell className="py-4 text-[14px] font-semibold text-[#32325d]">
                                                     {formatCurrency(transfer.amount)}
                                                 </TableCell>
                                                 <TableCell className="py-4">
@@ -586,72 +756,6 @@ export default function BalancesPage({ onOpenReport }) {
                                                     >
                                                         {transfer.status}
                                                     </Badge>
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                    {formatDate(transfer.date)}
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                    {transfer.destination}
-                                                </TableCell>
-                                            <TableCell className="pr-6 py-4 text-right">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors">
-                                                                <MoreHorizontal className="w-5 h-5" />
-                                                            </button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="w-[240px] rounded-xl p-1 shadow-xl border-gray-100">
-                                                            {getStatusTone(transfer.status) === "completada" && (
-                                                                <>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => openTransferDetails(transfer)}
-                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                                    >
-                                                                        Ver detalles
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => handleDownloadReceipt(transfer)}
-                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                                    >
-                                                                        Descargar comprobante
-                                                                    </DropdownMenuItem>
-                                                                </>
-                                                            )}
-
-                                                            {getStatusTone(transfer.status) === "pendiente" && (
-                                                                <DropdownMenuItem
-                                                                    onClick={() => openTransferDetails(transfer)}
-                                                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                                >
-                                                                    Ver estado
-                                                                </DropdownMenuItem>
-                                                            )}
-
-                                                            {getStatusTone(transfer.status) === "fallida" && (
-                                                                <>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => openTransferDetails(transfer)}
-                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                                    >
-                                                                        Ver detalles
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem
-                                                                        onClick={() => openReviewRequest(transfer)}
-                                                                        className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                                    >
-                                                                        Solicitar revision
-                                                                    </DropdownMenuItem>
-                                                                </>
-                                                            )}
-
-                                                            <DropdownMenuItem
-                                                                onClick={() => handleCopyTransferId(transfer)}
-                                                                className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                                            >
-                                                                Copiar ID de la transferencia
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -664,128 +768,8 @@ export default function BalancesPage({ onOpenReport }) {
 
                 {/* Sidebar Links */}
                 <div className="space-y-8">
-                    <section className="space-y-4">
-                        <h3 className="text-[13px] font-bold text-[#8792a2] uppercase tracking-wider">Informes</h3>
-                        <div className="space-y-3">
-                            <button
-                                onClick={onOpenReport}
-                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white hover:shadow-md transition-all group"
-                            >
-                                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-[#635bff]/10 transition-colors">
-                                    <Clock className="w-4 h-4 text-gray-500 group-hover:text-[#635bff]" />
-                                </div>
-                                <div className="text-left">
-                                    <div className="text-[13px] font-semibold text-[#32325d]">Resumen del saldo</div>
-                                    <div className="text-[11px] text-[#8792a2]">ene 2026</div>
-                                </div>
-                            </button>
-                        </div>
-                    </section>
                 </div>
             </div>
-
-            {/* Modal: Transfer / Withdraw */}
-            <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
-                <DialogContent className="sm:max-w-[480px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                    <div className="p-8 space-y-8">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-[20px] font-bold text-[#32325d]">Transferir a la cuenta bancaria</h2>
-                            <button onClick={() => setIsTransferModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[13px] font-semibold text-[#4f5b76]">Importe</label>
-                                <div className="relative">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#32325d] font-semibold">US$</div>
-                                    <input
-                                        type="number"
-                                        value={transferAmount}
-                                        onChange={(e) => setTransferAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#635bff]/20 focus:border-[#635bff] transition-all text-[16px] font-medium"
-                                    />
-                                    <button
-                                        onClick={() => setTransferAmount(availableBalance.toString())}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-[#635bff] hover:text-[#5851e0]"
-                                    >
-                                        USAR MÁXIMO
-                                    </button>
-                                </div>
-                                <p className="text-[12px] text-[#8792a2]">Máximo disponible: {formatCurrency(availableBalance)}</p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[13px] font-semibold text-[#4f5b76]">Enviar a</label>
-                                <div className="space-y-2">
-                                    {bankAccounts.map((account) => (
-                                        <button
-                                            key={account.id}
-                                            onClick={() => setSelectedBankId(account.id)}
-                                            className={cn(
-                                                "w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between group",
-                                                selectedBankId === account.id
-                                                    ? "border-[#635bff] bg-[#f5f3ff] shadow-sm"
-                                                    : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
-                                            )}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className={cn(
-                                                    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
-                                                    selectedBankId === account.id ? "bg-white shadow-sm" : "bg-gray-100"
-                                                )}>
-                                                    <CreditCard className={cn("w-5 h-5", selectedBankId === account.id ? "text-[#635bff]" : "text-gray-400")} />
-                                                </div>
-                                                <div>
-                                                    <div className="text-[14px] font-semibold text-[#32325d]">{account.bankName}</div>
-                                                    <div className="text-[12px] text-[#4f5b76]">**** {account.last4} • {account.holderName}</div>
-                                                </div>
-                                            </div>
-                                            {selectedBankId === account.id && (
-                                                <div className="w-5 h-5 rounded-full bg-[#635bff] flex items-center justify-center">
-                                                    <Check className="w-3 h-3 text-white" />
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => setIsAddBankModalOpen(true)}
-                                        className="w-full p-4 rounded-xl border border-dashed border-gray-200 text-[#635bff] font-semibold text-[14px] hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Añadir cuenta bancaria
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#f7f9fc] p-8 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2 text-[12px] text-[#697386]">
-                            <Info className="w-4 h-4" />
-                            <span>Las transferencias tardan de 1 a 3 días hábiles.</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Button
-                                onClick={() => setIsTransferModalOpen(false)}
-                                variant="outline"
-                                className="h-10 px-6 rounded-lg text-[14px] font-bold text-[#4f5b76]"
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                onClick={handleTransfer}
-                                disabled={!transferAmount || parseFloat(transferAmount) <= 0 || parseFloat(transferAmount) > availableBalance}
-                                className="h-10 px-6 rounded-lg bg-[#635bff] hover:bg-[#5851e0] text-white text-[14px] font-bold shadow-lg shadow-[#635bff]/20"
-                            >
-                                Transferir fondos
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
 
             {/* Modal: Transfer Detail */}
             <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
@@ -917,7 +901,7 @@ export default function BalancesPage({ onOpenReport }) {
                             <div>
                                 <h2 className="text-[20px] font-bold text-[#32325d]">Solicitar revision</h2>
                                 <p className="text-[13px] text-[#8792a2]">
-                                    Esto no reintenta la transferencia. Nuestro equipo revisara el fallo y te contactara si necesita informacion.
+                                    Esto no reintenta la extracción. Nuestro equipo revisara el fallo y te contactara si necesita informacion.
                                 </p>
                             </div>
                             <button onClick={() => setIsReviewModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -966,7 +950,7 @@ export default function BalancesPage({ onOpenReport }) {
 
             {/* Modal: Manage Bank Accounts */}
             <Dialog open={isManageBanksModalOpen} onOpenChange={setIsManageBanksModalOpen}>
-                <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
                     <div className="p-8 space-y-6">
                         <div className="flex items-center justify-between">
                             <h2 className="text-[20px] font-bold text-[#32325d]">Cuentas bancarias</h2>
@@ -1110,9 +1094,9 @@ export default function BalancesPage({ onOpenReport }) {
                 <DialogContent className="sm:max-w-[540px] rounded-3xl p-8 border-none shadow-2xl overflow-hidden">
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <h2 className="text-[22px] font-bold text-[#32325d]">Calendario de transferencias</h2>
+                            <h2 className="text-[22px] font-bold text-[#32325d]">Calendario de extracciones</h2>
                             <p className="text-[14px] text-[#4f5b76] leading-relaxed">
-                                Define un calendario personalizado para la transferencia de fondos a tu cuenta bancaria.{" "}
+                                Define un calendario personalizado para la extracción de fondos a tu cuenta bancaria.{" "}
                             </p>
                         </div>
 
@@ -1131,8 +1115,8 @@ export default function BalancesPage({ onOpenReport }) {
                                     {transferType === "manual" && <div className="w-2 h-2 rounded-full bg-white" />}
                                 </div>
                                 <div className="space-y-1">
-                                    <div className="text-[15px] font-bold text-[#32325d]">Transferencias manuales</div>
-                                    <div className="text-[13px] text-[#4f5b76]">Envía transferencias cuando quieras.</div>
+                                    <div className="text-[15px] font-bold text-[#32325d]">Extracciones manuales</div>
+                                    <div className="text-[13px] text-[#4f5b76]">Envía extracciones cuando quieras.</div>
                                 </div>
                             </label>
 
@@ -1151,9 +1135,9 @@ export default function BalancesPage({ onOpenReport }) {
                                 </div>
                                 <div className="space-y-3 flex-1">
                                     <div className="space-y-1">
-                                        <div className="text-[15px] font-bold text-[#32325d]">Transferencias automáticas</div>
+                                        <div className="text-[15px] font-bold text-[#32325d]">Extracciones automáticas</div>
                                         <div className="text-[13px] text-[#4f5b76]">
-                                            Recibe transferencias de forma periódica. Ya sea semanal o mensualmente, puedes seleccionar más de un día de transferencias durante esos periodos.
+                                            Realiza extracciones de forma periódica. Ya sea semanal o mensualmente, puedes seleccionar más de un día de extracciones durante esos periodos.
                                         </div>
                                     </div>
 

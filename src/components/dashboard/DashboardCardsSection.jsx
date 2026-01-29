@@ -378,7 +378,7 @@ const ErrorBreakdownCard = ({
     </CardShell>
 );
 
-const TopSpendersCard = ({
+const TopProductsCard = ({
     title,
     tooltip,
     range,
@@ -443,7 +443,7 @@ const TopSpendersCard = ({
             )}
             {status === "empty" && (
                 <CardState
-                    icon={Users}
+                    icon={TrendingUp}
                     title={emptyState.title}
                     description={emptyState.description}
                     actionLabel={emptyState.actionLabel}
@@ -456,7 +456,7 @@ const TopSpendersCard = ({
                     <div className="text-[22px] font-semibold text-[#32325d]">{formatUsd(total)}</div>
                     <div className="mt-6 space-y-4">
                         {items.map((item) => (
-                            <div key={item.customerId} className="flex items-center justify-between gap-4">
+                            <div key={item.productId} className="flex items-center justify-between gap-4">
                                 <div className="flex-1">
                                     <div className="flex items-center justify-between text-[13px] text-[#32325d] font-semibold">
                                         <span>{item.name}</span>
@@ -489,6 +489,7 @@ export default function DashboardCardsSection({ referenceDate }) {
     const [status, setStatus] = useState("loading");
     const [hasError, setHasError] = useState(false);
     const [spendersRange, setSpendersRange] = useState("always");
+    const [productsRange, setProductsRange] = useState("always");
 
     useEffect(() => {
         setStatus("loading");
@@ -509,13 +510,21 @@ export default function DashboardCardsSection({ referenceDate }) {
 
     const newCustomersDelta = getDeltaMeta(metrics.today.newCustomers, metrics.yesterday.newCustomers);
     const topCustomersDelta = getDeltaMeta(metrics.topCustomers.total, metrics.topCustomers.yesterdayTotal);
+    const topProductsDelta = getDeltaMeta(metrics.topProducts.total, metrics.topProducts.yesterdayTotal);
     const topCustomersItems = metrics.topCustomers.list.map((customer) => ({
         label: customer.name,
         value: formatUsd(customer.total),
         rawValue: customer.total
     }));
+    const topProductsItems = metrics.topProducts.list.map((product) => ({
+        label: product.name,
+        value: formatUsd(product.total),
+        rawValue: product.total
+    }));
     const topSpendersData =
         spendersRange === "always" ? metrics.topSpenders.all : metrics.topSpenders.last30Days;
+    const topProductsData =
+        productsRange === "always" ? metrics.topSpenders.all : metrics.topSpenders.last30Days;
 
     const handleRetry = () => {
         setHasError(false);
@@ -584,16 +593,16 @@ export default function DashboardCardsSection({ referenceDate }) {
                 onMoreInfo={() => handleMoreInfo("Errores en los pagos")}
                 onRetry={handleRetry}
             />
-            <TopSpendersCard
-                title="Principales clientes por gasto"
-                tooltip="Ranking por monto exitoso acumulado."
-                range={spendersRange}
-                onRangeChange={setSpendersRange}
-                total={topSpendersData.total}
-                items={topSpendersData.list}
+            <TopProductsCard
+                title="Productos con mayores ventas"
+                tooltip="Ranking de productos por mayor volumen de ventas."
+                range={productsRange}
+                onRangeChange={setProductsRange}
+                total={metrics.topProducts.total}
+                items={metrics.topProducts.list}
                 status={resolvedStatus}
                 emptyState={emptyState}
-                onMoreInfo={() => handleMoreInfo("Principales clientes por gasto")}
+                onMoreInfo={() => handleMoreInfo("Productos con mayores ventas")}
                 onRetry={handleRetry}
             />
         </div>

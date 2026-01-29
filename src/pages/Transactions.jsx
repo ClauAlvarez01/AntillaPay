@@ -250,13 +250,13 @@ const FilterPill = ({ label, active, onClick }) => (
 );
 
 const FILTERS = [
-    { id: "created", label: "Fecha de creacion" },
+    { id: "created", label: "Fecha de Creación" },
     { id: "status", label: "Estado" },
     { id: "method", label: "Método" }
 ];
 
 const TRANSFER_FILTERS = [
-    { id: "created", label: "Fecha de creacion" },
+    { id: "created", label: "Fecha de Creación" },
     { id: "status", label: "Estado" },
     { id: "destination", label: "Destino" }
 ];
@@ -1589,7 +1589,7 @@ export default function TransactionsPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="space-y-1">
-                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Fecha de creacion</span>
+                                        <span className="text-[11px] uppercase tracking-widest text-[#8792a2] font-semibold">Fecha de Creación</span>
                                         <div className="text-[14px] text-[#32325d]">{formatDate(selectedTransfer.createdAt)}</div>
                                     </div>
                                     <div className="space-y-1">

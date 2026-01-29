@@ -1,4 +1,12 @@
 /**
+ * @typedef {Object} Product
+ * @property {string} id
+ * @property {string} name
+ * @property {number} weight
+ * @property {number} startOffset
+ */
+
+/**
  * @typedef {Object} Customer
  * @property {string} id
  * @property {string} name
@@ -11,6 +19,8 @@
  * @property {string} id
  * @property {string} customerId
  * @property {string} customerName
+ * @property {string} productId
+ * @property {string} productName
  * @property {number} amount
  * @property {string} currency
  * @property {"succeeded"|"failed"} status
@@ -26,6 +36,15 @@
  * @property {number} count
  * @property {number} percent
  * @property {number} volume
+ */
+
+/**
+ * @typedef {Object} ProductTotal
+ * @property {string} productId
+ * @property {string} name
+ * @property {number} total
+ * @property {number} count
+ * @property {number} percent
  */
 
 /**
@@ -53,6 +72,10 @@
  * @property {number} topCustomers.total
  * @property {CustomerTotal[]} topCustomers.list
  * @property {number} topCustomers.yesterdayTotal
+ * @property {Object} topProducts
+ * @property {number} topProducts.total
+ * @property {ProductTotal[]} topProducts.list
+ * @property {number} topProducts.yesterdayTotal
  * @property {Object} errors
  * @property {number} errors.count
  * @property {number} errors.rate
@@ -63,6 +86,19 @@
  * @property {{ total: number, list: CustomerTotal[] }} topSpenders.all
  * @property {{ total: number, list: CustomerTotal[] }} topSpenders.last30Days
  */
+
+const MOCK_PRODUCTS = [
+  { id: "prod_001", name: "Suscripción Premium", weight: 2.1, startOffset: 60 },
+  { id: "prod_002", name: "Plan Básico", weight: 1.5, startOffset: 45 },
+  { id: "prod_003", name: "Licencia Pro", weight: 1.8, startOffset: 30 },
+  { id: "prod_004", name: "Paquete Empresarial", weight: 2.5, startOffset: 20 },
+  { id: "prod_005", name: "Servicio Cloud", weight: 1.3, startOffset: 15 },
+  { id: "prod_006", name: "API Access", weight: 1.1, startOffset: 10 },
+  { id: "prod_007", name: "Soporte Técnico", weight: 0.9, startOffset: 5 },
+  { id: "prod_008", name: "Consultoría", weight: 1.7, startOffset: 3 },
+  { id: "prod_009", name: "Training Suite", weight: 1.2, startOffset: 1 },
+  { id: "prod_010", name: "Analytics Plus", weight: 1.4, startOffset: 0 }
+];
 
 const MOCK_CUSTOMERS = [
   { id: "cus_001", name: "Habana Market", weight: 1.6, startOffset: 60 },
@@ -110,6 +146,25 @@ const isWithinRange = (date, start, end) => {
   return time >= start.getTime() && time < end.getTime();
 };
 
+const buildProductTotals = (payments) => {
+  const totals = new Map();
+  payments.forEach((payment) => {
+    const current = totals.get(payment.productId) || {
+      productId: payment.productId,
+      name: payment.productName,
+      total: 0,
+      count: 0
+    };
+    totals.set(payment.productId, {
+      ...current,
+      total: roundToCents(current.total + payment.amount),
+      count: current.count + 1
+    });
+  });
+
+  return Array.from(totals.values()).sort((a, b) => b.total - a.total);
+};
+
 const buildCustomerTotals = (payments) => {
   const totals = new Map();
   payments.forEach((payment) => {
@@ -145,15 +200,17 @@ export const generateMockPayments = (referenceDate = new Date(), days = 60) => {
     const dayDate = addDays(anchorDate, -dayOffset);
     const daySeed = dayDate.getDate() + dayDate.getMonth() * 31 + dayOffset * 7;
     const availableCustomers = MOCK_CUSTOMERS.filter((customer) => dayOffset <= customer.startOffset);
+    const availableProducts = MOCK_PRODUCTS.filter((product) => dayOffset <= product.startOffset);
     const dayCount = 14 + (daySeed % 9);
 
     for (let i = 0; i < dayCount; i += 1) {
       const customer = availableCustomers[(daySeed + i * 3) % availableCustomers.length];
+      const product = availableProducts[(daySeed + i * 5) % availableProducts.length];
       const hour = (daySeed + i * 2) % 24;
       const minute = (daySeed * 7 + i * 11) % 60;
       const base = 38 + ((daySeed * 11 + i * 13) % 140);
       const spike = (i % 7 === 0 ? 80 : 0) + (i % 13 === 0 ? 120 : 0);
-      const amount = roundToCents((base + spike + (hour % 4) * 6) * customer.weight);
+      const amount = roundToCents((base + spike + (hour % 4) * 6) * customer.weight * product.weight);
       const failureSeed = (daySeed + i * 5) % 12;
       const failed = failureSeed === 0 || failureSeed === 9;
       const failureReason = failed
@@ -168,6 +225,8 @@ export const generateMockPayments = (referenceDate = new Date(), days = 60) => {
         ).padStart(2, "0")}_${i}`,
         customerId: customer.id,
         customerName: customer.name,
+        productId: product.id,
+        productName: product.name,
         amount,
         currency: "USD",
         status: failed ? "failed" : "succeeded",
@@ -246,6 +305,13 @@ export const computeDashboardMetrics = (payments, options = {}) => {
     topCustomersYesterday.reduce((sum, customer) => sum + customer.total, 0)
   );
 
+  const topProductsToday = buildProductTotals(succeededToday).slice(0, topCustomersCount);
+  const topProductsYesterday = buildProductTotals(succeededYesterday).slice(0, topCustomersCount);
+  const topProductsTotal = roundToCents(topProductsToday.reduce((sum, product) => sum + product.total, 0));
+  const topProductsYesterdayTotal = roundToCents(
+    topProductsYesterday.reduce((sum, product) => sum + product.total, 0)
+  );
+
   const errorCount = failedToday.length;
   const totalAttempts = errorCount + succeededToday.length;
   const errorRate = totalAttempts ? (errorCount / totalAttempts) * 100 : 0;
@@ -293,6 +359,11 @@ export const computeDashboardMetrics = (payments, options = {}) => {
       total: topCustomersTotal,
       list: topCustomersToday.map((customer) => ({ ...customer, percent: 0 })),
       yesterdayTotal: topCustomersYesterdayTotal
+    },
+    topProducts: {
+      total: topProductsTotal,
+      list: topProductsToday.map((product) => ({ ...product, percent: 0 })),
+      yesterdayTotal: topProductsYesterdayTotal
     },
     errors: {
       count: errorCount,

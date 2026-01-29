@@ -104,7 +104,7 @@ const STATUS_STYLES = {
 };
 
 const FILTERS = [
-    { id: "created", label: "Fecha de creacion" },
+    { id: "created", label: "Fecha de Creación" },
     { id: "type", label: "Tipo" },
     { id: "more", label: "Estado" }
 ];
@@ -400,18 +400,6 @@ export default function CustomersPage() {
                                 >
                                     Ver detalles
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => handleCopyText(customer.email)}
-                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                >
-                                    Copiar email
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => handleCopyText(customer.id)}
-                                    className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                                >
-                                    Copiar ID del cliente
-                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </TableCell>
@@ -460,20 +448,7 @@ export default function CustomersPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h1 className="text-[28px] font-bold text-[#32325d]">Clientes</h1>
 
-                <div className="flex items-center gap-3">
-                    <Button
-                        type="button"
-                        onClick={() => setIsDialogOpen(true)}
-                        className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Crear cliente
-                        <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
-                            N
-                        </span>
-                    </Button>
                 </div>
-            </div>
 
             <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
                     <button

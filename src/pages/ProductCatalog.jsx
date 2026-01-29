@@ -1586,26 +1586,6 @@ export default function ProductCatalog() {
                                             >
                                                 {product.status === "Archivado" ? "Activar producto" : "Archivar producto"}
                                             </button>
-                                            <div
-                                                onMouseEnter={() => setShowCopyHintId(product.id)}
-                                                onMouseLeave={() => setShowCopyHintId(null)}
-                                                className="border-t border-gray-200 relative"
-                                            >
-                                                {showCopyHintId === product.id && (
-                                                    <div className="absolute right-full top-1/2 -translate-y-1/2 mr-3 w-[240px] bg-white rounded-xl shadow-xl p-4 z-50 border border-gray-100">
-                                                        <div className="absolute -right-[6.5px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white rotate-45 border-t border-r border-l-0 border-b-0 border-gray-100" />
-                                                        <p className="text-[#4f5b76] text-[13px] leading-relaxed">
-                                                            La copia en modo activo estará disponible una vez hayas completado tu perfil de empresa.
-                                                        </p>
-                                                    </div>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#9ca3af] cursor-not-allowed pointer-events-none"
-                                                >
-                                                    Copiar a modo activo
-                                                </button>
-                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={() => {
