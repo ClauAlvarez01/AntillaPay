@@ -381,6 +381,7 @@ export default function BalancesPage({ onOpenReport }) {
     const [selectedTransfer, setSelectedTransfer] = useState(null);
 
     // Modals
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isManageBanksModalOpen, setIsManageBanksModalOpen] = useState(false);
     const [isAddBankModalOpen, setIsAddBankModalOpen] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
@@ -388,6 +389,8 @@ export default function BalancesPage({ onOpenReport }) {
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
     // Form states
+    const [transferAmount, setTransferAmount] = useState("");
+    const [selectedBankId, setSelectedBankId] = useState(bankAccounts.find(b => b.isDefault)?.id || "");
     const [newBankName, setNewBankName] = useState("");
     const [newBankLast4, setNewBankLast4] = useState("");
     const [transferType, setTransferType] = useState("manual");
@@ -407,6 +410,31 @@ export default function BalancesPage({ onOpenReport }) {
 
     // Export states
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+    const handleTransfer = () => {
+        if (!transferAmount || isNaN(transferAmount) || parseFloat(transferAmount) <= 0) return;
+
+        const parsedAmount = parseFloat(transferAmount);
+        const selectedBank = bankAccounts.find(b => b.id === selectedBankId);
+        const newTransfer = {
+            id: `tr_${Date.now()}`,
+            amount: parsedAmount,
+            grossAmount: parsedAmount,
+            netAmount: parsedAmount,
+            status: "pendiente",
+            date: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            executedAt: null,
+            failedAt: null,
+            destination: `${selectedBank?.bankName} ****${selectedBank?.last4}`,
+            type: "Manual",
+            failureReason: null
+        };
+
+        setTransfers([newTransfer, ...transfers]);
+        setIsTransferModalOpen(false);
+        setTransferAmount("");
+    };
 
     const openTransferDetails = (transfer) => {
         setSelectedTransfer(transfer);
@@ -521,6 +549,13 @@ export default function BalancesPage({ onOpenReport }) {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <Button
+                        onClick={() => setIsTransferModalOpen(true)}
+                        className="h-8 rounded-md bg-white border border-gray-200 text-[#32325d] text-[13px] font-semibold hover:bg-gray-50 flex items-center gap-1.5 shadow-sm"
+                    >
+                        Extraer
+                    </Button>
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
@@ -770,6 +805,102 @@ export default function BalancesPage({ onOpenReport }) {
                 <div className="space-y-8">
                 </div>
             </div>
+
+            {/* Modal: Transfer / Withdraw */}
+            <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
+                <DialogContent className="sm:max-w-[480px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                    <div className="p-8 space-y-8">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-[20px] font-bold text-[#32325d]">Extraer fondos</h2>
+                            <button onClick={() => setIsTransferModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[13px] font-semibold text-[#4f5b76]">Importe</label>
+                                <div className="relative">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#32325d] font-semibold">US$</div>
+                                    <input
+                                        type="number"
+                                        value={transferAmount}
+                                        onChange={(e) => setTransferAmount(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#635bff]/20 focus:border-[#635bff] transition-all text-[16px] font-medium"
+                                    />
+                                    <button
+                                        onClick={() => setTransferAmount(availableBalance.toString())}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-[#635bff] hover:text-[#5851e0]"
+                                    >
+                                        USAR MÁXIMO
+                                    </button>
+                                </div>
+                                <p className="text-[12px] text-[#8792a2]">Máximo disponible: {formatCurrency(availableBalance)}</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[13px] font-semibold text-[#4f5b76]">Enviar a</label>
+                                <div className="space-y-2">
+                                    {bankAccounts.map((account) => (
+                                        <button
+                                            key={account.id}
+                                            onClick={() => setSelectedBankId(account.id)}
+                                            className={cn(
+                                                "w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between group",
+                                                selectedBankId === account.id
+                                                    ? "border-[#635bff] bg-[#f5f3ff] shadow-sm"
+                                                    : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                                                    selectedBankId === account.id ? "bg-white shadow-sm" : "bg-gray-100"
+                                                )}>
+                                                    <CreditCard className={cn("w-5 h-5", selectedBankId === account.id ? "text-[#635bff]" : "text-gray-400")} />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[14px] font-semibold text-[#32325d]">{account.bankName}</div>
+                                                    <div className="text-[12px] text-[#4f5b76]">**** {account.last4} • {account.holderName}</div>
+                                                </div>
+                                            </div>
+                                            {selectedBankId === account.id && (
+                                                <div className="w-5 h-5 rounded-full bg-[#635bff] flex items-center justify-center">
+                                                    <Check className="w-3 h-3 text-white" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                    <button
+                                        onClick={() => setIsAddBankModalOpen(true)}
+                                        className="w-full p-4 rounded-xl border border-dashed border-gray-200 text-[#635bff] font-semibold text-[14px] hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Añadir cuenta bancaria
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#f7f9fc] p-8 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 text-[12px] text-[#697386]">
+                            <Info className="w-4 h-4" />
+                            <span>Las extracciones tardan de 1 a 3 días hábiles.</span>
+                        </div>
+                        <div className="flex justify-end">
+                            <Button
+                                onClick={handleTransfer}
+                                disabled={!transferAmount || parseFloat(transferAmount) <= 0 || parseFloat(transferAmount) > availableBalance}
+                                className="h-10 px-6 rounded-lg bg-[#635bff] hover:bg-[#5851e0] text-white text-[14px] font-bold shadow-lg shadow-[#635bff]/20"
+                            >
+                                Extraer fondos
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Modal: Transfer Detail */}
             <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
