@@ -431,3 +431,40 @@ export const validatePublicData = (data) => {
 
     return errors;
 };
+
+export const validateBankData = (data) => {
+    const errors = {};
+
+    if (data.method === 'manual') {
+        if (!data.routingNumber || data.routingNumber.trim() === '') {
+            errors.routingNumber = 'El número de ruta es requerido';
+        }
+        if (!data.accountNumber || data.accountNumber.trim() === '') {
+            errors.accountNumber = 'El número de cuenta es requerido';
+        }
+        if (!data.confirmAccountNumber || data.confirmAccountNumber.trim() === '') {
+            errors.confirmAccountNumber = 'La confirmación es requerida';
+        } else if (data.accountNumber !== data.confirmAccountNumber) {
+            errors.confirmAccountNumber = 'Los números de cuenta no coinciden';
+        }
+    } else {
+        // Selection method - in a real app check if a bank is selected
+        // For now we allow continue if they just see the grid
+    }
+
+    return errors;
+};
+
+export const validateSecurityData = (data) => {
+    const errors = {};
+
+    if (!data.method || !data.isConfigured) {
+        errors.method = 'Debes configurar al menos un método de autenticación';
+    }
+
+    if (data.isConfigured && !data.recoveryCodesDownloaded) {
+        errors.recoveryCodes = 'Debes descargar tus códigos de recuperación antes de continuar';
+    }
+
+    return errors;
+};
