@@ -2693,8 +2693,7 @@ export default function Dashboard() {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            completeTask("customize_account");
-                                                            setShowCustomizeModal(false);
+                                                            navigate('/activate-account');
                                                         }}
                                                         className="w-full text-center text-[15px] font-bold text-[#635bff] hover:underline"
                                                     >
@@ -3590,6 +3589,8 @@ export default function Dashboard() {
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+
                 </main>
             </div>
         </div>

@@ -69,6 +69,7 @@ import Login from "./Login";
 import Register from "./Register";
 import Dashboard from "./Dashboard";
 import PaymentLinksCreate from "./PaymentLinksCreate";
+import BusinessVerification from "./BusinessVerification";
 
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '../components/i18n/LanguageContext';
@@ -164,6 +165,7 @@ function PagesContent() {
         <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/activate-account" element={<BusinessVerification />} />
             <Route path="/dashboard/payment-links/create" element={<PaymentLinksCreate />} />
             <Route path="/dashboard/products/create" element={<ProductCreate />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
