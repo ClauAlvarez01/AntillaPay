@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Check, Search, Building2, ArrowRight, ShieldCheck, FileText, AlertCircle, Mail } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useBusinessVerification } from '@/hooks/useBusinessVerification';
 import {
@@ -1128,7 +1128,7 @@ const ReviewAndSubmitStep = ({
     );
 };
 
-const SecureAccountStep = ({ securityData, updateSecurityData, onSetupMethod, email }) => (
+const SecureAccountStep = ({ securityData, updateSecurityData, onSetupMethod, email, errors }) => (
     <div className="space-y-6">
         <div>
             <h3 className="text-[26px] font-semibold text-[#32325d] mb-2">
@@ -1193,12 +1193,66 @@ const SecureAccountStep = ({ securityData, updateSecurityData, onSetupMethod, em
                                 <span>Códigos descargados y guardados</span>
                             </div>
                         )}
+                        {errors?.recoveryCodes && (
+                            <div className="flex items-center gap-2 mt-2 text-[13px] text-red-600 bg-red-50 p-2 rounded">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>{errors.recoveryCodes}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
         )}
+
+        {/* Global Method Error */}
+        {errors?.method && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-lg text-[13px] mt-4">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{errors.method}</span>
+            </div>
+        )}
     </div>
 );
+
+const ExitConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="w-5 h-5 text-yellow-600" />
+                    </div>
+                    <div>
+                        <h3 className="text-[16px] font-semibold text-[#32325d]">¿Salir de la verificación?</h3>
+                    </div>
+                </div>
+
+                <p className="text-[14px] text-[#4f5b76] mb-6 leading-relaxed">
+                    Tu progreso se guardará automáticamente. Puedes volver y terminar la verificación de tu empresa más tarde.
+                </p>
+
+                <div className="flex justify-end gap-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 text-[13px] font-semibold text-[#32325d] hover:bg-gray-50 rounded-md transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        className="px-4 py-2 text-[13px] font-semibold text-white bg-[#635bff] hover:bg-[#5851e0] rounded-md transition-colors shadow-sm"
+                    >
+                        Guardar y salir
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const EmailVerificationModal = ({ isOpen, onClose, securityData, updateSecurityData, onComplete, email }) => {
     const [step, setStep] = useState(1); // 1: Send code, 2: Verify, 3: Recovery codes
@@ -1542,6 +1596,7 @@ const SidebarNavigation = ({ currentStep, completedSteps, onStepClick, maxReache
 // Main page component
 export default function BusinessVerification() {
     const navigate = useNavigate();
+    const location = useLocation();
     const {
         currentStep,
         taxData,
@@ -1569,6 +1624,7 @@ export default function BusinessVerification() {
     const [maxReachedStep, setMaxReachedStep] = useState(1);
     const [isManualBankModalOpen, setIsManualBankModalOpen] = useState(false);
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+    const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
     // Update maxReachedStep when currentStep increases or loads from storage
     useEffect(() => {
@@ -1576,6 +1632,18 @@ export default function BusinessVerification() {
             setMaxReachedStep(currentStep);
         }
     }, [currentStep]);
+
+    // Handle direct navigation to specific steps from Dashboard
+    useEffect(() => {
+        if (location.state?.targetStep) {
+            // Allow navigation to any step (or restrict if needed)
+            // Since we validate access in Dashboard, we assume it's safe here
+            goToStep(location.state.targetStep);
+
+            // Clear the state to avoid repeated navigation on re-renders
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state, goToStep]);
 
     const handleContinue = () => {
         if (currentStep === 8) {
@@ -1606,9 +1674,12 @@ export default function BusinessVerification() {
     };
 
     const handleClose = () => {
-        if (window.confirm('¿Estás seguro de que quieres salir? Tu progreso se guardará.')) {
-            navigate('/dashboard');
-        }
+        setIsExitModalOpen(true);
+    };
+
+    const confirmExit = () => {
+        setIsExitModalOpen(false);
+        navigate('/dashboard');
     };
 
     return (
@@ -1688,6 +1759,7 @@ export default function BusinessVerification() {
                                     }
                                 }}
                                 email={representativeData.email}
+                                errors={errors}
                             />
                         )}
                         {currentStep === 8 && (
@@ -1734,7 +1806,6 @@ export default function BusinessVerification() {
                     }}
                 />
 
-                {/* Email Setup Modal */}
                 <EmailVerificationModal
                     isOpen={isEmailModalOpen}
                     onClose={() => setIsEmailModalOpen(false)}
@@ -1746,6 +1817,12 @@ export default function BusinessVerification() {
                     }}
                 />
             </div>
+
+            <ExitConfirmationModal
+                isOpen={isExitModalOpen}
+                onClose={() => setIsExitModalOpen(false)}
+                onConfirm={confirmExit}
+            />
         </div>
     );
 }

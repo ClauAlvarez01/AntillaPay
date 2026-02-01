@@ -2169,6 +2169,48 @@ export default function Dashboard() {
         const stored = window.localStorage.getItem("antillapay_payment_links");
         return stored ? JSON.parse(stored) : [];
     });
+    const [verificationState, setVerificationState] = useState(() => {
+        if (typeof window === "undefined") return { currentStep: 1 };
+        // Check for full completion flag
+        if (window.localStorage.getItem("antillapay_business_verified")) {
+            return { currentStep: 9 };
+        }
+        const saved = window.localStorage.getItem("antillapay_business_verification");
+        return saved ? JSON.parse(saved) : { currentStep: 1 };
+    });
+
+    useEffect(() => {
+        const handleVerificationUpdate = (event) => {
+            // Check for full completion first
+            if (window.localStorage.getItem("antillapay_business_verified")) {
+                setVerificationState({ currentStep: 9 });
+                return;
+            }
+
+            if (event.detail && event.detail.currentStep) {
+                setVerificationState(prev => ({ ...prev, currentStep: event.detail.currentStep }));
+            } else {
+                const saved = window.localStorage.getItem("antillapay_business_verification");
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        setVerificationState(prev => ({ ...prev, currentStep: parsed.currentStep || 1 }));
+                    } catch (e) {
+                        console.error("Error parsing verification state", e);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('verificationStateChanged', handleVerificationUpdate);
+        window.addEventListener('storage', handleVerificationUpdate);
+
+        return () => {
+            window.removeEventListener('verificationStateChanged', handleVerificationUpdate);
+            window.removeEventListener('storage', handleVerificationUpdate);
+        };
+    }, []);
+    const [isVerificationExpanded, setIsVerificationExpanded] = useState(true);
     const [activeView, setActiveView] = useState(() => {
         const path = location.pathname.toLowerCase();
         if (path.startsWith("/dashboard/customers/")) {
@@ -2192,8 +2234,32 @@ export default function Dashboard() {
         return "home";
     });
 
-    const totalTasks = 3;
-    const progressPercent = Math.round((completedTasks.length / totalTasks) * 100);
+    // Items dentro de "Verifica tu empresa"
+    const verificationSteps = [
+        { id: 1, label: "Datos fiscales" },
+        { id: 2, label: "Datos de la empresa" },
+        { id: 3, label: "Representante de la empresa" },
+        { id: 4, label: "Productos y servicios" },
+        { id: 5, label: "Datos públicos" }
+    ];
+
+    // Items principales (fuera del expandible)
+    const mainVerificationItems = [
+        { id: 6, label: "Añade tu banco" },
+        { id: 7, label: "Asegura tu cuenta" }
+    ];
+
+    // Calculate completed verification steps (steps strictly less than current step are definitely done, 
+    // or we can assume if currentStep is > id, it's done. 
+    // If account is fully verified (step 8 submitted), all are done.
+    // For now, based on currentStep: items < currentStep are completed.
+    // Contar items completados (5 dentro de Verifica tu empresa + 2 items principales)
+    const completedVerificationStepsCount = verificationState.currentStep > 1 ? verificationState.currentStep - 1 : 0;
+
+    // Total tasks = 1 (customize) + 5 (verification steps) + 2 (main items)
+    const totalTasks = 1 + verificationSteps.length + mainVerificationItems.length;
+    const completedCount = (completedTasks.includes("customize_account") ? 1 : 0) + completedVerificationStepsCount;
+    const progressPercent = Math.round((completedCount / totalTasks) * 100);
 
     useEffect(() => {
         window.localStorage.setItem("antillapay_onboarding_tasks", JSON.stringify(completedTasks));
@@ -3545,44 +3611,69 @@ export default function Dashboard() {
                                                 </div>
                                             </button>
 
-                                            <div className="bg-white/50 rounded-lg p-3 border border-transparent">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <span className="text-[13px] text-[#32325d] font-semibold">Verifica tu empresa</span>
-                                                    <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate('/activate-account', { state: { targetStep: 1 } })}
+                                                className="w-full bg-white/50 rounded-lg p-3 border border-transparent flex items-center justify-between group hover:border-[#cbd5f5] transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn(
+                                                        "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                        verificationState.currentStep > 5 ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
+                                                    )}>
+                                                        {verificationState.currentStep > 5 && <Check className="w-2.5 h-2.5 text-white" />}
+                                                    </div>
+                                                    <span className={cn(
+                                                        "text-[13px] font-semibold",
+                                                        verificationState.currentStep > 5 ? "text-[#635bff]" : "text-[#32325d]"
+                                                    )}>
+                                                        Verifica tu empresa
+                                                    </span>
                                                 </div>
-                                                <div className="space-y-2 ml-1 border-l border-gray-100 pl-3">
+                                                {verificationState.currentStep <= 5 && (
+                                                    <div className="px-2 py-0.5 bg-[#635bff]/10 rounded text-[11px] font-medium text-[#635bff]">
+                                                        En curso
+                                                    </div>
+                                                )}
+                                            </button>
+
+                                            {/* Items principales fuera del expandible */}
+                                            {mainVerificationItems.map((item) => {
+                                                const isItemCompleted = verificationState.currentStep > item.id;
+                                                const isAccessible = verificationState.currentStep >= item.id;
+
+                                                return (
                                                     <button
+                                                        key={item.id}
                                                         type="button"
-                                                        onClick={() => setShowVerifyEmailModal(true)}
-                                                        className="flex items-center gap-2 text-[12px] text-[#4f5b76] hover:text-[#32325d] transition-colors group"
+                                                        onClick={() => {
+                                                            if (isAccessible) {
+                                                                navigate('/activate-account', { state: { targetStep: item.id } });
+                                                            }
+                                                        }}
+                                                        disabled={!isAccessible}
+                                                        className={cn(
+                                                            "w-full bg-white/50 rounded-lg p-3 border border-transparent flex items-center justify-between group hover:border-[#cbd5f5] transition-colors",
+                                                            !isAccessible && "opacity-40 cursor-not-allowed hover:border-transparent"
+                                                        )}
                                                     >
-                                                        <div className={cn(
-                                                            "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
-                                                            completedTasks.includes("verify_email") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
-                                                        )}>
-                                                            {completedTasks.includes("verify_email") && <Check className="w-2.5 h-2.5 text-white" />}
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={cn(
+                                                                "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                                isItemCompleted ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
+                                                            )}>
+                                                                {isItemCompleted && <Check className="w-2.5 h-2.5 text-white" />}
+                                                            </div>
+                                                            <span className={cn(
+                                                                "text-[13px] font-semibold",
+                                                                isItemCompleted ? "text-[#635bff]" : isAccessible ? "text-[#32325d]" : "text-[#4f5b76]"
+                                                            )}>
+                                                                {item.label}
+                                                            </span>
                                                         </div>
-                                                        <span>
-                                                            Verifica tu correo electrónico
-                                                        </span>
                                                     </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => completeTask("complete_profile")}
-                                                        className="flex items-center gap-2 text-[12px] text-[#4f5b76] hover:text-[#32325d] transition-colors group text-left"
-                                                    >
-                                                        <div className={cn(
-                                                            "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
-                                                            completedTasks.includes("complete_profile") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
-                                                        )}>
-                                                            {completedTasks.includes("complete_profile") && <Check className="w-2.5 h-2.5 text-white" />}
-                                                        </div>
-                                                        <span>
-                                                            Completa tu perfil
-                                                        </span>
-                                                    </button>
-                                                </div>
-                                            </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 )}

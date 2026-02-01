@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     validateTaxData,
     validateCompanyData,
@@ -126,9 +126,14 @@ export const useBusinessVerification = () => {
             currentStep
         };
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+
+        // Dispatch custom event for real-time sync
+        window.dispatchEvent(new CustomEvent('verificationStateChanged', {
+            detail: { currentStep }
+        }));
     }, [taxData, companyData, representativeData, productsData, publicData, bankData, securityData, currentStep]);
 
-    const updateTaxData = (field, value) => {
+    const updateTaxData = useCallback((field, value) => {
         setTaxData(prev => ({ ...prev, [field]: value }));
         // Clear error for this field
         if (errors[field]) {
@@ -138,9 +143,9 @@ export const useBusinessVerification = () => {
                 return newErrors;
             });
         }
-    };
+    }, [errors]);
 
-    const updateCompanyData = (field, value) => {
+    const updateCompanyData = useCallback((field, value) => {
         setCompanyData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => {
@@ -149,9 +154,9 @@ export const useBusinessVerification = () => {
                 return newErrors;
             });
         }
-    };
+    }, [errors]);
 
-    const updateRepresentativeData = (field, value) => {
+    const updateRepresentativeData = useCallback((field, value) => {
         setRepresentativeData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => {
@@ -160,9 +165,9 @@ export const useBusinessVerification = () => {
                 return newErrors;
             });
         }
-    };
+    }, [errors]);
 
-    const updateProductsData = (field, value) => {
+    const updateProductsData = useCallback((field, value) => {
         setProductsData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => {
@@ -171,9 +176,9 @@ export const useBusinessVerification = () => {
                 return newErrors;
             });
         }
-    };
+    }, [errors]);
 
-    const updatePublicData = (field, value) => {
+    const updatePublicData = useCallback((field, value) => {
         setPublicData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => {
@@ -182,9 +187,9 @@ export const useBusinessVerification = () => {
                 return newErrors;
             });
         }
-    };
+    }, [errors]);
 
-    const updateBankData = (field, value) => {
+    const updateBankData = useCallback((field, value) => {
         setBankData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => {
@@ -193,9 +198,9 @@ export const useBusinessVerification = () => {
                 return newErrors;
             });
         }
-    };
+    }, [errors]);
 
-    const updateSecurityData = (field, value) => {
+    const updateSecurityData = useCallback((field, value) => {
         setSecurityData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => {
@@ -204,9 +209,9 @@ export const useBusinessVerification = () => {
                 return newErrors;
             });
         }
-    };
+    }, [errors]);
 
-    const validateCurrentStep = () => {
+    const validateCurrentStep = useCallback(() => {
         let validationErrors = {};
 
         switch (currentStep) {
@@ -237,29 +242,56 @@ export const useBusinessVerification = () => {
 
         setErrors(validationErrors);
         return Object.keys(validationErrors).length === 0;
-    };
+    }, [currentStep, taxData, companyData, representativeData, productsData, publicData, bankData, securityData]);
 
-    const nextStep = () => {
-        if (validateCurrentStep()) {
+    const nextStep = useCallback(() => {
+        // We need to call the validation function. Since it's now wrapped in useCallback, 
+        // passing it as dependency or invoking it directly needs care.
+        // But validateCurrentStep depends on current state.
+        // It's better to inline validation here or rely on the updated function.
+        // Let's rely on the closure scope which is updated.
+        // Wait, validateCurrentStep is a dependency now? No, we call it.
+        // ACTUALLY, calling useCallback-wrapped function inside another useCallback is tricky if deps aren't right.
+        // Simpler: Just define validate internal or use deps.
+
+        // Let's duplicate validation logic OR use the state directly.
+        // Re-using validateCurrentStep in nextStep:
+        // validation logic is complex, better to not duplicate.
+        // But if I put validateCurrentStep in deps, nextStep changes when data changes. That's fine.
+
+        let validationErrors = {};
+        switch (currentStep) {
+            case 1: validationErrors = validateTaxData(taxData); break;
+            case 2: validationErrors = validateCompanyData(companyData); break;
+            case 3: validationErrors = validateRepresentativeData(representativeData); break;
+            case 4: validationErrors = validateProductsData(productsData); break;
+            case 5: validationErrors = validatePublicData(publicData); break;
+            case 6: validationErrors = validateBankData(bankData); break;
+            case 7: validationErrors = validateSecurityData(securityData); break;
+            default: break;
+        }
+
+        setErrors(validationErrors);
+        if (Object.keys(validationErrors).length === 0) {
             setCurrentStep(prev => Math.min(prev + 1, 8));
             return true;
         }
         return false;
-    };
+    }, [currentStep, taxData, companyData, representativeData, productsData, publicData, bankData, securityData]);
 
-    const previousStep = () => {
+    const previousStep = useCallback(() => {
         setCurrentStep(prev => Math.max(prev - 1, 1));
         setErrors({});
-    };
+    }, []);
 
-    const goToStep = (stepNumber) => {
+    const goToStep = useCallback((stepNumber) => {
         if (stepNumber >= 1 && stepNumber <= 8) {
             setCurrentStep(stepNumber);
             setErrors({});
         }
-    };
+    }, []);
 
-    const resetVerification = () => {
+    const resetVerification = useCallback(() => {
         setCurrentStep(1);
         setTaxData(initialTaxData);
         setCompanyData(initialCompanyData);
@@ -272,10 +304,24 @@ export const useBusinessVerification = () => {
         if (typeof window !== 'undefined') {
             window.localStorage.removeItem(STORAGE_KEY);
         }
-    };
+    }, []);
 
-    const submitVerification = () => {
-        if (!validateCurrentStep()) {
+    const submitVerification = useCallback(() => {
+        // Validate current step first
+        let validationErrors = {};
+        switch (currentStep) {
+            case 1: validationErrors = validateTaxData(taxData); break;
+            case 2: validationErrors = validateCompanyData(companyData); break;
+            case 3: validationErrors = validateRepresentativeData(representativeData); break;
+            case 4: validationErrors = validateProductsData(productsData); break;
+            case 5: validationErrors = validatePublicData(publicData); break;
+            case 6: validationErrors = validateBankData(bankData); break;
+            case 7: validationErrors = validateSecurityData(securityData); break;
+            default: break;
+        }
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
             return false;
         }
 
@@ -297,9 +343,9 @@ export const useBusinessVerification = () => {
         }
 
         return true;
-    };
+    }, [currentStep, taxData, companyData, representativeData, productsData, publicData, bankData, securityData]);
 
-    const validateAllSteps = () => {
+    const validateAllSteps = useCallback(() => {
         const taxErrors = validateTaxData(taxData);
         const companyErrors = validateCompanyData(companyData);
         const repErrors = validateRepresentativeData(representativeData);
@@ -315,7 +361,7 @@ export const useBusinessVerification = () => {
             Object.keys(publicErrors).length === 0 &&
             Object.keys(bankErrors).length === 0 &&
             Object.keys(secErrors).length === 0;
-    };
+    }, [taxData, companyData, representativeData, productsData, publicData, bankData, securityData]);
 
     return {
         currentStep,
