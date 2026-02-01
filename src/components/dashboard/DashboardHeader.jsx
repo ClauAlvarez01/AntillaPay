@@ -72,7 +72,9 @@ export default function DashboardHeader({
     onCreatePaymentLink,
     onHelp,
     onSettings,
-    onGuide
+    onGuide,
+    showGuideButton,
+    guideProgress
 }) {
     return (
         <header
@@ -105,14 +107,19 @@ export default function DashboardHeader({
                         <IconButton label="Configuracion" onClick={onSettings}>
                             <Settings className="h-5 w-5" />
                         </IconButton>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={onGuide}
-                            className="rounded-full border-gray-200 text-[12px] text-[#4f5b76] hover:text-[#32325d]"
-                        >
-                            Guia de configuracion
-                        </Button>
+                        {showGuideButton && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onGuide}
+                                className="rounded-full border-gray-200 text-[12px] text-[#4f5b76] hover:text-[#32325d] relative overflow-hidden pl-3 pr-3"
+                            >
+                                <div className="absolute left-0 top-0 bottom-0 bg-[#635bff]/10 transition-all duration-500" style={{ width: `${guideProgress}%` }} />
+                                <span className="relative z-10 flex items-center gap-2">
+                                    Guía de configuración
+                                </span>
+                            </Button>
+                        )}
                     </div>
                     <div className="md:hidden">
                         <OverflowMenu

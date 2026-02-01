@@ -2150,6 +2150,7 @@ export default function Dashboard() {
     const location = useLocation();
     const [environment] = useState("test");
     const [showOnboarding, setShowOnboarding] = useState(true);
+    const [showOnboardingBanner, setShowOnboardingBanner] = useState(true);
     const [isGuideCollapsed, setIsGuideCollapsed] = useState(false);
     const [isHeaderElevated, setIsHeaderElevated] = useState(false);
     const contentRef = useRef(null);
@@ -2317,7 +2318,7 @@ export default function Dashboard() {
     const [selectedCompare, setSelectedCompare] = useState("Período anterior");
     const [companyName, setCompanyName] = useState("");
     const [companyWebsite, setCompanyWebsite] = useState("");
-    const [selectedSetupOptions, setSelectedSetupOptions] = useState([]);
+    const [selectedSetupOptions, setSelectedSetupOptions] = useState(["non_recurring"]);
     const [showCalendar, setShowCalendar] = useState(false);
     const [showMetricDropdown, setShowMetricDropdown] = useState(false);
     const [selectedMetric, setSelectedMetric] = useState("Volumen neto");
@@ -2431,11 +2432,6 @@ export default function Dashboard() {
             id: "recurring",
             title: "Pagos recurrentes",
             description: "Ofrece suscripciones y factura a los clientes por los servicios y el uso continuo."
-        },
-        {
-            id: "platform",
-            title: "Crea una plataforma o un marketplace",
-            description: "Usa Connect para habilitar el movimiento de dinero entre varias partes."
         }
     ];
 
@@ -2449,8 +2445,6 @@ export default function Dashboard() {
 
     const handleCustomizeNext = () => {
         if (customizeStep === "form") {
-            setCustomizeStep("options");
-        } else if (customizeStep === "options" && canProceedToTest) {
             setCustomizeStep("test_environment");
         }
     };
@@ -2552,7 +2546,16 @@ export default function Dashboard() {
                             exit={{ opacity: 0, y: 12, scale: 0.98 }}
                             className="fixed inset-0 z-[123] flex items-center justify-center px-6"
                         >
-                            <div className="w-[980px] max-w-[96vw] h-[640px] max-h-[90vh] rounded-3xl bg-white shadow-[0_24px_70px_-24px_rgba(15,23,42,0.35)] overflow-hidden">
+                            <div className="w-[980px] max-w-[96vw] h-[640px] max-h-[90vh] rounded-3xl bg-white shadow-[0_24px_70px_-24px_rgba(15,23,42,0.35)] overflow-hidden relative">
+                                <button
+                                    onClick={() => {
+                                        setShowCustomizeModal(false);
+                                        setShowOnboardingBanner(false);
+                                    }}
+                                    className="absolute top-4 right-4 z-50 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
                                 <div className="grid h-full grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]">
                                     <div className="px-12 pt-8 pb-14 h-full">
                                         {customizeStep === "form" ? (
@@ -2615,130 +2618,6 @@ export default function Dashboard() {
                                                         className={cn(
                                                             "rounded-md px-5 py-2 text-[13px] font-semibold text-white shadow-sm transition-colors",
                                                             companyName.trim() ? "bg-[#635bff] hover:bg-[#5851e0]" : "bg-[#b4abff] cursor-not-allowed"
-                                                        )}
-                                                    >
-                                                        Continuar
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : customizeStep === "options" ? (
-                                            <div className="flex h-full flex-col justify-between gap-8">
-                                                <div className="space-y-6">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setCustomizeStep("form")}
-                                                        className="text-[13px] font-semibold text-[#635bff] hover:underline"
-                                                    >
-                                                        ← Atrás
-                                                    </button>
-                                                    <div>
-                                                        <h3 className="text-[24px] font-semibold text-[#32325d]">
-                                                            ¿Cómo quieres empezar?
-                                                        </h3>
-                                                        <p className="mt-2 text-[14px] text-[#4f5b76] leading-relaxed">
-                                                            Puedes añadir otras funciones más adelante si las necesitas.
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="space-y-4">
-                                                        {setupOptions.slice(0, 2).map((option) => {
-                                                            const isSelected = selectedSetupOptions.includes(option.id);
-                                                            return (
-                                                                <button
-                                                                    key={option.id}
-                                                                    type="button"
-                                                                    onClick={() => toggleSetupOption(option.id)}
-                                                                    className={cn(
-                                                                        "w-full rounded-xl border px-4 py-3 text-left transition-all",
-                                                                        isSelected
-                                                                            ? "border-[#635bff] bg-[#f5f3ff]"
-                                                                            : "border-gray-100 bg-white hover:border-[#cbd5f5]"
-                                                                    )}
-                                                                >
-                                                                    <div className="flex items-start gap-3">
-                                                                        <span
-                                                                            className={cn(
-                                                                                "mt-0.5 flex h-4 w-4 items-center justify-center rounded border",
-                                                                                isSelected
-                                                                                    ? "border-[#635bff] bg-[#635bff]"
-                                                                                    : "border-gray-200 bg-white"
-                                                                            )}
-                                                                        >
-                                                                            {isSelected && <Check className="h-3 w-3 text-white" />}
-                                                                        </span>
-                                                                        <div>
-                                                                            <div className="text-[14px] font-semibold text-[#32325d]">
-                                                                                {option.title}
-                                                                            </div>
-                                                                            <div className="text-[13px] text-[#4f5b76]">
-                                                                                {option.description}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-
-                                                    <p className="text-[13px] text-[#4f5b76]">
-                                                        Incluye herramientas para el onboarding y para verificar la identidad del vendedor
-                                                    </p>
-
-                                                    <div>
-                                                        {setupOptions.slice(2).map((option) => {
-                                                            const isSelected = selectedSetupOptions.includes(option.id);
-                                                            return (
-                                                                <button
-                                                                    key={option.id}
-                                                                    type="button"
-                                                                    onClick={() => toggleSetupOption(option.id)}
-                                                                    className={cn(
-                                                                        "w-full rounded-xl border px-4 py-3 text-left transition-all",
-                                                                        isSelected
-                                                                            ? "border-[#635bff] bg-[#f5f3ff]"
-                                                                            : "border-gray-100 bg-white hover:border-[#cbd5f5]"
-                                                                    )}
-                                                                >
-                                                                    <div className="flex items-start gap-3">
-                                                                        <span
-                                                                            className={cn(
-                                                                                "mt-0.5 flex h-4 w-4 items-center justify-center rounded border",
-                                                                                isSelected
-                                                                                    ? "border-[#635bff] bg-[#635bff]"
-                                                                                    : "border-gray-200 bg-white"
-                                                                            )}
-                                                                        >
-                                                                            {isSelected && <Check className="h-3 w-3 text-white" />}
-                                                                        </span>
-                                                                        <div>
-                                                                            <div className="text-[14px] font-semibold text-[#32325d]">
-                                                                                {option.title}
-                                                                            </div>
-                                                                            <div className="text-[13px] text-[#4f5b76]">
-                                                                                {option.description}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-
-                                                <div className="pt-4 flex items-center justify-between">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowCustomizeModal(false)}
-                                                        className="text-[13px] font-semibold text-[#635bff] hover:underline"
-                                                    >
-                                                        Omítelo por el momento
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleCustomizeNext}
-                                                        className={cn(
-                                                            "rounded-md px-5 py-2 text-[13px] font-semibold text-white shadow-sm transition-colors",
-                                                            canProceedToTest ? "bg-[#635bff] hover:bg-[#5851e0]" : "bg-[#b4abff] cursor-not-allowed"
                                                         )}
                                                     >
                                                         Continuar
@@ -2809,7 +2688,7 @@ export default function Dashboard() {
                                                         }}
                                                         className="w-full rounded-lg bg-[#635bff] py-3 text-[15px] font-bold text-white shadow-lg shadow-[#635bff]/20 hover:bg-[#5851e0] transition-all"
                                                     >
-                                                        Vayas al entorno de prueba
+                                                        Ir al entorno de prueba
                                                     </button>
                                                     <button
                                                         type="button"
@@ -2910,7 +2789,7 @@ export default function Dashboard() {
                 )}
             </AnimatePresence>
             <AnimatePresence>
-                {showOnboarding && (
+                {showOnboardingBanner && (
                     <motion.div
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -2927,7 +2806,7 @@ export default function Dashboard() {
                                 </p>
                                 <button
                                     type="button"
-                                    onClick={() => setShowOnboarding(false)}
+                                    onClick={() => setShowOnboardingBanner(false)}
                                     className="pointer-events-auto mt-4 inline-flex items-center rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[13px] font-semibold text-[#32325d] shadow-sm hover:bg-gray-50"
                                 >
                                     Entendido
@@ -3054,6 +2933,8 @@ export default function Dashboard() {
                         onHelp={handleHelp}
                         onSettings={handleSettings}
                         onGuide={handleGuide}
+                        showGuideButton={!showOnboarding && !showOnboardingBanner}
+                        guideProgress={progressPercent}
                     />
 
                     {/* Content Area */}
@@ -3570,7 +3451,8 @@ export default function Dashboard() {
                                 key="onboarding-card"
                                 className={cn(
                                     "fixed bottom-6 right-6 w-[320px] bg-[#f7f9fc] rounded-xl shadow-2xl overflow-hidden transition-all duration-500 z-[102]",
-                                    "ring-4 ring-[#635bff]/20"
+                                    "ring-4 ring-[#635bff]/20",
+                                    showOnboardingBanner && "pointer-events-none opacity-50"
                                 )}
                                 initial={{ y: 100, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
