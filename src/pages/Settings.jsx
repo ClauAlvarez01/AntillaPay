@@ -34,17 +34,11 @@ export default function Settings() {
         },
         {
           icon: Shield,
-          title: 'Equipo y seguridad',
-          description: 'Miembros del equipo, flujos personalizados, seguridad de la cuenta, aplicaciones autorizadas y recursos compartidos.',
+          title: 'Seguridad',
+          description: 'Autenticación de dos factores, contraseña, correo electrónico, teléfono y datos de la empresa.',
           path: '/dashboard/settings/team-security'
         },
-        {
-          icon: FileText,
-          title: 'Cumplimiento de la normativa y documentos',
-          description: 'Cumplimiento de la normativa PCI, documentos y exportaciones heredadas.',
-          path: '/dashboard/settings/compliance'
-        }
-      ]
+              ]
     },
     {
       title: 'Configuración del producto',
@@ -61,19 +55,7 @@ export default function Settings() {
           description: 'Proceso de compra, métodos de pago, conversión de divisas y más.',
           path: '/dashboard/settings/payments'
         },
-        {
-          icon: Link2,
-          title: 'Financial Connections',
-          description: 'Aspecto, entidades destacadas, optimizaciones y datos de consumo.',
-          path: '/dashboard/settings/financial-connections'
-        },
-        {
-          icon: ShieldCheck,
-          title: 'Radar',
-          description: 'Gestiona la protección antifraude y las funcionalidades de personalización para tu cuenta.',
-          path: '/dashboard/settings/radar'
-        }
-      ]
+              ]
     }
   ];
 

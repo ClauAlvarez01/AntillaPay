@@ -1,155 +1,167 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Users, Shield, Key, Plus } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ChevronRight, Shield, Key, Mail, Phone, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 export default function TeamSecurity() {
   const navigate = useNavigate();
-  const [teamMembers] = useState([
-    { id: 1, name: 'Admin User', email: 'admin@antillapay.com', role: 'Administrador', status: 'active' },
-    { id: 2, name: 'John Doe', email: 'john@antillapay.com', role: 'Desarrollador', status: 'active' },
-    { id: 3, name: 'Jane Smith', email: 'jane@antillapay.com', role: 'Soporte', status: 'pending' }
-  ]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => navigate('/dashboard/settings')}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Volver a Configuración
-        </Button>
-
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900">Equipo y seguridad</h1>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Invitar miembro
-          </Button>
+    <div className="bg-white min-h-screen">
+      <div className="px-8 py-8">
+        <div className="flex items-center text-sm text-gray-600 mb-6">
+          <button
+            onClick={() => navigate('/dashboard/settings')}
+            className="text-indigo-600 hover:text-indigo-700 transition-colors"
+          >
+            Configuración
+          </button>
+          <ChevronRight className="h-4 w-4 mx-2" />
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="h-5 w-5 mr-2 text-indigo-600" />
-                Miembros del equipo
-              </CardTitle>
-              <CardDescription>
-                Gestiona quién tiene acceso a tu cuenta de AntillaPay
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {teamMembers.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                          <span className="text-indigo-600 font-medium text-sm">
-                            {member.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{member.name}</p>
-                          <p className="text-xs text-gray-500">{member.email}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
-                        {member.role}
-                      </Badge>
-                      {member.status === 'pending' && (
-                        <Badge variant="outline">Pendiente</Badge>
-                      )}
-                      <Button variant="ghost" size="sm">Editar</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Seguridad</h1>
+          <p className="text-sm text-gray-600">Gestiona la seguridad y autenticación de tu cuenta</p>
+        </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Shield className="h-5 w-5 mr-2 text-indigo-600" />
-                Seguridad de la cuenta
-              </CardTitle>
-              <CardDescription>
-                Configuración de seguridad y permisos
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Autenticación de dos factores</p>
-                  <p className="text-xs text-gray-500">Requiere 2FA para todos los miembros del equipo</p>
-                </div>
-                <Badge variant="default" className="bg-green-600">Habilitado</Badge>
+        <div className="space-y-8 max-w-3xl">
+          {/* Autenticación de dos factores */}
+          <section className="border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <Shield className="h-5 w-5 text-indigo-600" />
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Inicio de sesión único (SSO)</p>
-                  <p className="text-xs text-gray-500">Integración con proveedores de identidad</p>
-                </div>
-                <Button variant="outline" size="sm">Configurar</Button>
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900 mb-2">
+                  Autenticación de dos factores
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Protege tu cuenta con un código de verificación enviado a tu correo electrónico cada vez que inicies sesión desde un dispositivo nuevo.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/activate-account', { state: { targetStep: 7 } })}
+                >
+                  Configurar
+                </Button>
               </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">Restricciones de IP</p>
-                  <p className="text-xs text-gray-500">Limita el acceso a direcciones IP específicas</p>
-                </div>
-                <Button variant="outline" size="sm">Configurar</Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Key className="h-5 w-5 mr-2 text-indigo-600" />
-                Claves API
-              </CardTitle>
-              <CardDescription>
-                Gestiona las claves API para integraciones
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-sm">Clave de producción</p>
-                    <p className="text-xs text-gray-500 font-mono">pk_live_••••••••••••••••</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">Ver</Button>
-                    <Button variant="outline" size="sm">Rotar</Button>
-                  </div>
+          {/* Contraseña */}
+          <section className="border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <Key className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900 mb-2">
+                  Contraseña
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Establece una contraseña segura para proteger tu cuenta.
+                </p>
+                <div className="text-sm text-gray-500 mb-4">
+                  Estado: <span className="text-gray-900">No configurada</span>
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-sm">Clave de prueba</p>
-                    <p className="text-xs text-gray-500 font-mono">pk_test_••••••••••••••••</p>
+                <Button variant="outline" size="sm">
+                  Establecer contraseña
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {/* Correo electrónico */}
+          <section className="border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <Mail className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900 mb-2">
+                  Correo electrónico
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Tu correo electrónico principal para notificaciones y recuperación de cuenta.
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">clau200103am@gmail.com</p>
+                      <p className="text-xs text-gray-500">Principal</p>
+                    </div>
+                    <span className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded">
+                      Verificado
+                    </span>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">Ver</Button>
-                    <Button variant="outline" size="sm">Rotar</Button>
-                  </div>
+                  <Button variant="outline" size="sm">
+                    Añadir correo secundario
+                  </Button>
                 </div>
               </div>
-              <Button className="mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Crear nueva clave
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
+
+          {/* Teléfono de contacto */}
+          <section className="border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <Phone className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900 mb-2">
+                  Teléfono de contacto
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Número de teléfono para contacto y verificación adicional.
+                </p>
+                <div className="text-sm text-gray-500 mb-4">
+                  No configurado
+                </div>
+                <Button variant="outline" size="sm">
+                  Agregar número de teléfono
+                </Button>
+              </div>
+            </div>
+          </section>
+
+          {/* Datos de la empresa */}
+          <section className="border border-gray-200 rounded-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <Building2 className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-lg font-medium text-gray-900 mb-2">
+                  Información de la empresa
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Datos fiscales y de verificación de tu empresa.
+                </p>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Estructura empresarial:</span>
+                    <span className="text-gray-900">No configurado</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">NIT:</span>
+                    <span className="text-gray-900">No configurado</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Nombre legal:</span>
+                    <span className="text-gray-900">No configurado</span>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/activate-account')}
+                >
+                  Completar datos
+                </Button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
