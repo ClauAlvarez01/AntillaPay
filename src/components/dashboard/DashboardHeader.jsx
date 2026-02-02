@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     HelpCircle,
     MoreHorizontal,
     Plus,
-    Settings
+    Settings,
+    LogOut,
+    User,
+    ChevronDown,
+    Info,
+    Box,
+    ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,8 +19,22 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
+} from "@/components/ui/dialog";
 
 const IconButton = ({ label, onClick, children }) => (
     <button
@@ -65,6 +86,108 @@ const OverflowMenu = ({ onHelp, onSettings, onGuide }) => (
     </DropdownMenu>
 );
 
+const ExitTestModeModal = ({ isOpen, onClose }) => {
+    const navigate = useNavigate();
+
+    const handleActivateAccount = () => {
+        navigate('/dashboard/business-verification');
+        onClose();
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[460px] rounded-2xl">
+                <DialogHeader>
+                    <div className="flex flex-col items-center text-center px-4 pt-4">
+                        <div className="h-14 w-14 bg-[#f8fafc] rounded-xl flex items-center justify-center text-[18px] font-bold text-[#8898aa] mb-4">
+                            ED
+                        </div>
+                        <DialogTitle className="text-[20px] font-semibold text-[#32325d] mb-2">
+                            Entorno de prueba de New business
+                        </DialogTitle>
+                        <DialogDescription className="text-[14px] text-[#4f5b76]">
+                            New business
+                        </DialogDescription>
+                    </div>
+                </DialogHeader>
+                <div className="px-6 pb-6 pt-2">
+                    <button
+                        onClick={handleActivateAccount}
+                        className="w-full rounded-lg bg-[#635bff] px-4 py-3 text-[14px] font-semibold text-white hover:bg-[#5851e0] transition-colors"
+                    >
+                        Activar tu cuenta
+                    </button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
+const AccountDropdown = ({ onSettings, currentUser }) => {
+    const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+
+    return (
+        <>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button
+                        className="flex items-center gap-2.5 p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none group"
+                    >
+                        <div className="h-6 w-6 rounded bg-[#f1f3f5] flex items-center justify-center text-[10px] font-bold text-[#4f5b76]">
+                            N
+                        </div>
+                        <span className="text-[14px] font-bold text-[#32325d]">Naranjito</span>
+                        <ChevronDown className="w-3.5 h-3.5 text-[#aab2c4] group-hover:text-[#32325d] transition-colors" />
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[300px] p-2 bg-white shadow-2xl rounded-xl border border-gray-100" sideOffset={8}>
+                    <div className="flex flex-col items-center px-4 pt-6 pb-4">
+                        <div className="h-12 w-12 bg-[#f8fafc] rounded-lg flex items-center justify-center text-[15px] font-bold text-[#8898aa] mb-3">
+                            ED
+                        </div>
+                        <span className="text-[14px] text-[#8898aa] mt-1">New business</span>
+                    </div>
+
+                    <div className="px-2 pb-4 pt-1">
+                        <button 
+                            onClick={() => setIsExitModalOpen(true)}
+                            className="w-full border border-gray-200 rounded-lg bg-white text-[13px] font-medium text-[#8898aa] py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-all"
+                        >
+                            Salir del entorno de prueba
+                        </button>
+                    </div>
+
+                    <div className="px-1 space-y-0.5">
+                        <button
+                            onClick={onSettings}
+                            className="w-full h-9 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors text-left group"
+                        >
+                            <Settings className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
+                            <span className="text-[14px] font-medium">Configuración</span>
+                        </button>
+                    </div>
+
+                    <DropdownMenuSeparator className="my-2 bg-gray-100" />
+
+                    <div className="px-1 pt-1 pb-1">
+                        <div className="w-full h-10 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors cursor-pointer group">
+                            <User className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
+                            <span className="text-[14px] font-medium">{currentUser?.name || "Usuario"}</span>
+                        </div>
+
+                        <button className="w-full h-10 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors text-left mt-0.5 group">
+                            <LogOut className="w-4 h-4 text-[#8898aa] group-hover:text-red-500 transition-colors" />
+                            <span className="text-[14px] font-medium">Cerrar sesión</span>
+                        </button>
+                    </div>
+
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <ExitTestModeModal isOpen={isExitModalOpen} onClose={() => setIsExitModalOpen(false)} />
+        </>
+    );
+};
+
 export default function DashboardHeader({
     isElevated,
     onLogoClick,
@@ -85,17 +208,6 @@ export default function DashboardHeader({
         >
             <div className="h-16 px-6 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={onLogoClick}
-                        aria-label="Ir al dashboard"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#635bff] text-white shadow-sm"
-                    >
-                        <span className="text-sm font-bold">A</span>
-                    </button>
-                    <span className="hidden sm:block text-[14px] font-semibold text-[#32325d]">
-                        AntillaPay
-                    </span>
                 </div>
 
                 <div className="flex items-center gap-3">

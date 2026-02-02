@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     ArrowLeftRight,
+    Box,
     Check,
     ChevronDown,
     ChevronLeft,
@@ -16,10 +17,13 @@ import {
     Home,
     LayoutDashboard,
     Link2,
+    LogOut,
     Maximize2,
     Package,
     Plus,
+    Settings,
     Upload,
+    User,
     Users,
     X
 } from 'lucide-react';
@@ -34,6 +38,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle
+} from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import ProductCatalog from "@/pages/ProductCatalog";
 import ProductDetail from "@/pages/ProductDetail";
@@ -2162,6 +2173,7 @@ export default function Dashboard() {
     const [showVerifyEmailModal, setShowVerifyEmailModal] = useState(false);
     const [showCustomizeModal, setShowCustomizeModal] = useState(false);
     const [customizeStep, setCustomizeStep] = useState("form");
+    const [isExitModalOpen, setIsExitModalOpen] = useState(false);
     const [selectedProductId, setSelectedProductId] = useState(null);
     const [selectedCustomerId, setSelectedCustomerId] = useState(null);
     const [paymentLinks, setPaymentLinks] = useState(() => {
@@ -2892,44 +2904,58 @@ export default function Dashboard() {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button className="w-full flex items-center gap-3 px-2 py-1.5 hover:bg-gray-50 rounded-lg transition-colors group">
-                                    <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">
-                                        {getInitials(companyName || "Nueva empresa")}
+                                    <div className="w-8 h-8 rounded bg-[#f1f3f5] flex items-center justify-center text-sm font-bold text-[#4f5b76]">
+                                        N
                                     </div>
                                     <div className="flex-1 text-sm font-bold text-[#32325d] text-left">
-                                        {companyName || "Nueva empresa"}
+                                        Naranjito
                                     </div>
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                    <ChevronDown className="w-4 h-4 text-[#aab2c4]" />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-[260px] rounded-xl p-2 shadow-xl border-gray-100">
-                                <div className="flex items-center gap-3 px-2 py-2">
-                                    <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center text-[13px] font-bold text-gray-500">
-                                        {getInitials(companyName || "Nueva empresa")}
+                            <DropdownMenuContent align="start" className="w-[300px] p-2 bg-white shadow-2xl rounded-xl border border-gray-100">
+                                <div className="flex flex-col items-center px-4 pt-6 pb-4">
+                                    <div className="h-12 w-12 bg-[#f8fafc] rounded-lg flex items-center justify-center text-[15px] font-bold text-[#8898aa] mb-3">
+                                        ED
                                     </div>
-                                    <div>
-                                        <div className="text-[13px] font-semibold text-[#32325d]">{companyName || "Nueva empresa"}</div>
-                                        <div className="text-[11px] text-[#8792a2]">Workspace actual</div>
+                                    <span className="text-[14px] text-[#8898aa] mt-1">New business</span>
+                                </div>
+
+                                <div className="px-2 pb-4 pt-1">
+                                    <button 
+                                        onClick={() => setIsExitModalOpen(true)}
+                                        className="w-full border border-gray-200 rounded-lg bg-white text-[13px] font-medium text-[#8898aa] py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-all"
+                                    >
+                                        Salir del entorno de prueba
+                                    </button>
+                                </div>
+
+                                <div className="px-1 space-y-0.5">
+                                    <button
+                                        onClick={handleSettings}
+                                        className="w-full h-9 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors text-left group"
+                                    >
+                                        <Settings className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
+                                        <span className="text-[14px] font-medium">Configuración</span>
+                                    </button>
                                     </div>
+
+                                <DropdownMenuSeparator className="my-2 bg-gray-100" />
+
+                                <div className="px-1 pt-1 pb-1">
+                                    <div className="w-full h-10 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors cursor-pointer group">
+                                        <User className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
+                                        <span className="text-[14px] font-medium">{currentUser.name}</span>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => navigate("/login")}
+                                        className="w-full h-10 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors text-left mt-0.5 group"
+                                    >
+                                        <LogOut className="w-4 h-4 text-[#8898aa] group-hover:text-red-500 transition-colors" />
+                                        <span className="text-[14px] font-medium">Cerrar sesión</span>
+                                    </button>
                                 </div>
-                                <DropdownMenuSeparator className="my-2" />
-                                <DropdownMenuItem
-                                    onClick={handleSettings}
-                                    className="rounded-lg py-2 text-[13px] text-[#32325d] cursor-pointer"
-                                >
-                                    Configuración
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="my-2" />
-                                <div className="px-2 py-1 text-[11px] uppercase tracking-wider text-[#8792a2]">Usuario actual</div>
-                                <div className="px-2 pb-2">
-                                    <div className="text-[13px] font-semibold text-[#32325d]">{currentUser.name}</div>
-                                    <div className="text-[12px] text-[#8792a2]">{currentUser.email}</div>
-                                </div>
-                                <DropdownMenuItem
-                                    onClick={() => navigate("/login")}
-                                    className="rounded-lg py-2 text-[13px] text-[#32325d] cursor-pointer"
-                                >
-                                    Cerrar sesión
-                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -3684,6 +3710,37 @@ export default function Dashboard() {
 
                 </main>
             </div>
+
+            {/* Exit Test Mode Modal */}
+            <Dialog open={isExitModalOpen} onOpenChange={setIsExitModalOpen}>
+                <DialogContent className="sm:max-w-[580px] rounded-2xl p-8">
+                    <DialogHeader>
+                        <DialogTitle className="text-[32px] font-bold text-[#32325d] leading-tight mb-4">
+                            Verifica tu empresa para salir del entorno de prueba
+                        </DialogTitle>
+                        <DialogDescription className="text-[16px] text-[#4f5b76] leading-relaxed">
+                            Debes verificar tu empresa para poder acceder a tu cuenta activa y comenzar a aceptar pagos reales.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-3 mt-6">
+                        <button
+                            onClick={() => setIsExitModalOpen(false)}
+                            className="flex-1 rounded-lg border border-gray-300 bg-white px-6 py-3 text-[15px] font-semibold text-[#32325d] hover:bg-gray-50 transition-colors"
+                        >
+                            Quedarse en el entorno de prueba
+                        </button>
+                        <button
+                            onClick={() => {
+                                navigate('/activate-account');
+                                setIsExitModalOpen(false);
+                            }}
+                            className="flex-1 rounded-lg bg-[#635bff] px-6 py-3 text-[15px] font-semibold text-white hover:bg-[#5851e0] transition-colors"
+                        >
+                            Verificar empresa
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
