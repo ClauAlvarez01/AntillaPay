@@ -65,6 +65,17 @@ import BalancesPage from "./Balances";
 import BalanceSummaryReport from "./BalanceSummaryReport";
 import TransactionsPage from "./Transactions";
 
+import SettingsPage from "./Settings";
+import PersonalData from "./settings/PersonalData";
+import Communication from "./settings/Communication";
+import Business from "./settings/Business";
+import TeamSecurity from "./settings/TeamSecurity";
+import Compliance from "./settings/Compliance";
+import BillingSettings from "./settings/BillingSettings";
+import PaymentsSettings from "./settings/PaymentsSettings";
+import FinancialConnectionsSettings from "./settings/FinancialConnectionsSettings";
+import RadarSettings from "./settings/RadarSettings";
+
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
 
@@ -2225,6 +2236,9 @@ export default function Dashboard() {
     const [isVerificationExpanded, setIsVerificationExpanded] = useState(true);
     const [activeView, setActiveView] = useState(() => {
         const path = location.pathname.toLowerCase();
+        if (path.startsWith("/dashboard/settings")) {
+            return "settings";
+        }
         if (path.startsWith("/dashboard/customers/")) {
             return "customer_detail";
         }
@@ -2312,6 +2326,12 @@ export default function Dashboard() {
 
     useEffect(() => {
         const path = location.pathname.toLowerCase();
+        if (path.startsWith("/dashboard/settings")) {
+            setActiveView("settings");
+            setSelectedProductId(null);
+            setSelectedCustomerId(null);
+            return;
+        }
         if (path.startsWith("/dashboard/customers/")) {
             const parts = path.split("/");
             setSelectedCustomerId(parts[3] || null);
@@ -2534,7 +2554,7 @@ export default function Dashboard() {
     const handleAddProduct = () => handleQuickAction("Agregar producto");
     const handleCreatePaymentLink = () => navigate("/dashboard/payment-links/create");
     const handleHelp = () => handleQuickAction("Ayuda");
-    const handleSettings = () => handleQuickAction("Configuracion");
+    const handleSettings = () => navigate("/dashboard/settings");
     const handleGuide = () => setShowOnboarding(true);
     const handleRequestLive = () => {
         setCustomizeStep("form");
@@ -3033,18 +3053,57 @@ export default function Dashboard() {
                         ref={contentRef}
                         className={cn(
                             "flex-1 overflow-y-auto",
-                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos" || activeView === "transactions"
+                            activeView === "payments_links" ||
+                                activeView === "product_catalog" ||
+                                activeView === "product_detail" ||
+                                activeView === "customers" ||
+                                activeView === "customer_detail" ||
+                                activeView === "saldos" ||
+                                activeView === "transactions" ||
+                                activeView === "settings"
                                 ? "p-8 bg-white"
                                 : "p-10"
                         )}
                     >
-                        <div className={cn(
-                            activeView === "payments_links" || activeView === "product_catalog" || activeView === "product_detail" || activeView === "customers" || activeView === "customer_detail" || activeView === "saldos" || activeView === "transactions"
-                                ? "w-full"
-                                : "max-w-6xl mx-auto"
-                        )}>
+                        <div
+                            className={cn(
+                                activeView === "payments_links" ||
+                                    activeView === "product_catalog" ||
+                                    activeView === "product_detail" ||
+                                    activeView === "customers" ||
+                                    activeView === "customer_detail" ||
+                                    activeView === "saldos" ||
+                                    activeView === "transactions" ||
+                                    activeView === "settings"
+                                    ? "w-full"
+                                    : "max-w-6xl mx-auto"
+                            )}
+                        >
                             <AnimatePresence mode="wait">
-                                {activeView === "home" ? (
+                                {activeView === "settings" ? (
+                                    <motion.div
+                                        key="settings-view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        {(() => {
+                                            const path = location.pathname.toLowerCase();
+                                            if (path === "/dashboard/settings" || path === "/dashboard/settings/") return <SettingsPage />;
+                                            if (path.startsWith("/dashboard/settings/personal-data")) return <PersonalData />;
+                                            if (path.startsWith("/dashboard/settings/communication")) return <Communication />;
+                                            if (path.startsWith("/dashboard/settings/business")) return <Business />;
+                                            if (path.startsWith("/dashboard/settings/team-security")) return <TeamSecurity />;
+                                            if (path.startsWith("/dashboard/settings/compliance")) return <Compliance />;
+                                            if (path.startsWith("/dashboard/settings/billing")) return <BillingSettings />;
+                                            if (path.startsWith("/dashboard/settings/payments")) return <PaymentsSettings />;
+                                            if (path.startsWith("/dashboard/settings/financial-connections")) return <FinancialConnectionsSettings />;
+                                            if (path.startsWith("/dashboard/settings/radar")) return <RadarSettings />;
+                                            return <SettingsPage />;
+                                        })()}
+                                    </motion.div>
+                                ) : activeView === "home" ? (
                                     <motion.div
                                         key="home-view"
                                         initial={{ opacity: 0, y: 10 }}

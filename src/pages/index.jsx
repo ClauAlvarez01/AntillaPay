@@ -71,6 +71,17 @@ import Dashboard from "./Dashboard";
 import PaymentLinksCreate from "./PaymentLinksCreate";
 import BusinessVerification from "./BusinessVerification";
 
+import Settings from "./Settings";
+import PersonalData from "./settings/PersonalData";
+import Communication from "./settings/Communication";
+import Business from "./settings/Business";
+import TeamSecurity from "./settings/TeamSecurity";
+import Compliance from "./settings/Compliance";
+import BillingSettings from "./settings/BillingSettings";
+import PaymentsSettings from "./settings/PaymentsSettings";
+import FinancialConnectionsSettings from "./settings/FinancialConnectionsSettings";
+import RadarSettings from "./settings/RadarSettings";
+
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { LanguageProvider } from '../components/i18n/LanguageContext';
 
