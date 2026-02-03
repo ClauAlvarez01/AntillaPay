@@ -9,7 +9,8 @@ import {
     ChevronDown,
     Info,
     Box,
-    ChevronRight
+    ChevronRight,
+    Menu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -147,7 +148,7 @@ const AccountDropdown = ({ onSettings, currentUser }) => {
                     </div>
 
                     <div className="px-2 pb-4 pt-1">
-                        <button 
+                        <button
                             onClick={() => setIsExitModalOpen(true)}
                             className="w-full border border-gray-200 rounded-lg bg-white text-[13px] font-medium text-[#8898aa] py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-all"
                         >
@@ -195,7 +196,8 @@ export default function DashboardHeader({
     onSettings,
     onGuide,
     showGuideButton,
-    guideProgress
+    guideProgress,
+    onMenuClick
 }) {
     return (
         <header
@@ -206,6 +208,14 @@ export default function DashboardHeader({
         >
             <div className="h-16 px-6 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-md"
+                        onClick={onMenuClick}
+                    >
+                        <Menu className="w-6 h-6" />
+                    </button>
+                    {/* Logo or other left content if needed */}
                 </div>
 
                 <div className="flex items-center gap-3">

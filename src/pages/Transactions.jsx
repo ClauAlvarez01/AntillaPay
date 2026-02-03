@@ -1203,82 +1203,84 @@ export default function TransactionsPage() {
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-gray-50/60">
-                                            <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cliente</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Moneda</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Método</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Referencia</TableHead>
-                                            <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Origen</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredPayments.map((payment) => {
-                                            const customerLabel = payment.customer?.name || payment.email || "—";
-                                            const customerId = payment.customer?.id;
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-gray-50/60">
+                                                <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cliente</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Moneda</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Método</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Referencia</TableHead>
+                                                <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Origen</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredPayments.map((payment) => {
+                                                const customerLabel = payment.customer?.name || payment.email || "—";
+                                                const customerId = payment.customer?.id;
 
-                                            return (
-                                                <TableRow
-                                                    key={payment.id}
-                                                    className="border-b border-gray-100 last:border-b-0"
-                                                >
-                                                    <TableCell className="px-6 py-4">
-                                                        <div className="space-y-0.5">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (!customerId) return;
-                                                                    navigate(`/dashboard/customers/${customerId}`, { state: { customer: payment.customer } });
-                                                                }}
+                                                return (
+                                                    <TableRow
+                                                        key={payment.id}
+                                                        className="border-b border-gray-100 last:border-b-0"
+                                                    >
+                                                        <TableCell className="px-6 py-4">
+                                                            <div className="space-y-0.5">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (!customerId) return;
+                                                                        navigate(`/dashboard/customers/${customerId}`, { state: { customer: payment.customer } });
+                                                                    }}
+                                                                    className={cn(
+                                                                        "text-left text-[13px] font-semibold",
+                                                                        customerId
+                                                                            ? "text-[#32325d] hover:text-[#635bff]"
+                                                                            : "text-[#32325d]"
+                                                                    )}
+                                                                >
+                                                                    {customerLabel}
+                                                                </button>
+                                                                <div className="text-[12px] text-[#8792a2]">{payment.email}</div>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                            {formatDate(payment.createdAt)}
+                                                        </TableCell>
+                                                        <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
+                                                            {formatCurrency(payment.amount, payment.currency)}
+                                                        </TableCell>
+                                                        <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                            {payment.currency}
+                                                        </TableCell>
+                                                        <TableCell className="py-4">
+                                                            <span
                                                                 className={cn(
-                                                                    "text-left text-[13px] font-semibold",
-                                                                    customerId
-                                                                        ? "text-[#32325d] hover:text-[#635bff]"
-                                                                        : "text-[#32325d]"
+                                                                    "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                                    PAYMENT_STATUS_STYLES[payment.status] || "bg-gray-50 text-gray-600 border-gray-200"
                                                                 )}
                                                             >
-                                                                {customerLabel}
-                                                            </button>
-                                                            <div className="text-[12px] text-[#8792a2]">{payment.email}</div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                        {formatDate(payment.createdAt)}
-                                                    </TableCell>
-                                                    <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
-                                                        {formatCurrency(payment.amount, payment.currency)}
-                                                    </TableCell>
-                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                        {payment.currency}
-                                                    </TableCell>
-                                                    <TableCell className="py-4">
-                                                        <span
-                                                            className={cn(
-                                                                "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                                                                PAYMENT_STATUS_STYLES[payment.status] || "bg-gray-50 text-gray-600 border-gray-200"
-                                                            )}
-                                                        >
-                                                            {payment.status}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                        {payment.method}
-                                                    </TableCell>
-                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                        {payment.reference}
-                                                    </TableCell>
-                                                    <TableCell className="pr-6 py-4 text-[13px] text-[#4f5b76]">
-                                                        {payment.origin}
-                                                    </TableCell>
-                                                </TableRow>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
+                                                                {payment.status}
+                                                            </span>
+                                                        </TableCell>
+                                                        <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                            {payment.method}
+                                                        </TableCell>
+                                                        <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                            {payment.reference}
+                                                        </TableCell>
+                                                        <TableCell className="pr-6 py-4 text-[13px] text-[#4f5b76]">
+                                                            {payment.origin}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -1475,52 +1477,54 @@ export default function TransactionsPage() {
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-gray-50/60">
-                                            <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cuenta destino</TableHead>
-                                            <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">ID de payout</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredTransfers.map((transfer) => (
-                                            <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
-                                                <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
-                                                    {formatDate(transfer.date)}
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
-                                                    {formatCurrency(transfer.amount, transfer.currency || "USD")}
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <span
-                                                        className={cn(
-                                                            "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                                                            TRANSFER_STATUS_STYLES[transfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
-                                                        )}
-                                                    >
-                                                        {transfer.status}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                    {transfer.destination || "—"}
-                                                </TableCell>
-                                                <TableCell className="pr-6 py-4 text-[13px] font-semibold text-[#32325d]">
-                                                    {transfer.id}
-                                                </TableCell>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-gray-50/60">
+                                                <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cuenta destino</TableHead>
+                                                <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">ID de payout</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredTransfers.map((transfer) => (
+                                                <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
+                                                    <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
+                                                        {formatDate(transfer.date)}
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
+                                                        {formatCurrency(transfer.amount, transfer.currency || "USD")}
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <span
+                                                            className={cn(
+                                                                "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                                TRANSFER_STATUS_STYLES[transfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                                                            )}
+                                                        >
+                                                            {transfer.status}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
+                                                        {transfer.destination || "—"}
+                                                    </TableCell>
+                                                    <TableCell className="pr-6 py-4 text-[13px] font-semibold text-[#32325d]">
+                                                        {transfer.id}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </div>
                         )}
                     </div>
                 </>
             )}
             <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
-                <DialogContent className="sm:max-w-[560px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                <DialogContent className="w-[95%] sm:max-w-[560px] rounded-3xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl [&>button]:hidden">
                     {selectedTransfer && (
                         <div className="p-8 space-y-6">
                             <div className="flex items-start justify-between gap-4">
@@ -1641,7 +1645,7 @@ export default function TransactionsPage() {
             </Dialog>
 
             <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
-                <DialogContent className="sm:max-w-[520px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                <DialogContent className="w-[95%] sm:max-w-[520px] rounded-3xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl [&>button]:hidden">
                     <div className="p-8 space-y-6">
                         <div className="flex items-start justify-between gap-4">
                             <div>

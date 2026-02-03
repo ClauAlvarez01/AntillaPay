@@ -94,7 +94,7 @@ export default function ExportCustomersModal({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="sm:max-w-[600px] rounded-2xl border border-gray-200 p-0 [&>button]:hidden"
+                className="w-[95%] sm:max-w-[600px] rounded-2xl border border-gray-200 p-0 max-h-[85vh] overflow-y-auto [&>button]:hidden"
                 aria-labelledby="export-customers-title"
                 aria-describedby="export-customers-description"
             >

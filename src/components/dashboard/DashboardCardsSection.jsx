@@ -56,7 +56,7 @@ const getDeltaMeta = (current, previous) => {
 };
 
 const CardShell = ({ children, className }) => (
-    <div className={cn("bg-white border border-gray-100 rounded-xl p-6 shadow-sm h-full", className)}>
+    <div className={cn("bg-white border border-gray-100 rounded-xl p-6 shadow-sm h-full overflow-hidden", className)}>
         {children}
     </div>
 );
@@ -185,13 +185,13 @@ const MetricCard = ({
         )}
         {status === "ready" && (
             <div className="mt-4 flex flex-1 flex-col">
-                <div className="text-[26px] font-semibold text-[#32325d]">{value}</div>
+                <div className="text-[20px] sm:text-[26px] font-semibold text-[#32325d] truncate" title={value}>{value}</div>
                 <CardDelta delta={delta} />
                 <div className="mt-6 space-y-3">
                     {items.map((item) => (
-                        <div key={item.label} className="flex items-center justify-between text-[12px] text-[#4f5b76]">
-                            <span>{item.label}</span>
-                            <span className="font-semibold text-[#32325d]">{item.value}</span>
+                        <div key={item.label} className="flex items-center justify-between text-[12px] text-[#4f5b76] gap-2">
+                            <span className="truncate flex-1">{item.label}</span>
+                            <span className="font-semibold text-[#32325d] shrink-0">{item.value}</span>
                         </div>
                     ))}
                 </div>
@@ -267,13 +267,13 @@ const ListCard = ({
             )}
             {status === "ready" && (
                 <div className="mt-4 flex flex-1 flex-col">
-                    <div className="text-[26px] font-semibold text-[#32325d]">{value}</div>
+                    <div className="text-[20px] sm:text-[26px] font-semibold text-[#32325d] truncate" title={value}>{value}</div>
                     <CardDelta delta={delta} />
                     <div className="mt-6 space-y-4">
                         {items.map((item) => (
                             <div key={item.label} className="flex items-center justify-between gap-4">
-                                <div className="flex-1">
-                                    <div className="text-[13px] font-semibold text-[#32325d]">{item.label}</div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-[13px] font-semibold text-[#32325d] truncate" title={item.label}>{item.label}</div>
                                     <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
                                         <div
                                             className="h-full rounded-full bg-[#635bff]"
@@ -283,7 +283,7 @@ const ListCard = ({
                                         />
                                     </div>
                                 </div>
-                                <div className="text-[12px] font-semibold text-[#32325d]">{item.value}</div>
+                                <div className="text-[12px] font-semibold text-[#32325d] shrink-0">{item.value}</div>
                             </div>
                         ))}
                     </div>
@@ -453,14 +453,14 @@ const TopProductsCard = ({
             {status === "ready" && (
                 <div className="mt-4 flex flex-1 flex-col">
                     <div className="text-[13px] text-[#697386]">Total del periodo</div>
-                    <div className="text-[22px] font-semibold text-[#32325d]">{formatUsd(total)}</div>
+                    <div className="text-[18px] sm:text-[22px] font-semibold text-[#32325d] truncate" title={formatUsd(total)}>{formatUsd(total)}</div>
                     <div className="mt-6 space-y-4">
                         {items.map((item) => (
                             <div key={item.productId} className="flex items-center justify-between gap-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between text-[13px] text-[#32325d] font-semibold">
-                                        <span>{item.name}</span>
-                                        <span>{formatUsd(item.total)}</span>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between text-[13px] text-[#32325d] font-semibold gap-2">
+                                        <span className="truncate">{item.name}</span>
+                                        <span className="shrink-0">{formatUsd(item.total)}</span>
                                     </div>
                                     <div className="mt-2 flex items-center gap-3">
                                         <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
@@ -471,7 +471,7 @@ const TopProductsCard = ({
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-[11px] text-[#8792a2] font-semibold">
+                                        <span className="text-[11px] text-[#8792a2] font-semibold shrink-0">
                                             {formatPercent(item.percent)}
                                         </span>
                                     </div>

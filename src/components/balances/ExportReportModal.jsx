@@ -41,7 +41,7 @@ export default function ExportReportModal({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="sm:max-w-[500px] rounded-2xl border border-gray-200 p-0 [&>button]:hidden"
+                className="w-[95%] sm:max-w-[500px] rounded-2xl border border-gray-200 p-0 max-h-[85vh] overflow-y-auto [&>button]:hidden"
             >
                 <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
                     <div>
