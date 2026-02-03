@@ -12,13 +12,13 @@ export default function Settings() {
         {
           icon: User,
           title: 'Datos personales',
-          description: 'Información de contacto, contraseña, métodos de autenticación y sesiones activas.',
+          description: 'Nombre, correo electrónico, teléfono, idioma, conexión con Google y sesiones activas.',
           path: '/dashboard/settings/personal-data'
         },
         {
           icon: Mail,
           title: 'Preferencias de comunicación',
-          description: 'Personaliza los correos, los SMS y las notificaciones push que recibas.',
+          description: 'Notificaciones por correo electrónico sobre cuenta, transacciones y eventos de API.',
           path: '/dashboard/settings/communication'
         }
       ]
@@ -29,13 +29,13 @@ export default function Settings() {
         {
           icon: Building2,
           title: 'Empresa',
-          description: 'Datos de la cuenta, estado de la cuenta, información pública, transferencias, entidad jurídica, domicilios personalizados y mucho más.',
+          description: 'Datos de la cuenta, empresa, cuentas bancarias, información fiscal y saldo mínimo.',
           path: '/dashboard/settings/business'
         },
         {
           icon: Shield,
           title: 'Seguridad',
-          description: 'Autenticación de dos factores, contraseña, correo electrónico, teléfono y datos de la empresa.',
+          description: 'Autenticación de dos factores y configuración de seguridad de la cuenta.',
           path: '/dashboard/settings/team-security'
         },
               ]
@@ -46,13 +46,13 @@ export default function Settings() {
         {
           icon: Receipt,
           title: 'Facturación',
-          description: 'Suscripciones, facturas, presupuestos y portal de clientes.',
+          description: 'Configuración de facturas, numeración, condiciones de pago y envío por correo.',
           path: '/dashboard/settings/billing'
         },
         {
           icon: CreditCard,
           title: 'Pagos',
-          description: 'Proceso de compra, métodos de pago, conversión de divisas y más.',
+          description: 'Checkout y payment links, métodos de pago habilitados y configuración básica.',
           path: '/dashboard/settings/payments'
         },
               ]

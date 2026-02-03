@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    HelpCircle,
     MoreHorizontal,
     Plus,
     Settings,
@@ -66,7 +65,7 @@ const ActionMenu = ({ onAddProduct, onCreatePaymentLink }) => (
     </DropdownMenu>
 );
 
-const OverflowMenu = ({ onHelp, onSettings, onGuide }) => (
+const OverflowMenu = ({ onSettings, onGuide }) => (
     <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <button
@@ -79,7 +78,6 @@ const OverflowMenu = ({ onHelp, onSettings, onGuide }) => (
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[220px]">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={onHelp}>Ayuda</DropdownMenuItem>
             <DropdownMenuItem onSelect={onSettings}>Configuracion</DropdownMenuItem>
             <DropdownMenuItem onSelect={onGuide}>Guia de configuracion</DropdownMenuItem>
         </DropdownMenuContent>
@@ -213,9 +211,6 @@ export default function DashboardHeader({
                 <div className="flex items-center gap-3">
                     <ActionMenu onAddProduct={onAddProduct} onCreatePaymentLink={onCreatePaymentLink} />
                     <div className="hidden md:flex items-center gap-2">
-                        <IconButton label="Ayuda" onClick={onHelp}>
-                            <HelpCircle className="h-5 w-5" />
-                        </IconButton>
                         <IconButton label="Configuracion" onClick={onSettings}>
                             <Settings className="h-5 w-5" />
                         </IconButton>
@@ -235,7 +230,6 @@ export default function DashboardHeader({
                     </div>
                     <div className="md:hidden">
                         <OverflowMenu
-                            onHelp={onHelp}
                             onSettings={onSettings}
                             onGuide={onGuide}
                         />

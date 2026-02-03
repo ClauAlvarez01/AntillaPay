@@ -64,7 +64,11 @@ export default function TeamSecurity() {
                 <div className="text-sm text-gray-500 mb-4">
                   Estado: <span className="text-gray-900">No configurada</span>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/dashboard/settings/personal-data')}
+                >
                   Establecer contraseña
                 </Button>
               </div>
@@ -94,7 +98,11 @@ export default function TeamSecurity() {
                       Verificado
                     </span>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/dashboard/settings/personal-data')}
+                  >
                     Añadir correo secundario
                   </Button>
                 </div>
@@ -118,7 +126,11 @@ export default function TeamSecurity() {
                 <div className="text-sm text-gray-500 mb-4">
                   No configurado
                 </div>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/dashboard/settings/personal-data')}
+                >
                   Agregar número de teléfono
                 </Button>
               </div>
@@ -155,7 +167,7 @@ export default function TeamSecurity() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate('/activate-account')}
+                  onClick={() => navigate('/dashboard/settings/business')}
                 >
                   Completar datos
                 </Button>

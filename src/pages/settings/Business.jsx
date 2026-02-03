@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,16 @@ export default function Business() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('account-data');
   const [copiedAccountId, setCopiedAccountId] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [minBalanceEnabled, setMinBalanceEnabled] = useState(false);
   const [minBalanceAmount, setMinBalanceAmount] = useState('0');
   const [minBalanceCurrency, setMinBalanceCurrency] = useState('USD');
+  const [savedMinBalance, setSavedMinBalance] = useState({
+    enabled: false,
+    amount: '0',
+    currency: 'USD'
+  });
 
   const tabs = [
     { id: 'account-data', label: 'Datos de la cuenta' },
@@ -26,6 +33,89 @@ export default function Business() {
     navigator.clipboard.writeText('acct_1SwSXaGWDQetCMoN');
     setCopiedAccountId(true);
     setTimeout(() => setCopiedAccountId(false), 2000);
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('antillapay.minBalance');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+
+      const next = {
+        enabled: Boolean(parsed.enabled),
+        amount: typeof parsed.amount === 'string' ? parsed.amount : '0',
+        currency: typeof parsed.currency === 'string' ? parsed.currency : 'USD'
+      };
+
+      setSavedMinBalance(next);
+      setMinBalanceEnabled(next.enabled);
+      setMinBalanceAmount(next.amount);
+      setMinBalanceCurrency(next.currency);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('antillapay.phoneVerification');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+
+      setPhoneNumber(typeof parsed.phoneNumber === 'string' ? parsed.phoneNumber : '');
+      setPhoneVerified(Boolean(parsed.verified));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleVerifyPhone = () => {
+    const trimmed = phoneNumber.trim();
+    if (!trimmed) return;
+    setPhoneVerified(true);
+    try {
+      localStorage.setItem(
+        'antillapay.phoneVerification',
+        JSON.stringify({ phoneNumber: trimmed, verified: true })
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleEditPhone = () => {
+    setPhoneVerified(false);
+    try {
+      localStorage.setItem(
+        'antillapay.phoneVerification',
+        JSON.stringify({ phoneNumber: phoneNumber.trim(), verified: false })
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleCancelMinBalance = () => {
+    setMinBalanceEnabled(savedMinBalance.enabled);
+    setMinBalanceAmount(savedMinBalance.amount);
+    setMinBalanceCurrency(savedMinBalance.currency);
+  };
+
+  const handleSaveMinBalance = () => {
+    const next = {
+      enabled: Boolean(minBalanceEnabled),
+      amount: minBalanceAmount,
+      currency: minBalanceCurrency
+    };
+
+    setSavedMinBalance(next);
+    try {
+      localStorage.setItem('antillapay.minBalance', JSON.stringify(next));
+    } catch {
+      // ignore
+    }
   };
 
   return (
@@ -122,9 +212,38 @@ export default function Business() {
               <p className="text-sm text-gray-600 mb-4">
                 Debes verificar tu número de teléfono a través de un SMS para procesar pagos desde el Dashboard. Tu número no será visible públicamente.
               </p>
-              <Button variant="outline" className="text-sm">
-                Verificar ahora
-              </Button>
+              <div className="max-w-md space-y-3">
+                <div>
+                  <Label className="text-sm font-medium text-gray-900 mb-2">Número de teléfono</Label>
+                  <Input
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="text-sm"
+                    placeholder="+53 5 1234 5678"
+                    disabled={phoneVerified}
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  {phoneVerified && (
+                    <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
+                      Verificado
+                    </span>
+                  )}
+                  {phoneVerified ? (
+                    <Button variant="outline" className="text-sm" onClick={handleEditPhone}>
+                      Editar
+                    </Button>
+                  ) : (
+                    <Button
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                      onClick={handleVerifyPhone}
+                      disabled={!phoneNumber.trim()}
+                    >
+                      Verificar ahora
+                    </Button>
+                  )}
+                </div>
+              </div>
             </section>
           </div>
         )}
@@ -215,7 +334,11 @@ export default function Business() {
                     </span>
                   </div>
                 </div>
-                <Button variant="outline" className="mt-4 text-sm">
+                <Button
+                  variant="outline"
+                  className="mt-4 text-sm"
+                  onClick={() => navigate('/activate-account', { state: { targetStep: 6 } })}
+                >
                   Añadir cuenta bancaria
                 </Button>
               </div>
@@ -269,7 +392,11 @@ export default function Business() {
                               </div>
                             </div>
 
-                            <button className="mt-2 text-xs text-gray-500 hover:text-gray-700">
+                            <button
+                              type="button"
+                              className="mt-2 text-xs text-gray-400 cursor-not-allowed"
+                              disabled
+                            >
                               + Añade otra divisa
                             </button>
                           </div>
@@ -279,12 +406,13 @@ export default function Business() {
                   </div>
 
                   <div className="border-t border-gray-100 px-6 py-4 flex justify-end gap-3">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={handleCancelMinBalance}>
                       Cancelar
                     </Button>
                     <Button
                       size="sm"
                       className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                      onClick={handleSaveMinBalance}
                     >
                       Guardar
                     </Button>

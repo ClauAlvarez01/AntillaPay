@@ -68,7 +68,6 @@ export default function Communication() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Preferencias de comunicación</h1>
-          <p className="text-sm text-gray-600">Tus preferencias de comunicación solo se aplicarán a Entorno de prueba de New business.</p>
         </div>
 
         {/* Tabs */}
