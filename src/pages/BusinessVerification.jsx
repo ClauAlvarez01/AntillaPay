@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Check, Search, Building2, ArrowRight, ShieldCheck, FileText, AlertCircle, Mail } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronDown, Check, Search, Building2, ArrowRight, ShieldCheck, FileText, AlertCircle, Mail } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useBusinessVerification } from '@/hooks/useBusinessVerification';
@@ -814,7 +814,7 @@ const BankDataStep = ({ bankData, updateBankData, onManualInput }) => (
                 </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {['CHASE', 'Bank of America', 'WELLS FARGO', 'Capital One', 'NAVY FEDERAL', 'us bank', 'PNC', 'USAA', 'TD Bank', 'TRUIST', 'Huntington', 'MERCURY'].map((bank) => (
                     <div
                         key={bank}
@@ -845,7 +845,7 @@ const ManualBankModal = ({ isOpen, onClose, bankData, updateBankData, onSave }) 
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a2540]/20 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-[440px] overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-white rounded-xl shadow-xl w-[95%] max-w-[440px] overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-[#635bff] rounded flex items-center justify-center text-white font-bold text-[14px]">
@@ -1219,7 +1219,7 @@ const ExitConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
 
     return (
         <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-lg shadow-xl w-[95%] max-w-md p-6 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center flex-shrink-0">
                         <AlertCircle className="w-5 h-5 text-yellow-600" />
@@ -1308,7 +1308,7 @@ const EmailVerificationModal = ({ isOpen, onClose, securityData, updateSecurityD
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a2540]/20 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-[480px] overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-white rounded-xl shadow-xl w-[95%] max-w-[480px] overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                     <h3 className="text-[18px] font-bold text-[#32325d]">
                         {step === 1 && 'Configurar autenticación'}
@@ -1490,7 +1490,7 @@ const SidebarNavigation = ({ currentStep, completedSteps, onStepClick, maxReache
     };
 
     return (
-        <div className="w-[280px] bg-white border-r border-gray-200 h-screen flex flex-col">
+        <div className="hidden lg:flex w-[280px] bg-white border-r border-gray-200 h-screen flex-col">
             <div className="p-6 border-b border-gray-100">
                 <h2 className="text-[18px] font-semibold text-[#32325d]">Activa tu cuenta</h2>
             </div>
@@ -1682,6 +1682,20 @@ export default function BusinessVerification() {
         navigate('/dashboard');
     };
 
+    const getStepTitle = (step) => {
+        switch (step) {
+            case 1: return "Datos fiscales";
+            case 2: return "Datos de la empresa";
+            case 3: return "Representante de la empresa";
+            case 4: return "Productos y servicios";
+            case 5: return "Datos públicos";
+            case 6: return "Añade tu banco";
+            case 7: return "Asegura tu cuenta";
+            case 8: return "Revisar y enviar";
+            default: return "";
+        }
+    };
+
     return (
         <div className="flex h-screen bg-white">
             {/* Sidebar */}
@@ -1694,8 +1708,52 @@ export default function BusinessVerification() {
 
             {/* Main content */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header */}
-                <div className="px-8 py-4 border-b border-gray-100 flex items-center justify-end">
+                {/* Mobile Header with Progress */}
+                <div className="lg:hidden bg-white border-b border-gray-100 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            {currentStep > 1 && (
+                                <button
+                                    onClick={() => goToStep(currentStep - 1)}
+                                    className="p-1 -ml-2 text-gray-400 hover:text-[#32325d] transition-colors"
+                                >
+                                    <ChevronLeft className="w-6 h-6" />
+                                </button>
+                            )}
+                            {currentStep < 8 && (
+                                <button
+                                    onClick={handleContinue}
+                                    className="p-1 -ml-2 text-gray-400 hover:text-[#32325d] transition-colors"
+                                >
+                                    <ChevronRight className="w-6 h-6" />
+                                </button>
+                            )}
+                            <div className="flex flex-col">
+                                <span className="text-[11px] font-semibold text-[#635bff] uppercase tracking-wide">
+                                    Paso {currentStep} de 8
+                                </span>
+                                <h2 className="text-[15px] font-bold text-[#32325d]">
+                                    {getStepTitle(currentStep)}
+                                </h2>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleClose}
+                            className="text-gray-400 hover:text-gray-600 p-1 bg-gray-50 rounded-full"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-[#635bff] transition-all duration-300 ease-out"
+                            style={{ width: `${(currentStep / 8) * 100}%` }}
+                        />
+                    </div>
+                </div>
+
+                {/* Desktop Header */}
+                <div className="hidden lg:flex px-8 py-4 border-b border-gray-100 items-center justify-end">
                     <button
                         onClick={handleClose}
                         className="text-gray-400 hover:text-gray-600 transition-colors p-1"
@@ -1706,7 +1764,7 @@ export default function BusinessVerification() {
 
                 {/* Content area */}
                 <div className="flex-1 overflow-y-auto">
-                    <div className="max-w-[680px] mx-auto px-8 py-8">
+                    <div className="max-w-[680px] mx-auto px-4 py-6 lg:px-8 lg:py-8">
                         {currentStep === 1 && (
                             <TaxDataStep
                                 taxData={taxData}
@@ -1778,7 +1836,7 @@ export default function BusinessVerification() {
                 </div>
 
                 {/* Footer with Continue button */}
-                <div className="px-8 py-6 border-t border-gray-100">
+                <div className="px-4 py-4 lg:px-8 lg:py-6 border-t border-gray-100 bg-white">
                     <div className="max-w-[680px] mx-auto flex justify-end">
                         <button
                             onClick={handleContinue}

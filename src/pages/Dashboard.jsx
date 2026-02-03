@@ -78,6 +78,8 @@ import RadarSettings from "./settings/RadarSettings";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
+    // Added specific mobile handling hook or logic here if needed for submenus
+
 
     return (
         <div className="w-full">
@@ -144,11 +146,11 @@ const CopyableKey = ({ label, value }) => {
     return (
         <div>
             <div className="text-[11px] text-[#697386] mb-1">{label}</div>
-            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5 border border-gray-200">
-                <code className="text-[11px] font-mono text-[#32325d]">{value}</code>
+            <div className="flex items-center justify-between bg-white rounded px-2 py-1.5 border border-gray-200 min-w-0">
+                <code className="text-[11px] font-mono text-[#32325d] truncate mr-2" title={value}>{value}</code>
                 <button
                     onClick={handleCopy}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-gray-400 hover:text-gray-600 transition-colors shrink-0"
                     title={copied ? "¡Copiado!" : "Copiar al portapapeles"}
                 >
                     <Clipboard className="w-3.5 h-3.5" />
@@ -431,6 +433,10 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
     const menuRef = useRef(null);
     const renameInputRef = useRef(null);
     const exportTimerRef = useRef(null);
+
+    // Sidebar state
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
 
     const exportColumns = ["ID", "Fecha de creación", "Estado", "Moneda", "URL", "Nombre"];
     const exportRangeOptions = [
@@ -2172,9 +2178,18 @@ export default function Dashboard() {
     const location = useLocation();
     const [environment] = useState("test");
     const [showOnboarding, setShowOnboarding] = useState(true);
-    const [showOnboardingBanner, setShowOnboardingBanner] = useState(true);
+    const [showOnboardingBanner, setShowOnboardingBanner] = useState(() => {
+        if (typeof window === "undefined") return true;
+        const hasShown = window.sessionStorage.getItem("antillapay_onboarding_shown");
+        if (!hasShown) {
+            window.sessionStorage.setItem("antillapay_onboarding_shown", "true");
+            return true;
+        }
+        return false;
+    });
     const [isGuideCollapsed, setIsGuideCollapsed] = useState(false);
     const [isHeaderElevated, setIsHeaderElevated] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const contentRef = useRef(null);
     const [completedTasks, setCompletedTasks] = useState(() => {
         if (typeof window === "undefined") return [];
@@ -2891,9 +2906,9 @@ export default function Dashboard() {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 12 }}
-                        className="fixed inset-x-0 bottom-0 h-[320px] bg-gradient-to-br from-[#f2edff] via-[#d8c3ff] to-[#bfe8ff] z-[101] pointer-events-none"
+                        className="fixed inset-x-0 bottom-0 h-auto min-h-[280px] md:h-[320px] bg-gradient-to-br from-[#f2edff] via-[#d8c3ff] to-[#bfe8ff] z-[101] pointer-events-none"
                     >
-                        <div className="h-full max-w-6xl mx-auto px-10 pb-10 flex items-end">
+                        <div className="h-full max-w-6xl mx-auto px-6 md:px-10 pb-10 flex items-end">
                             <div className="max-w-[420px]">
                                 <h2 className="text-[28px] leading-tight font-semibold text-[#32325d]">
                                     A continuación, verifica tu empresa
@@ -2917,9 +2932,22 @@ export default function Dashboard() {
                 environment={environment}
                 onRequestLive={handleRequestLive}
             />
-            <div className="flex flex-1 min-h-0">
+            <div className="flex flex-1 min-h-0 relative">
+                {/* Mobile Sidebar Backdrop */}
+                {isSidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                )}
+
                 {/* Sidebar */}
-                <aside className="w-[280px] bg-white border-r border-gray-200 flex flex-col z-30">
+                <aside
+                    className={cn(
+                        "fixed inset-y-0 left-0 w-[280px] bg-white border-r border-gray-200 flex flex-col z-50 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
+                        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    )}
+                >
                     <div className="p-4 mb-4">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -2942,7 +2970,7 @@ export default function Dashboard() {
                                 </div>
 
                                 <div className="px-2 pb-4 pt-1">
-                                    <button 
+                                    <button
                                         onClick={() => setIsExitModalOpen(true)}
                                         className="w-full border border-gray-200 rounded-lg bg-white text-[13px] font-medium text-[#8898aa] py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-all"
                                     >
@@ -2958,7 +2986,7 @@ export default function Dashboard() {
                                         <Settings className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
                                         <span className="text-[14px] font-medium">Configuración</span>
                                     </button>
-                                    </div>
+                                </div>
 
                                 <DropdownMenuSeparator className="my-2 bg-gray-100" />
 
@@ -2968,8 +2996,13 @@ export default function Dashboard() {
                                         <span className="text-[14px] font-medium">{currentUser.name}</span>
                                     </div>
 
-                                    <button 
-                                        onClick={() => navigate("/login")}
+                                    <button
+                                        onClick={() => {
+                                            if (typeof window !== "undefined") {
+                                                window.sessionStorage.removeItem("antillapay_onboarding_shown");
+                                            }
+                                            navigate("/login");
+                                        }}
                                         className="w-full h-10 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors text-left mt-0.5 group"
                                     >
                                         <LogOut className="w-4 h-4 text-[#8898aa] group-hover:text-red-500 transition-colors" />
@@ -3046,6 +3079,7 @@ export default function Dashboard() {
                         onGuide={handleGuide}
                         showGuideButton={!showOnboarding && !showOnboardingBanner}
                         guideProgress={progressPercent}
+                        onMenuClick={() => setIsSidebarOpen(true)}
                     />
 
                     {/* Content Area */}
@@ -3061,8 +3095,8 @@ export default function Dashboard() {
                                 activeView === "saldos" ||
                                 activeView === "transactions" ||
                                 activeView === "settings"
-                                ? "p-8 bg-white"
-                                : "p-10"
+                                ? "p-4 md:p-8 bg-white"
+                                : "p-4 md:p-10"
                         )}
                     >
                         <div
@@ -3126,7 +3160,7 @@ export default function Dashboard() {
                                             {/* Left Side - Chart and Stats */}
                                             <div className="flex-1">
                                                 {/* Top Stats Row */}
-                                                <div className="grid grid-cols-2 gap-10 mb-6">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-10 mb-6">
                                                     <div className="metric-dropdown relative">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <button
@@ -3262,7 +3296,7 @@ export default function Dashboard() {
 
                                                 {/* Bottom Stats Row */}
                                                 <div className="border-t border-gray-100 pt-6">
-                                                    <div className="grid grid-cols-2 gap-16">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-16">
                                                         <div className="flex items-start justify-between">
                                                             <div>
                                                                 <div className="text-[13px] text-[#32325d] mb-1">Saldo en USD</div>
@@ -3321,8 +3355,8 @@ export default function Dashboard() {
                                         <div className="mt-20">
                                             <h2 className="text-[22px] font-bold text-[#32325d] mb-6">Resumen de Movimientos</h2>
 
-                                            <div className="flex items-center justify-between mb-8">
-                                                <div className="flex items-center gap-2">
+                                            <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+                                                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                                     {/* Intervalo de fechas */}
                                                     <div className="relative">
                                                         <button
@@ -3346,7 +3380,7 @@ export default function Dashboard() {
                                                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 p-6 z-[120] w-[700px]"
+                                                                    className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 p-4 md:p-6 z-[120] w-[calc(100vw-32px)] max-w-[700px] md:w-[700px]"
                                                                 >
                                                                     <div className="flex gap-8">
                                                                         {/* Left Sidebar */}
@@ -3772,19 +3806,19 @@ export default function Dashboard() {
 
             {/* Exit Test Mode Modal */}
             <Dialog open={isExitModalOpen} onOpenChange={setIsExitModalOpen}>
-                <DialogContent className="sm:max-w-[580px] rounded-2xl p-8">
+                <DialogContent className="w-[95%] sm:max-w-[580px] rounded-2xl p-5 sm:p-8">
                     <DialogHeader>
-                        <DialogTitle className="text-[32px] font-bold text-[#32325d] leading-tight mb-4">
+                        <DialogTitle className="text-[20px] sm:text-[32px] font-bold text-[#32325d] leading-tight mb-3 sm:mb-4">
                             Verifica tu empresa para salir del entorno de prueba
                         </DialogTitle>
-                        <DialogDescription className="text-[16px] text-[#4f5b76] leading-relaxed">
+                        <DialogDescription className="text-[13px] sm:text-[16px] text-[#4f5b76] leading-relaxed">
                             Debes verificar tu empresa para poder acceder a tu cuenta activa y comenzar a aceptar pagos reales.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex gap-3 mt-6">
+                    <div className="flex gap-3 mt-5 sm:mt-6">
                         <button
                             onClick={() => setIsExitModalOpen(false)}
-                            className="flex-1 rounded-lg border border-gray-300 bg-white px-6 py-3 text-[15px] font-semibold text-[#32325d] hover:bg-gray-50 transition-colors"
+                            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 sm:px-6 sm:py-3 text-[13px] sm:text-[15px] font-semibold text-[#32325d] hover:bg-gray-50 transition-colors"
                         >
                             Quedarse en el entorno de prueba
                         </button>
@@ -3793,7 +3827,7 @@ export default function Dashboard() {
                                 navigate('/activate-account');
                                 setIsExitModalOpen(false);
                             }}
-                            className="flex-1 rounded-lg bg-[#635bff] px-6 py-3 text-[15px] font-semibold text-white hover:bg-[#5851e0] transition-colors"
+                            className="flex-1 rounded-lg bg-[#635bff] px-3 py-2 sm:px-6 sm:py-3 text-[13px] sm:text-[15px] font-semibold text-white hover:bg-[#5851e0] transition-colors"
                         >
                             Verificar empresa
                         </button>

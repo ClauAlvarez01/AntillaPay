@@ -548,7 +548,7 @@ export default function BalancesPage({ onOpenReport }) {
                     <h1>Saldos {formatCurrency(availableBalance)}</h1>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <Button
                         onClick={() => setIsTransferModalOpen(true)}
                         className="h-8 rounded-md bg-white border border-gray-200 text-[#32325d] text-[13px] font-semibold hover:bg-gray-50 flex items-center gap-1.5 shadow-sm"
@@ -666,8 +666,8 @@ export default function BalancesPage({ onOpenReport }) {
                                     Mostrando {filteredTransfers.length} extracciones
                                 </span>
                                 <Dialog open={isExportModalOpen} onOpenChange={setIsExportModalOpen}>
-                                    
-                                    <DialogContent className="sm:max-w-[600px] rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
+
+                                    <DialogContent className="w-[95%] sm:max-w-[600px] rounded-2xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl">
                                         <div className="p-6 space-y-6">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div>
@@ -767,35 +767,37 @@ export default function BalancesPage({ onOpenReport }) {
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-gray-50/60">
-                                            <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
-                                            <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredTransfers.map((transfer) => (
-                                            <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
-                                                <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
-                                                    {formatDate(transfer.date)}
-                                                </TableCell>
-                                                <TableCell className="py-4 text-[14px] font-semibold text-[#32325d]">
-                                                    {formatCurrency(transfer.amount)}
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={cn("rounded-full border text-[11px] font-semibold capitalize", STATUS_STYLES[transfer.status])}
-                                                    >
-                                                        {transfer.status}
-                                                    </Badge>
-                                                </TableCell>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-gray-50/60">
+                                                <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredTransfers.map((transfer) => (
+                                                <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
+                                                    <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
+                                                        {formatDate(transfer.date)}
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-[14px] font-semibold text-[#32325d]">
+                                                        {formatCurrency(transfer.amount)}
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className={cn("rounded-full border text-[11px] font-semibold capitalize", STATUS_STYLES[transfer.status])}
+                                                        >
+                                                            {transfer.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </div>
                         )}
                     </section>
@@ -808,7 +810,7 @@ export default function BalancesPage({ onOpenReport }) {
 
             {/* Modal: Transfer / Withdraw */}
             <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
-                <DialogContent className="sm:max-w-[480px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                <DialogContent className="w-[95%] sm:max-w-[480px] rounded-3xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl [&>button]:hidden">
                     <div className="p-8 space-y-8">
                         <div className="flex items-center justify-between">
                             <h2 className="text-[20px] font-bold text-[#32325d]">Extraer fondos</h2>
@@ -904,7 +906,7 @@ export default function BalancesPage({ onOpenReport }) {
 
             {/* Modal: Transfer Detail */}
             <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
-                <DialogContent className="sm:max-w-[560px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                <DialogContent className="w-[95%] sm:max-w-[560px] rounded-3xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl [&>button]:hidden">
                     {selectedTransfer && (
                         <div className="p-8 space-y-6">
                             <div className="flex items-start justify-between gap-4">
@@ -1026,7 +1028,7 @@ export default function BalancesPage({ onOpenReport }) {
 
             {/* Modal: Review Request */}
             <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
-                <DialogContent className="sm:max-w-[520px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                <DialogContent className="w-[95%] sm:max-w-[520px] rounded-3xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl [&>button]:hidden">
                     <div className="p-8 space-y-6">
                         <div className="flex items-start justify-between gap-4">
                             <div>
@@ -1081,7 +1083,7 @@ export default function BalancesPage({ onOpenReport }) {
 
             {/* Modal: Manage Bank Accounts */}
             <Dialog open={isManageBanksModalOpen} onOpenChange={setIsManageBanksModalOpen}>
-                <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl [&>button]:hidden">
+                <DialogContent className="w-[95%] sm:max-w-[500px] rounded-3xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl [&>button]:hidden">
                     <div className="p-8 space-y-6">
                         <div className="flex items-center justify-between">
                             <h2 className="text-[20px] font-bold text-[#32325d]">Cuentas bancarias</h2>
@@ -1171,7 +1173,7 @@ export default function BalancesPage({ onOpenReport }) {
 
             {/* Modal: Add Bank Account */}
             <Dialog open={isAddBankModalOpen} onOpenChange={setIsAddBankModalOpen}>
-                <DialogContent className="sm:max-w-[460px] rounded-3xl p-8 border-none shadow-2xl">
+                <DialogContent className="w-[95%] sm:max-w-[460px] rounded-3xl p-8 max-h-[85vh] overflow-y-auto border-none shadow-2xl">
                     <DialogHeader className="mb-6">
                         <DialogTitle className="text-[20px] font-bold text-[#32325d]">Añadir cuenta bancaria</DialogTitle>
                         <DialogDescription className="text-[14px] text-[#4f5b76]">
@@ -1222,7 +1224,7 @@ export default function BalancesPage({ onOpenReport }) {
 
             {/* Modal: Transfer Calendar */}
             <Dialog open={isCalendarModalOpen} onOpenChange={setIsCalendarModalOpen}>
-                <DialogContent className="sm:max-w-[540px] rounded-3xl p-8 border-none shadow-2xl overflow-hidden">
+                <DialogContent className="w-[95%] sm:max-w-[540px] rounded-3xl p-8 border-none shadow-2xl max-h-[85vh] overflow-y-auto">
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <h2 className="text-[22px] font-bold text-[#32325d]">Calendario de extracciones</h2>

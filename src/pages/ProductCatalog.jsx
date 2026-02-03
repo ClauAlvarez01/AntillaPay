@@ -1513,104 +1513,110 @@ export default function ProductCatalog() {
 
             <div className="mt-10">
                 {filteredProducts.length > 0 ? (
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[13px] font-semibold text-[#6b7280] border-b border-gray-200">
-                            <div>Producto</div>
-                            <div>Precio</div>
-                            <div>Estado</div>
-                            <div>Creación</div>
-                            <div />
-                        </div>
-                        {filteredProducts.map((product) => (
-                            <div
-                                key={product.id}
-                                className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
-                            >
-                                <div className="font-semibold">{product.name}</div>
-                                <div className="flex items-center gap-2 text-[#4f5b76]">
-                                    <span>{formatProductPrice(product)}</span>
-                                    {product.prices && product.prices.length > 1 && (
-                                        <span className="px-2 py-0.5 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
-                                            {product.prices.length} tarifas
-                                        </span>
-                                    )}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <div className="min-w-[800px]">
+                                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[13px] font-semibold text-[#6b7280] border-b border-gray-200">
+                                    <div>Producto</div>
+                                    <div>Precio</div>
+                                    <div>Estado</div>
+                                    <div>Creación</div>
+                                    <div />
                                 </div>
-                                <div className="text-[#4f5b76]">
-                                    <Badge
-                                        variant="outline"
-                                        className={cn("rounded-full border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
+                                {filteredProducts.map((product) => (
+                                    <div
+                                        key={product.id}
+                                        className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
                                     >
-                                        {product.status}
-                                    </Badge>
-                                </div>
-                                <div className="text-[#4f5b76]">{formatProductDate(product.createdAt)}</div>
-                                <div className="relative flex justify-end">
-                                    <button
-                                        type="button"
-                                        onClick={(event) => {
-                                            event.stopPropagation();
-                                            setOpenMenuId(openMenuId === product.id ? null : product.id);
-                                            setShowCopyHintId(null);
-                                        }}
-                                        className="text-[#aab2c4] text-lg leading-none hover:text-[#6b7280]"
-                                    >
-                                        ...
-                                    </button>
-                                    {openMenuId === product.id && (
-                                        <div
-                                            className="absolute right-0 top-6 z-20"
-                                            onClick={(event) => event.stopPropagation()}
-                                        >
-                                            <div
-                                                ref={menuRef}
-                                                className="w-64 rounded-xl border border-gray-200 bg-white shadow-xl"
-                                            >
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        navigate(`/dashboard/products/${product.id}`);
-                                                        setOpenMenuId(null);
-                                                    }}
-                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50 rounded-t-xl"
-                                                >
-                                                    Ver detalles
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        navigate("/dashboard/products/create", { state: { productToEdit: product } });
-                                                        setOpenMenuId(null);
-                                                    }}
-                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
-                                                >
-                                                    Editar producto
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        handleArchiveProduct(product.id);
-                                                        setOpenMenuId(null);
-                                                    }}
-                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
-                                                >
-                                                    {product.status === "Inactivo" ? "Activar producto" : "Inactivar producto"}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        handleDeleteProduct(product.id);
-                                                        setOpenMenuId(null);
-                                                    }}
-                                                    className="w-full text-left px-4 py-2.5 text-[14px] text-[#ef4444] hover:bg-red-50 rounded-b-xl"
-                                                >
-                                                    Eliminar producto
-                                                </button>
-                                            </div>
+                                        <div className="font-semibold">{product.name}</div>
+                                        <div className="flex items-center gap-2 text-[#4f5b76]">
+                                            <span>{formatProductPrice(product)}</span>
+                                            {product.prices && product.prices.length > 1 && (
+                                                <span className="px-2 py-0.5 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
+                                                    {product.prices.length} tarifas
+                                                </span>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
+                                        <div className="text-[#4f5b76]">
+                                            <Badge
+                                                variant="outline"
+                                                className={cn("rounded-full border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
+                                            >
+                                                {product.status}
+                                            </Badge>
+                                        </div>
+                                        <div className="text-[#4f5b76]">{formatProductDate(product.createdAt)}</div>
+                                        <div className="relative flex justify-end">
+                                            <button
+                                                type="button"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    setOpenMenuId(openMenuId === product.id ? null : product.id);
+                                                    setShowCopyHintId(null);
+                                                }}
+                                                className="text-[#aab2c4] text-lg leading-none hover:text-[#6b7280]"
+                                            >
+                                                ...
+                                            </button>
+                                            {openMenuId === product.id && (
+                                                <div
+                                                    className="absolute right-0 top-6 z-20"
+                                                    onClick={(event) => event.stopPropagation()}
+                                                >
+                                                    <div
+                                                        ref={menuRef}
+                                                        className="w-64 rounded-xl border border-gray-200 bg-white shadow-xl"
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                navigate(`/dashboard/products/${product.id}`);
+                                                                setOpenMenuId(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50 rounded-t-xl"
+                                                        >
+                                                            Ver detalles
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                navigate("/dashboard/products/create", { state: { productToEdit: product } });
+                                                                setOpenMenuId(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
+                                                        >
+                                                            Editar producto
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                handleArchiveProduct(product.id);
+                                                                setOpenMenuId(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2.5 text-[14px] text-[#32325d] hover:bg-gray-50"
+                                                        >
+                                                            {product.status === "Inactivo" ? "Activar producto" : "Inactivar producto"}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+                                                                    handleDeleteProduct(product.id);
+                                                                }
+                                                                setOpenMenuId(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2.5 text-[14px] text-rose-600 hover:bg-rose-50 rounded-b-xl"
+                                                        >
+                                                            Eliminar producto
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </div>
                     </div>
                 ) : totalCount === 0 ? (
                     <div className="flex flex-col items-center text-center gap-3 py-16">
@@ -1659,11 +1665,11 @@ export default function ProductCatalog() {
                         </Button>
                     </div>
                 )}
-            </div>
+            </div >
             {exportStep && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30 px-4">
                     {exportStep === "form" && (
-                        <div className="w-full max-w-[600px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                        <div className="w-[95%] sm:max-w-[600px] rounded-2xl bg-white shadow-2xl border border-gray-200 max-h-[85vh] overflow-y-auto">
                             <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
                                 <h3 className="text-[18px] font-semibold text-[#1a1f36]">{exportTitle}</h3>
                                 <button
@@ -1826,7 +1832,7 @@ export default function ProductCatalog() {
                     )}
 
                     {exportStep === "loading" && (
-                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                        <div className="w-[95%] sm:max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200 max-h-[85vh] overflow-y-auto">
                             <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
                                 <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
                                 <button
@@ -1855,7 +1861,7 @@ export default function ProductCatalog() {
                     )}
 
                     {exportStep === "empty" && (
-                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                        <div className="w-[95%] sm:max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200 max-h-[85vh] overflow-y-auto">
                             <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
                                 <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
                                 <button
@@ -1886,7 +1892,7 @@ export default function ProductCatalog() {
                     )}
 
                     {exportStep === "success" && (
-                        <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200">
+                        <div className="w-[95%] sm:max-w-[520px] rounded-2xl bg-white shadow-2xl border border-gray-200 max-h-[85vh] overflow-y-auto">
                             <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
                                 <h3 className="text-[18px] font-semibold text-[#1a1f36]">Exportar</h3>
                                 <button
@@ -1924,6 +1930,6 @@ export default function ProductCatalog() {
                     )}
                 </div>
             )}
-        </div>
+        </div >
     );
 }

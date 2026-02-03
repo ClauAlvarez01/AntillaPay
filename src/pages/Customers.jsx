@@ -551,7 +551,7 @@ export default function CustomersPage() {
             )}
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[460px]">
+                <DialogContent className="w-[95%] sm:max-w-[460px] max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Crear cliente</DialogTitle>
                         <DialogDescription>
