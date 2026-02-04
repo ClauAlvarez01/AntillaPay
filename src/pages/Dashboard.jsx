@@ -75,6 +75,12 @@ import BillingSettings from "./settings/BillingSettings";
 import PaymentsSettings from "./settings/PaymentsSettings";
 import FinancialConnectionsSettings from "./settings/FinancialConnectionsSettings";
 import RadarSettings from "./settings/RadarSettings";
+import DevelopersOverview from "@/pages/developers/DevelopersOverview";
+import DevelopersWebhooks from "@/pages/developers/DevelopersWebhooks";
+import DevelopersEvents from "@/pages/developers/DevelopersEvents";
+import DevelopersLogs from "@/pages/developers/DevelopersLogs";
+import DevelopersDocs from "@/pages/developers/DevelopersDocs";
+import DevelopersApiKeys from "@/pages/developers/DevelopersApiKeys";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -2398,9 +2404,17 @@ export default function Dashboard() {
             return;
         }
         if (path.startsWith("/dashboard")) {
-            setActiveView("home");
-            setSelectedProductId(null);
-            setSelectedCustomerId(null);
+            if (path.includes("/dashboard/developers/overview")) setActiveView("dev_resumen");
+            else if (path.includes("/dashboard/developers/webhooks")) setActiveView("dev_webhooks");
+            else if (path.includes("/dashboard/developers/events")) setActiveView("dev_eventos");
+            else if (path.includes("/dashboard/developers/logs")) setActiveView("dev_registros");
+            else if (path.includes("/dashboard/developers/docs")) setActiveView("dev_docs");
+            else if (path.includes("/dashboard/developers/keys")) setActiveView("dev_keys");
+            else {
+                setActiveView("home");
+                setSelectedProductId(null);
+                setSelectedCustomerId(null);
+            }
         }
     }, [location.pathname]);
 
@@ -2577,7 +2591,7 @@ export default function Dashboard() {
     };
     const currentUser = {
         name: "Clara Alvarez",
-        email: "clara@flowli.com"
+        email: "clara@antillapay.com"
     };
     const isTestMode = environment === "test";
     return (
@@ -3064,7 +3078,29 @@ export default function Dashboard() {
                     </nav>
 
                     <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-                        <SidebarItem icon={LayoutDashboard} label="Desarrolladores" />
+                        <SidebarItem
+                            icon={LayoutDashboard}
+                            label="Desarrolladores"
+                            hasSubmenu={true}
+                            active={activeView && activeView.startsWith("dev_")}
+                            subItems={["Resumen", "Webhooks", "Eventos", "Registros", "Documentación", "Claves de API"]}
+                            activeSubItem={
+                                activeView === "dev_resumen" ? "Resumen" :
+                                    activeView === "dev_webhooks" ? "Webhooks" :
+                                        activeView === "dev_eventos" ? "Eventos" :
+                                            activeView === "dev_registros" ? "Registros" :
+                                                activeView === "dev_docs" ? "Documentación" :
+                                                    activeView === "dev_keys" ? "Claves de API" : ""
+                            }
+                            onSubItemClick={(item) => {
+                                if (item === "Resumen") { setActiveView("dev_resumen"); navigate("/dashboard/developers/overview"); }
+                                if (item === "Webhooks") { setActiveView("dev_webhooks"); navigate("/dashboard/developers/webhooks"); }
+                                if (item === "Eventos") { setActiveView("dev_eventos"); navigate("/dashboard/developers/events"); }
+                                if (item === "Registros") { setActiveView("dev_registros"); navigate("/dashboard/developers/logs"); }
+                                if (item === "Documentación") { setActiveView("dev_docs"); navigate("/dashboard/developers/docs"); }
+                                if (item === "Claves de API") { setActiveView("dev_keys"); navigate("/dashboard/developers/keys"); }
+                            }}
+                        />
                     </div>
                 </aside>
                 {/* Main Content */}
@@ -3593,6 +3629,66 @@ export default function Dashboard() {
                                         transition={{ duration: 0.2 }}
                                     >
                                         <CustomerDetail customerId={selectedCustomerId} />
+                                    </motion.div>
+                                ) : activeView === "dev_resumen" ? (
+                                    <motion.div
+                                        key="dev_resumen_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <DevelopersOverview />
+                                    </motion.div>
+                                ) : activeView === "dev_webhooks" ? (
+                                    <motion.div
+                                        key="dev_webhooks_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <DevelopersWebhooks />
+                                    </motion.div>
+                                ) : activeView === "dev_eventos" ? (
+                                    <motion.div
+                                        key="dev_eventos_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <DevelopersEvents />
+                                    </motion.div>
+                                ) : activeView === "dev_registros" ? (
+                                    <motion.div
+                                        key="dev_registros_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <DevelopersLogs />
+                                    </motion.div>
+                                ) : activeView === "dev_docs" ? (
+                                    <motion.div
+                                        key="dev_docs_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <DevelopersDocs />
+                                    </motion.div>
+                                ) : activeView === "dev_keys" ? (
+                                    <motion.div
+                                        key="dev_keys_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <DevelopersApiKeys />
                                     </motion.div>
                                 ) : activeView === "saldos" ? (
                                     <motion.div

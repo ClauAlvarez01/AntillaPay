@@ -8,16 +8,16 @@ import { toast } from 'sonner';
 const cardIcons = [Code, Book, FileCode];
 
 const codeExamples = {
-  curl: `curl https://api.flowli.com/v1/charges \\
+  curl: `curl https://api.antillapay.com/v1/charges \\
   -u sk_test_4eC39HqLyjWDarjtT1zdp7dc: \\
   -d amount=2000 \\
   -d currency=usd \\
   -d source=tok_visa \\
   -d description="Charge for jenny@example.com"`,
   
-  javascript: `const flowli = require('flowli')('sk_test_...');
+  javascript: `const antillapay = require('antillapay')('sk_test_...');
 
-const charge = await flowli.charges.create({
+const charge = await antillapay.charges.create({
   amount: 2000,
   currency: 'usd',
   source: 'tok_visa',
@@ -26,10 +26,10 @@ const charge = await flowli.charges.create({
 
 console.log(charge.id);`,
   
-  python: `import flowli
-flowli.api_key = "sk_test_..."
+  python: `import antillapay
+antillapay.api_key = "sk_test_..."
 
-charge = flowli.Charge.create(
+charge = antillapay.Charge.create(
   amount=2000,
   currency="usd",
   source="tok_visa",
