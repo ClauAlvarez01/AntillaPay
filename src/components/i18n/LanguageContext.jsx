@@ -3,7 +3,7 @@ import { translations, getNestedValue } from './translations';
 
 const LanguageContext = createContext();
 
-const STORAGE_KEY = 'flowli_lang';
+const STORAGE_KEY = 'antillapay_lang';
 
 // Detect browser language
 const detectBrowserLanguage = () => {
