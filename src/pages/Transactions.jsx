@@ -22,12 +22,6 @@ import {
     TableRow
 } from "@/components/ui/table";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import {
     Dialog,
     DialogContent
 } from "@/components/ui/dialog";
@@ -35,6 +29,7 @@ import {
 const DEMO_TRANSFERS = [
     {
         id: "tr_001",
+        email: "finance@caribetech.io",
         amount: 450.0,
         grossAmount: 455.0,
         netAmount: 450.0,
@@ -49,6 +44,7 @@ const DEMO_TRANSFERS = [
     },
     {
         id: "tr_002",
+        email: "mariana@habanamarket.cu",
         amount: 120.5,
         grossAmount: 120.5,
         netAmount: 120.5,
@@ -63,6 +59,7 @@ const DEMO_TRANSFERS = [
     },
     {
         id: "tr_003",
+        email: "luis.alvarez@mail.com",
         amount: 890.0,
         grossAmount: 890.0,
         netAmount: 880.0,
@@ -203,6 +200,42 @@ const DEMO_PAYMENTS = [
     }
 ];
 
+const DEMO_TRANSFER_CHARGES = [
+    {
+        id: "paytr_20260122_001",
+        email: "sofia.gomez@outlook.com",
+        createdAt: "2026-01-22T11:05:00Z",
+        amount: 49.9,
+        currency: "USD",
+        status: "Completado",
+        method: "Transferencia",
+        reference: "trch_1a2b3c",
+        origin: "Transferencia · Factura 1001"
+    },
+    {
+        id: "paytr_20260119_002",
+        email: "mariana@habanamarket.cu",
+        createdAt: "2026-01-19T08:55:00Z",
+        amount: 180,
+        currency: "USD",
+        status: "Completado",
+        method: "Transferencia",
+        reference: "trch_4d5e6f",
+        origin: "Transferencia · Orden 1049"
+    },
+    {
+        id: "paytr_20260108_003",
+        email: "luis.alvarez@mail.com",
+        createdAt: "2026-01-08T17:20:00Z",
+        amount: 75,
+        currency: "USD",
+        status: "Fallido",
+        method: "Transferencia",
+        reference: "trch_7g8h9i",
+        origin: "Transferencia · Intento 1"
+    }
+];
+
 const PAYMENT_STATUS_STYLES = {
     Completado: "bg-emerald-50 text-emerald-700 border-emerald-200",
     Fallido: "bg-rose-50 text-rose-700 border-rose-200",
@@ -251,43 +284,38 @@ const FilterPill = ({ label, active, onClick }) => (
 
 const FILTERS = [
     { id: "created", label: "Fecha de Creación" },
-    { id: "status", label: "Estado" },
-    { id: "method", label: "Método" }
+    { id: "status", label: "Estado" }
 ];
 
 const TRANSFER_FILTERS = [
     { id: "created", label: "Fecha de Creación" },
-    { id: "status", label: "Estado" },
-    { id: "destination", label: "Destino" }
+    { id: "status", label: "Estado" }
 ];
 
 export default function TransactionsPage() {
     const navigate = useNavigate();
 
-    const [activeTab, setActiveTab] = useState("pagos");
+    const [activeTab, setActiveTab] = useState("cobros_banco");
     const [payments, setPayments] = useState([]);
+    const [transferCharges, setTransferCharges] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [transfers, setTransfers] = useState([]);
 
     const [searchQuery, setSearchQuery] = useState("");
     const [chipFilters, setChipFilters] = useState(() => ({
         created: false,
-        status: false,
-        method: false
+        status: false
     }));
     const [statusFilter, setStatusFilter] = useState("all");
-    const [methodFilter, setMethodFilter] = useState("all");
     const [createdDate, setCreatedDate] = useState(undefined);
     const [isCreatedCalendarOpen, setIsCreatedCalendarOpen] = useState(false);
 
     const [transferSearchQuery, setTransferSearchQuery] = useState("");
     const [transferChipFilters, setTransferChipFilters] = useState(() => ({
         created: false,
-        status: false,
-        destination: false
+        status: false
     }));
     const [transferStatusFilter, setTransferStatusFilter] = useState("all");
-    const [transferDestinationFilter, setTransferDestinationFilter] = useState("all");
     const [transferCreatedDate, setTransferCreatedDate] = useState(undefined);
     const [isTransferCreatedCalendarOpen, setIsTransferCreatedCalendarOpen] = useState(false);
 
@@ -326,17 +354,22 @@ export default function TransactionsPage() {
             "Fecha",
             "Importe",
             "Moneda",
-            "Estado",
-            "Método",
-            "Referencia",
-            "Origen"
+            "Estado"
+        ],
+        transferCharges: [
+            "Cliente",
+            "Correo del cliente",
+            "ID del cliente",
+            "Fecha",
+            "Importe",
+            "Moneda",
+            "Estado"
         ],
         transfers: [
             "Fecha",
             "Importe",
             "Estado",
-            "Cuenta destino",
-            "ID de payout"
+            "Correo"
         ]
     };
 
@@ -650,8 +683,7 @@ export default function TransactionsPage() {
                         new Date(transfer.date || transfer.createdAt || "").toISOString(),
                         transfer.amount ?? "",
                         transfer.status || "",
-                        transfer.destination || "",
-                        transfer.id || ""
+                        transfer.email || ""
                     ]);
                     content = buildSpreadsheetHtml(exportColumns, rows);
                     mimeType = "application/vnd.ms-excel";
@@ -661,15 +693,14 @@ export default function TransactionsPage() {
                         new Date(transfer.date || transfer.createdAt || "").toISOString(),
                         transfer.amount ?? "",
                         transfer.status || "",
-                        transfer.destination || "",
-                        transfer.id || ""
+                        transfer.email || ""
                     ].map(escapeCsv).join(",")).join("\n");
                     content = `${header}\n${body}`;
                 }
-            } else {
-                const paymentRows = filteredPayments.filter((payment) => isInRange(payment.createdAt));
+            } else if (exportType === "transferCharges") {
+                const paymentRows = filteredTransferCharges.filter((payment) => isInRange(payment.createdAt));
                 rowsCount = paymentRows.length;
-                filenamePrefix = "pagos";
+                filenamePrefix = "cobros-transferencias";
 
                 if (rowsCount === 0) {
                     setExportStep("empty");
@@ -684,10 +715,7 @@ export default function TransactionsPage() {
                         new Date(payment.createdAt || "").toISOString(),
                         payment.amount ?? "",
                         payment.currency || "",
-                        payment.status || "",
-                        payment.method || "",
-                        payment.reference || "",
-                        payment.origin || ""
+                        payment.status || ""
                     ]);
                     content = buildSpreadsheetHtml(exportColumns, rows);
                     mimeType = "application/vnd.ms-excel";
@@ -700,10 +728,42 @@ export default function TransactionsPage() {
                         new Date(payment.createdAt || "").toISOString(),
                         payment.amount ?? "",
                         payment.currency || "",
-                        payment.status || "",
-                        payment.method || "",
-                        payment.reference || "",
-                        payment.origin || ""
+                        payment.status || ""
+                    ].map(escapeCsv).join(",")).join("\n");
+                    content = `${header}\n${body}`;
+                }
+            } else {
+                const paymentRows = filteredPayments.filter((payment) => isInRange(payment.createdAt));
+                rowsCount = paymentRows.length;
+                filenamePrefix = "cobros-cuenta-bancaria";
+
+                if (rowsCount === 0) {
+                    setExportStep("empty");
+                    return;
+                }
+
+                if (exportFormat === "xlsx") {
+                    const rows = paymentRows.map((payment) => [
+                        payment.customer?.name || "",
+                        payment.email || "",
+                        payment.customer?.id || "",
+                        new Date(payment.createdAt || "").toISOString(),
+                        payment.amount ?? "",
+                        payment.currency || "",
+                        payment.status || ""
+                    ]);
+                    content = buildSpreadsheetHtml(exportColumns, rows);
+                    mimeType = "application/vnd.ms-excel";
+                } else {
+                    const header = exportColumns.map(escapeCsv).join(",");
+                    const body = paymentRows.map((payment) => [
+                        payment.customer?.name || "",
+                        payment.email || "",
+                        payment.customer?.id || "",
+                        new Date(payment.createdAt || "").toISOString(),
+                        payment.amount ?? "",
+                        payment.currency || "",
+                        payment.status || ""
                     ].map(escapeCsv).join(",")).join("\n");
                     content = `${header}\n${body}`;
                 }
@@ -764,9 +824,6 @@ export default function TransactionsPage() {
         if (filterId === "status") {
             setStatusFilter("all");
         }
-        if (filterId === "method") {
-            setMethodFilter("all");
-        }
     };
 
     const handleToggleTransferFilter = (filterId) => {
@@ -793,9 +850,6 @@ export default function TransactionsPage() {
         if (filterId === "status") {
             setTransferStatusFilter("all");
         }
-        if (filterId === "destination") {
-            setTransferDestinationFilter("all");
-        }
     };
 
     useEffect(() => {
@@ -809,6 +863,14 @@ export default function TransactionsPage() {
             setPayments(DEMO_PAYMENTS);
         }
 
+        const storedTransferCharges = window.localStorage.getItem("antillapay_transfer_charges");
+        if (storedTransferCharges) {
+            setTransferCharges(JSON.parse(storedTransferCharges));
+        } else {
+            window.localStorage.setItem("antillapay_transfer_charges", JSON.stringify(DEMO_TRANSFER_CHARGES));
+            setTransferCharges(DEMO_TRANSFER_CHARGES);
+        }
+
         const storedCustomers = window.localStorage.getItem("antillapay_customers");
         if (storedCustomers) {
             setCustomers(JSON.parse(storedCustomers));
@@ -819,7 +881,19 @@ export default function TransactionsPage() {
 
         const storedTransfers = window.localStorage.getItem("antillapay_transfers");
         if (storedTransfers) {
-            setTransfers(JSON.parse(storedTransfers));
+            const parsed = JSON.parse(storedTransfers);
+            const emailsById = new Map(DEMO_TRANSFERS.map((transfer) => [transfer.id, transfer.email]));
+            const normalized = (Array.isArray(parsed) ? parsed : []).map((transfer) => {
+                if (!transfer || typeof transfer !== "object") return transfer;
+                if (transfer.email) return transfer;
+                const fallback = emailsById.get(transfer.id);
+                return {
+                    ...transfer,
+                    email: fallback || `user+${String(transfer.id || "transfer")}@example.com`
+                };
+            });
+            window.localStorage.setItem("antillapay_transfers", JSON.stringify(normalized));
+            setTransfers(normalized);
         } else {
             window.localStorage.setItem("antillapay_transfers", JSON.stringify(DEMO_TRANSFERS));
             setTransfers(DEMO_TRANSFERS);
@@ -849,15 +923,18 @@ export default function TransactionsPage() {
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }, [customersByEmail, payments]);
 
-    const availableMethods = useMemo(() => {
-        const methods = new Set();
-        paymentsWithCustomer.forEach((payment) => {
-            if (payment?.method) {
-                methods.add(payment.method);
-            }
-        });
-        return Array.from(methods).sort((a, b) => String(a).localeCompare(String(b), "es"));
-    }, [paymentsWithCustomer]);
+    const transferChargesWithCustomer = useMemo(() => {
+        return transferCharges
+            .map((payment) => {
+                const emailKey = payment?.email ? String(payment.email).toLowerCase() : "";
+                const customer = emailKey ? customersByEmail.get(emailKey) : null;
+                return {
+                    ...payment,
+                    customer
+                };
+            })
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }, [customersByEmail, transferCharges]);
 
     const availableStatuses = useMemo(() => {
         const statuses = new Set();
@@ -869,6 +946,16 @@ export default function TransactionsPage() {
         return Array.from(statuses).sort((a, b) => String(a).localeCompare(String(b), "es"));
     }, [paymentsWithCustomer]);
 
+    const availableTransferChargeStatuses = useMemo(() => {
+        const statuses = new Set();
+        transferChargesWithCustomer.forEach((payment) => {
+            if (payment?.status) {
+                statuses.add(payment.status);
+            }
+        });
+        return Array.from(statuses).sort((a, b) => String(a).localeCompare(String(b), "es"));
+    }, [transferChargesWithCustomer]);
+
     const availableTransferStatuses = useMemo(() => {
         const statuses = new Set();
         transfers.forEach((transfer) => {
@@ -877,32 +964,6 @@ export default function TransactionsPage() {
             }
         });
         return Array.from(statuses).sort((a, b) => String(a).localeCompare(String(b), "es"));
-    }, [transfers]);
-
-    const availableTransferDestinations = useMemo(() => {
-        const destinations = new Set();
-        transfers.forEach((transfer) => {
-            if (transfer?.destination) {
-                destinations.add(transfer.destination);
-            }
-        });
-        return Array.from(destinations).sort((a, b) => String(a).localeCompare(String(b), "es"));
-    }, [transfers]);
-
-    const paymentCounts = useMemo(() => {
-        const completed = paymentsWithCustomer.filter(p => p.status === "Completado").length;
-        const failed = paymentsWithCustomer.filter(p => p.status === "Fallido").length;
-        const refunded = paymentsWithCustomer.filter(p => p.status === "Reembolsado").length;
-        const total = paymentsWithCustomer.length;
-        return { completed, failed, refunded, total };
-    }, [paymentsWithCustomer]);
-
-    const transferCounts = useMemo(() => {
-        const completed = transfers.filter(t => t.status === "completada").length;
-        const pending = transfers.filter(t => t.status === "pendiente").length;
-        const failed = transfers.filter(t => t.status === "fallida").length;
-        const total = transfers.length;
-        return { completed, pending, failed, total };
     }, [transfers]);
 
     const filteredPayments = useMemo(() => {
@@ -915,9 +976,6 @@ export default function TransactionsPage() {
                 if (chipFilters.status && statusFilter !== "all" && payment.status !== statusFilter) {
                     return false;
                 }
-                if (chipFilters.method && methodFilter !== "all" && payment.method !== methodFilter) {
-                    return false;
-                }
 
                 if (!query) {
                     return true;
@@ -927,16 +985,12 @@ export default function TransactionsPage() {
                 const customerId = payment.customer?.id ? String(payment.customer.id).toLowerCase() : "";
                 const email = payment.email ? String(payment.email).toLowerCase() : "";
                 const paymentId = payment.id ? String(payment.id).toLowerCase() : "";
-                const reference = payment.reference ? String(payment.reference).toLowerCase() : "";
-                const origin = payment.origin ? String(payment.origin).toLowerCase() : "";
 
                 return (
                     customerName.includes(query) ||
                     customerId.includes(query) ||
                     email.includes(query) ||
-                    paymentId.includes(query) ||
-                    reference.includes(query) ||
-                    origin.includes(query)
+                    paymentId.includes(query)
                 );
             })
             .filter((payment) => {
@@ -949,7 +1003,46 @@ export default function TransactionsPage() {
                 createdAtStart.setHours(0, 0, 0, 0);
                 return createdAtStart.getTime() === selectedDate.getTime();
             });
-    }, [chipFilters.created, chipFilters.method, chipFilters.status, createdDate, methodFilter, paymentsWithCustomer, searchQuery, statusFilter]);
+    }, [chipFilters.created, chipFilters.status, createdDate, paymentsWithCustomer, searchQuery, statusFilter]);
+
+    const filteredTransferCharges = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        const selectedDate = createdDate ? new Date(createdDate) : null;
+        if (selectedDate) selectedDate.setHours(0, 0, 0, 0);
+
+        return transferChargesWithCustomer
+            .filter((payment) => {
+                if (chipFilters.status && statusFilter !== "all" && payment.status !== statusFilter) {
+                    return false;
+                }
+
+                if (!query) {
+                    return true;
+                }
+
+                const customerName = payment.customer?.name ? String(payment.customer.name).toLowerCase() : "";
+                const customerId = payment.customer?.id ? String(payment.customer.id).toLowerCase() : "";
+                const email = payment.email ? String(payment.email).toLowerCase() : "";
+                const paymentId = payment.id ? String(payment.id).toLowerCase() : "";
+
+                return (
+                    customerName.includes(query) ||
+                    customerId.includes(query) ||
+                    email.includes(query) ||
+                    paymentId.includes(query)
+                );
+            })
+            .filter((payment) => {
+                if (!chipFilters.created || !selectedDate) {
+                    return true;
+                }
+                const createdAt = new Date(payment.createdAt);
+                if (Number.isNaN(createdAt.getTime())) return false;
+                const createdAtStart = new Date(createdAt);
+                createdAtStart.setHours(0, 0, 0, 0);
+                return createdAtStart.getTime() === selectedDate.getTime();
+            });
+    }, [chipFilters.created, chipFilters.status, createdDate, searchQuery, statusFilter, transferChargesWithCustomer]);
 
     const filteredTransfers = useMemo(() => {
         const query = transferSearchQuery.trim().toLowerCase();
@@ -963,9 +1056,8 @@ export default function TransactionsPage() {
                     || String(transfer.destination || "").toLowerCase().includes(query);
 
                 const matchesStatus = transferStatusFilter === "all" || transfer.status === transferStatusFilter;
-                const matchesDestination = transferDestinationFilter === "all" || transfer.destination === transferDestinationFilter;
 
-                return matchesQuery && matchesStatus && matchesDestination;
+                return matchesQuery && matchesStatus;
             })
             .filter((transfer) => {
                 if (!transferChipFilters.created || !selectedDate) {
@@ -978,7 +1070,7 @@ export default function TransactionsPage() {
                 return createdAtStart.getTime() === selectedDate.getTime();
             })
             .sort((a, b) => new Date(b.date || b.createdAt || 0).getTime() - new Date(a.date || a.createdAt || 0).getTime());
-    }, [transferChipFilters.created, transferDestinationFilter, transferSearchQuery, transferStatusFilter, transferCreatedDate, transfers]);
+    }, [transferChipFilters.created, transferSearchQuery, transferStatusFilter, transferCreatedDate, transfers]);
 
     return (
         <div className="w-full space-y-6">
@@ -988,116 +1080,45 @@ export default function TransactionsPage() {
                 <div className="flex items-center gap-6 border-b border-gray-100">
                     <button
                         type="button"
-                        onClick={() => setActiveTab("pagos")}
+                        onClick={() => setActiveTab("cobros_banco")}
                         className={cn(
                             "pb-3 text-[13px] font-semibold transition-colors",
-                            activeTab === "pagos"
+                            activeTab === "cobros_banco"
                                 ? "text-[#635bff] border-b-2 border-[#635bff]"
                                 : "text-[#697386] hover:text-[#32325d]"
                         )}
                     >
-                        Pagos
+                        Cobros por cuenta bancaria
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab("transferencias")}
+                        onClick={() => setActiveTab("cobros_transferencias")}
                         className={cn(
                             "pb-3 text-[13px] font-semibold transition-colors",
-                            activeTab === "transferencias"
+                            activeTab === "cobros_transferencias"
                                 ? "text-[#635bff] border-b-2 border-[#635bff]"
                                 : "text-[#697386] hover:text-[#32325d]"
                         )}
                     >
-                        Transferencias
+                        Cobros por transferencia
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("transferencias_salida")}
+                        className={cn(
+                            "pb-3 text-[13px] font-semibold transition-colors",
+                            activeTab === "transferencias_salida"
+                                ? "text-[#635bff] border-b-2 border-[#635bff]"
+                                : "text-[#697386] hover:text-[#32325d]"
+                        )}
+                    >
+                        Transferencias de salida
                     </button>
                 </div>
             </div>
 
-            {activeTab === "pagos" ? (
+            {activeTab !== "transferencias_salida" ? (
                 <>
-                    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setStatusFilter("all");
-                                setChipFilters(prev => ({ ...prev, status: false }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                statusFilter === "all"
-                                    ? "border-[#635bff] bg-[#f6f5ff]"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", statusFilter === "all" ? "text-[#635bff]" : "text-[#6b7280]")}>
-                                Todos
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", statusFilter === "all" ? "text-[#635bff]" : "text-[#4b5563]")}>
-                                {paymentCounts.total}
-                            </p>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setStatusFilter("Completado");
-                                setChipFilters(prev => ({ ...prev, status: true }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                chipFilters.status && statusFilter === "Completado"
-                                    ? "border-emerald-200 bg-emerald-50"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", chipFilters.status && statusFilter === "Completado" ? "text-emerald-700" : "text-[#6b7280]")}>
-                                Completado
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", chipFilters.status && statusFilter === "Completado" ? "text-emerald-700" : "text-[#4b5563]")}>
-                                {paymentCounts.completed}
-                            </p>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setStatusFilter("Fallido");
-                                setChipFilters(prev => ({ ...prev, status: true }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                chipFilters.status && statusFilter === "Fallido"
-                                    ? "border-rose-200 bg-rose-50"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", chipFilters.status && statusFilter === "Fallido" ? "text-rose-700" : "text-[#6b7280]")}>
-                                Fallido
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", chipFilters.status && statusFilter === "Fallido" ? "text-rose-700" : "text-[#4b5563]")}>
-                                {paymentCounts.failed}
-                            </p>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setStatusFilter("Reembolsado");
-                                setChipFilters(prev => ({ ...prev, status: true }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                chipFilters.status && statusFilter === "Reembolsado"
-                                    ? "border-slate-200 bg-slate-50"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", chipFilters.status && statusFilter === "Reembolsado" ? "text-slate-700" : "text-[#6b7280]")}>
-                                Reembolsado
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", chipFilters.status && statusFilter === "Reembolsado" ? "text-slate-700" : "text-[#4b5563]")}>
-                                {paymentCounts.refunded}
-                            </p>
-                        </button>
-                    </div>
-
                     <div className="space-y-6">
                         <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div className="relative w-full max-w-[520px]">
@@ -1105,7 +1126,7 @@ export default function TransactionsPage() {
                                 <Input
                                     value={searchQuery}
                                     onChange={(event) => setSearchQuery(event.target.value)}
-                                    placeholder="Buscar por cliente, email, ID de pago, referencia u origen"
+                                    placeholder="Buscar por cliente, email o ID"
                                     className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
                                 />
                             </div>
@@ -1137,23 +1158,8 @@ export default function TransactionsPage() {
                                                 <SelectValue placeholder="Seleccione Estado" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {availableStatuses.map((status) => (
+                                                {(activeTab === "cobros_transferencias" ? availableTransferChargeStatuses : availableStatuses).map((status) => (
                                                     <SelectItem key={status} value={status}>{status}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-                                {chipFilters.method && (
-                                    <div className="min-w-[180px]">
-                                        <Select value={methodFilter} onValueChange={setMethodFilter}>
-                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                                <SelectValue placeholder="Método" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">Todos los métodos</SelectItem>
-                                                {availableMethods.map((method) => (
-                                                    <SelectItem key={method} value={method}>{method}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -1180,15 +1186,15 @@ export default function TransactionsPage() {
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="text-[13px] text-[#697386]">
-                                Mostrando {filteredPayments.length} pagos
+                                Mostrando {activeTab === "cobros_transferencias" ? filteredTransferCharges.length : filteredPayments.length} cobros
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    disabled={!filteredPayments.length}
-                                    onClick={() => openExportModal("payments")}
+                                    disabled={activeTab === "cobros_transferencias" ? !filteredTransferCharges.length : !filteredPayments.length}
+                                    onClick={() => openExportModal(activeTab === "cobros_transferencias" ? "transferCharges" : "payments")}
                                     className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
                                 >
                                     <Upload className="w-4 h-4 text-[#8792a2]" />
@@ -1197,9 +1203,9 @@ export default function TransactionsPage() {
                             </div>
                         </div>
 
-                        {filteredPayments.length === 0 ? (
+                        {(activeTab === "cobros_transferencias" ? filteredTransferCharges.length : filteredPayments.length) === 0 ? (
                             <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
-                                No se encontraron pagos con los filtros actuales.
+                                No se encontraron cobros con los filtros actuales.
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
@@ -1211,14 +1217,11 @@ export default function TransactionsPage() {
                                                 <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
                                                 <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
                                                 <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Moneda</TableHead>
-                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Método</TableHead>
-                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Referencia</TableHead>
-                                                <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Origen</TableHead>
+                                                <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {filteredPayments.map((payment) => {
+                                            {(activeTab === "cobros_transferencias" ? filteredTransferCharges : filteredPayments).map((payment) => {
                                                 const customerLabel = payment.customer?.name || payment.email || "—";
                                                 const customerId = payment.customer?.id;
 
@@ -1256,7 +1259,7 @@ export default function TransactionsPage() {
                                                         <TableCell className="py-4 text-[13px] text-[#4f5b76]">
                                                             {payment.currency}
                                                         </TableCell>
-                                                        <TableCell className="py-4">
+                                                        <TableCell className="pr-6 py-4">
                                                             <span
                                                                 className={cn(
                                                                     "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
@@ -1265,15 +1268,6 @@ export default function TransactionsPage() {
                                                             >
                                                                 {payment.status}
                                                             </span>
-                                                        </TableCell>
-                                                        <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                            {payment.method}
-                                                        </TableCell>
-                                                        <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                            {payment.reference}
-                                                        </TableCell>
-                                                        <TableCell className="pr-6 py-4 text-[13px] text-[#4f5b76]">
-                                                            {payment.origin}
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -1287,89 +1281,6 @@ export default function TransactionsPage() {
                 </>
             ) : (
                 <>
-                    <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setTransferStatusFilter("all");
-                                setTransferChipFilters(prev => ({ ...prev, status: false }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                transferStatusFilter === "all"
-                                    ? "border-[#635bff] bg-[#f6f5ff]"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", transferStatusFilter === "all" ? "text-[#635bff]" : "text-[#6b7280]")}>
-                                Todos
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", transferStatusFilter === "all" ? "text-[#635bff]" : "text-[#4b5563]")}>
-                                {transferCounts.total}
-                            </p>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setTransferStatusFilter("completada");
-                                setTransferChipFilters(prev => ({ ...prev, status: true }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                transferChipFilters.status && transferStatusFilter === "completada"
-                                    ? "border-emerald-200 bg-emerald-50"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", transferChipFilters.status && transferStatusFilter === "completada" ? "text-emerald-700" : "text-[#6b7280]")}>
-                                Completada
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", transferChipFilters.status && transferStatusFilter === "completada" ? "text-emerald-700" : "text-[#4b5563]")}>
-                                {transferCounts.completed}
-                            </p>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setTransferStatusFilter("pendiente");
-                                setTransferChipFilters(prev => ({ ...prev, status: true }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                transferChipFilters.status && transferStatusFilter === "pendiente"
-                                    ? "border-amber-200 bg-amber-50"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", transferChipFilters.status && transferStatusFilter === "pendiente" ? "text-amber-700" : "text-[#6b7280]")}>
-                                Pendiente
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", transferChipFilters.status && transferStatusFilter === "pendiente" ? "text-amber-700" : "text-[#4b5563]")}>
-                                {transferCounts.pending}
-                            </p>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setTransferStatusFilter("fallida");
-                                setTransferChipFilters(prev => ({ ...prev, status: true }));
-                            }}
-                            className={cn(
-                                "rounded-xl border px-4 py-3 text-left transition-colors",
-                                transferChipFilters.status && transferStatusFilter === "fallida"
-                                    ? "border-rose-200 bg-rose-50"
-                                    : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                            )}
-                        >
-                            <p className={cn("text-[13px] font-semibold", transferChipFilters.status && transferStatusFilter === "fallida" ? "text-rose-700" : "text-[#6b7280]")}>
-                                Fallida
-                            </p>
-                            <p className={cn("text-[18px] font-semibold mt-1", transferChipFilters.status && transferStatusFilter === "fallida" ? "text-rose-700" : "text-[#4b5563]")}>
-                                {transferCounts.failed}
-                            </p>
-                        </button>
-                    </div>
-
                     <div className="space-y-6">
                         <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div className="relative w-full max-w-[520px]">
@@ -1377,7 +1288,7 @@ export default function TransactionsPage() {
                                 <Input
                                     value={transferSearchQuery}
                                     onChange={(event) => setTransferSearchQuery(event.target.value)}
-                                    placeholder="Buscar por ID de payout o cuenta destino"
+                                    placeholder="Buscar por cliente o ID"
                                     className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
                                 />
                             </div>
@@ -1418,21 +1329,6 @@ export default function TransactionsPage() {
                                     </div>
                                 )}
 
-                                {transferChipFilters.destination && (
-                                    <div className="min-w-[240px]">
-                                        <Select value={transferDestinationFilter} onValueChange={setTransferDestinationFilter}>
-                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                                <SelectValue placeholder="Cuenta destino" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">Todas las cuentas</SelectItem>
-                                                {availableTransferDestinations.map((destination) => (
-                                                    <SelectItem key={destination} value={destination}>{destination}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
                             </div>
 
                             {isTransferCreatedCalendarOpen && (
@@ -1454,7 +1350,7 @@ export default function TransactionsPage() {
 
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="text-[13px] text-[#697386]">
-                                Mostrando {filteredTransfers.length} transferencias
+                                Mostrando {filteredTransfers.length} transferencias de salida
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Button
@@ -1473,7 +1369,7 @@ export default function TransactionsPage() {
 
                         {filteredTransfers.length === 0 ? (
                             <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
-                                No se encontraron transferencias con los filtros actuales.
+                                No se encontraron transferencias de salida con los filtros actuales.
                             </div>
                         ) : (
                             <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
@@ -1481,23 +1377,25 @@ export default function TransactionsPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="bg-gray-50/60">
-                                                <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cliente</TableHead>
+                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
                                                 <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
-                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cuenta destino</TableHead>
-                                                <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">ID de payout</TableHead>
+                                                <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {filteredTransfers.map((transfer) => (
                                                 <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
+                                                    <TableCell className="px-6 py-4">
+                                                        <div className="text-[13px] font-semibold text-[#32325d]">{transfer.email}</div>
+                                                    </TableCell>
                                                     <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
                                                         {formatDate(transfer.date)}
                                                     </TableCell>
                                                     <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
                                                         {formatCurrency(transfer.amount, transfer.currency || "USD")}
                                                     </TableCell>
-                                                    <TableCell className="py-4">
+                                                    <TableCell className="pr-6 py-4">
                                                         <span
                                                             className={cn(
                                                                 "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
@@ -1506,12 +1404,6 @@ export default function TransactionsPage() {
                                                         >
                                                             {transfer.status}
                                                         </span>
-                                                    </TableCell>
-                                                    <TableCell className="py-4 text-[13px] text-[#4f5b76]">
-                                                        {transfer.destination || "—"}
-                                                    </TableCell>
-                                                    <TableCell className="pr-6 py-4 text-[13px] font-semibold text-[#32325d]">
-                                                        {transfer.id}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -1702,7 +1594,13 @@ export default function TransactionsPage() {
                     {exportStep === "form" && (
                         <div className="w-full max-w-[600px] rounded-2xl bg-white shadow-2xl border border-gray-200">
                             <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
-                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">{exportType === "transfers" ? "Exportar transferencias" : "Exportar pagos"}</h3>
+                                <h3 className="text-[18px] font-semibold text-[#1a1f36]">
+                                    {exportType === "transfers"
+                                        ? "Exportar transferencias de salida"
+                                        : exportType === "transferCharges"
+                                            ? "Exportar cobros por transferencias"
+                                            : "Exportar cobros por cuenta bancaria"}
+                                </h3>
                                 <button
                                     type="button"
                                     onClick={resetExportFlow}
