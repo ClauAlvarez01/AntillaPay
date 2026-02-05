@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Book,
     Code2,
@@ -207,7 +208,17 @@ const MENU_ITEMS = [
 ];
 
 export default function DevelopersDocs() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [activeDoc, setActiveDoc] = useState("intro");
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const docFromUrl = params.get('doc');
+        if (docFromUrl && DOCUMENTS.some(d => d.id === docFromUrl)) {
+            setActiveDoc(docFromUrl);
+        }
+    }, [location.search]);
 
     const currentDoc = DOCUMENTS.find(d => d.id === activeDoc) || DOCUMENTS[0];
 
@@ -229,7 +240,12 @@ export default function DevelopersDocs() {
                                     return (
                                         <button
                                             key={itemKey}
-                                            onClick={() => setActiveDoc(itemKey)}
+                                            onClick={() => {
+                                                setActiveDoc(itemKey);
+                                                const params = new URLSearchParams(location.search);
+                                                params.set('doc', itemKey);
+                                                navigate(`${location.pathname}?${params.toString()}`);
+                                            }}
                                             className={cn(
                                                 "w-full text-left px-2 py-1.5 rounded-md text-[14px] font-medium transition-colors",
                                                 activeDoc === itemKey
