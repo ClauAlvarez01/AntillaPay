@@ -67,7 +67,6 @@ import TransactionsPage from "./Transactions";
 import TransfersPage from "./TransfersPage";
 
 import SettingsPage from "./Settings";
-import DevelopersOverview from "@/pages/developers/DevelopersOverview";
 import DevelopersWebhooks from "@/pages/developers/DevelopersWebhooks";
 import DevelopersEvents from "@/pages/developers/DevelopersEvents";
 import DevelopersLogs from "@/pages/developers/DevelopersLogs";
@@ -2444,8 +2443,7 @@ export default function Dashboard() {
             return;
         }
         if (path.startsWith("/dashboard")) {
-            if (path.includes("/dashboard/developers/overview")) setActiveView("dev_resumen");
-            else if (path.includes("/dashboard/developers/webhooks")) setActiveView("dev_webhooks");
+            if (path.includes("/dashboard/developers/webhooks")) setActiveView("dev_webhooks");
             else if (path.includes("/dashboard/developers/events")) setActiveView("dev_eventos");
             else if (path.includes("/dashboard/developers/logs")) setActiveView("dev_registros");
             else if (path.includes("/dashboard/developers/docs")) setActiveView("dev_docs");
@@ -3131,17 +3129,15 @@ export default function Dashboard() {
                             label="Desarrolladores"
                             hasSubmenu={true}
                             active={activeView && activeView.startsWith("dev_")}
-                            subItems={["Resumen", "Webhooks", "Eventos", "Registros", "Documentación", "Claves de API"]}
+                            subItems={["Webhooks", "Eventos", "Registros", "Documentación", "Claves de API"]}
                             activeSubItem={
-                                activeView === "dev_resumen" ? "Resumen" :
-                                    activeView === "dev_webhooks" ? "Webhooks" :
+                                activeView === "dev_webhooks" ? "Webhooks" :
                                         activeView === "dev_eventos" ? "Eventos" :
                                             activeView === "dev_registros" ? "Registros" :
                                                 activeView === "dev_docs" ? "Documentación" :
                                                     activeView === "dev_keys" ? "Claves de API" : ""
                             }
                             onSubItemClick={(item) => {
-                                if (item === "Resumen") { setActiveView("dev_resumen"); navigate("/dashboard/developers/overview"); }
                                 if (item === "Webhooks") { setActiveView("dev_webhooks"); navigate("/dashboard/developers/webhooks"); }
                                 if (item === "Eventos") { setActiveView("dev_eventos"); navigate("/dashboard/developers/events"); }
                                 if (item === "Registros") { setActiveView("dev_registros"); navigate("/dashboard/developers/logs"); }
@@ -3671,16 +3667,6 @@ export default function Dashboard() {
                                         transition={{ duration: 0.2 }}
                                     >
                                         <CustomerDetail customerId={selectedCustomerId} />
-                                    </motion.div>
-                                ) : activeView === "dev_resumen" ? (
-                                    <motion.div
-                                        key="dev_resumen_view"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <DevelopersOverview />
                                     </motion.div>
                                 ) : activeView === "dev_webhooks" ? (
                                     <motion.div
