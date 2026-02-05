@@ -789,6 +789,30 @@ export default function TransactionsPage() {
         resetExportFlow();
     };
 
+    const loadTransfersFromStorage = () => {
+        if (typeof window === "undefined") return;
+
+        const storedTransfers = window.localStorage.getItem("antillapay_transfers");
+        if (storedTransfers) {
+            const parsed = JSON.parse(storedTransfers);
+            const emailsById = new Map(DEMO_TRANSFERS.map((transfer) => [transfer.id, transfer.email]));
+            const normalized = (Array.isArray(parsed) ? parsed : []).map((transfer) => {
+                if (!transfer || typeof transfer !== "object") return transfer;
+                if (transfer.email) return transfer;
+                const fallback = emailsById.get(transfer.id);
+                return {
+                    ...transfer,
+                    email: fallback || `user+${String(transfer.id || "transfer")}@example.com`
+                };
+            });
+            window.localStorage.setItem("antillapay_transfers", JSON.stringify(normalized));
+            setTransfers(normalized);
+        } else {
+            window.localStorage.setItem("antillapay_transfers", JSON.stringify(DEMO_TRANSFERS));
+            setTransfers(DEMO_TRANSFERS);
+        }
+    };
+
     useEffect(() => {
         return () => {
             if (exportTimerRef.current) {
@@ -879,25 +903,20 @@ export default function TransactionsPage() {
             setCustomers(DEMO_CUSTOMERS);
         }
 
-        const storedTransfers = window.localStorage.getItem("antillapay_transfers");
-        if (storedTransfers) {
-            const parsed = JSON.parse(storedTransfers);
-            const emailsById = new Map(DEMO_TRANSFERS.map((transfer) => [transfer.id, transfer.email]));
-            const normalized = (Array.isArray(parsed) ? parsed : []).map((transfer) => {
-                if (!transfer || typeof transfer !== "object") return transfer;
-                if (transfer.email) return transfer;
-                const fallback = emailsById.get(transfer.id);
-                return {
-                    ...transfer,
-                    email: fallback || `user+${String(transfer.id || "transfer")}@example.com`
-                };
-            });
-            window.localStorage.setItem("antillapay_transfers", JSON.stringify(normalized));
-            setTransfers(normalized);
-        } else {
-            window.localStorage.setItem("antillapay_transfers", JSON.stringify(DEMO_TRANSFERS));
-            setTransfers(DEMO_TRANSFERS);
-        }
+        loadTransfersFromStorage();
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const handleTransfersUpdated = () => {
+            loadTransfersFromStorage();
+        };
+
+        window.addEventListener("antillapay_transfers_updated", handleTransfersUpdated);
+        return () => {
+            window.removeEventListener("antillapay_transfers_updated", handleTransfersUpdated);
+        };
     }, []);
 
     const customersByEmail = useMemo(() => {

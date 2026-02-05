@@ -81,6 +81,7 @@ import DevelopersEvents from "@/pages/developers/DevelopersEvents";
 import DevelopersLogs from "@/pages/developers/DevelopersLogs";
 import DevelopersDocs from "@/pages/developers/DevelopersDocs";
 import DevelopersApiKeys from "@/pages/developers/DevelopersApiKeys";
+import TransferModal from "@/components/transfers/TransferModal";
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, subItems = [], onClick, onSubItemClick, activeSubItem }) => {
     const [isOpen, setIsOpen] = useState(active || hasSubmenu);
@@ -2255,6 +2256,7 @@ export default function Dashboard() {
         };
     }, []);
     const [isVerificationExpanded, setIsVerificationExpanded] = useState(true);
+    const [showTransferModal, setShowTransferModal] = useState(false);
     const [activeView, setActiveView] = useState(() => {
         const path = location.pathname.toLowerCase();
         if (path.startsWith("/dashboard/settings")) {
@@ -3074,6 +3076,12 @@ export default function Dashboard() {
                             label="Payment Links"
                             active={activeView === "payments_links"}
                             onClick={() => navigate("/dashboard/payment-links")}
+                        />
+                        <SidebarItem
+                            icon={ArrowLeftRight}
+                            label="Transferencia"
+                            active={false}
+                            onClick={() => setShowTransferModal(true)}
                         />
                     </nav>
 
@@ -3930,6 +3938,12 @@ export default function Dashboard() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Transfer Modal */}
+            <TransferModal
+                open={showTransferModal}
+                onOpenChange={setShowTransferModal}
+            />
         </div>
     );
 }
