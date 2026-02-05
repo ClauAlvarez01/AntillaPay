@@ -984,18 +984,9 @@ const ReviewAndSubmitStep = ({
         return publicData.descripcionCargo && publicData.telefonoSoporte && publicData.direccionSoporte;
     };
 
-    const isBankDataComplete = () => {
-        return (bankData.method === 'selection' && bankData.bankId) ||
-            (bankData.method === 'manual' && bankData.routingNumber && bankData.accountNumber);
-    };
-
-    const isSecurityDataComplete = () => {
-        return securityData.isConfigured && securityData.recoveryCodesDownloaded;
-    };
-
     const allSectionsComplete = isTaxDataComplete() && isCompanyDataComplete() &&
         isRepresentativeDataComplete() && isProductsDataComplete() &&
-        isPublicDataComplete() && isBankDataComplete() && isSecurityDataComplete();
+        isPublicDataComplete();
 
     return (
         <div className="space-y-6">
@@ -1087,42 +1078,6 @@ const ReviewAndSubmitStep = ({
                 <DataRow label="Teléfono de soporte" value={publicData.telefonoSoporte} />
                 <DataRow label="Dirección de soporte" value={`${publicData.direccionSoporte}, ${publicData.municipioSoporte}, ${publicData.provinciaSoporte}`} />
                 <DataRow label="Mostrar teléfono en recibos" value={publicData.mostrarTelefonoRecibos ? 'Sí' : 'No'} />
-            </ReviewSection>
-
-            {/* Bank Data Section */}
-            <ReviewSection
-                title="Añade tu banco"
-                isComplete={isBankDataComplete()}
-                onEdit={() => onEdit(6)}
-            >
-                {bankData.method === 'selection' && bankData.bankId ? (
-                    <DataRow label="Banco seleccionado" value={bankData.bankId} />
-                ) : bankData.method === 'manual' ? (
-                    <>
-                        <DataRow label="Número de ruta" value={bankData.routingNumber} />
-                        <DataRow label="Número de cuenta" value={bankData.accountNumber ? '••••' + bankData.accountNumber.slice(-4) : ''} />
-                    </>
-                ) : (
-                    <p className="text-[14px] text-[#32325d]">No proporcionado</p>
-                )}
-            </ReviewSection>
-
-            {/* Security Data Section */}
-            <ReviewSection
-                title="Asegura tu cuenta"
-                isComplete={isSecurityDataComplete()}
-                onEdit={() => onEdit(7)}
-            >
-                <DataRow
-                    label="Método de autenticación"
-                    value={securityData.method === 'email' ? 'Autenticación por correo electrónico' : 'No configurado'}
-                />
-                {securityData.recoveryCodesDownloaded && (
-                    <div className="flex items-center gap-2 text-[13px] text-green-600">
-                        <Check className="w-4 h-4" />
-                        <span>Códigos de recuperación descargados</span>
-                    </div>
-                )}
             </ReviewSection>
         </div>
     );
@@ -1448,18 +1403,6 @@ const SidebarNavigation = ({ currentStep, completedSteps, onStepClick, maxReache
             ]
         },
         {
-            id: 'add-bank',
-            label: 'Añade tu banco',
-            expandable: false,
-            stepId: 6
-        },
-        {
-            id: 'secure-account',
-            label: 'Asegura tu cuenta',
-            expandable: false,
-            stepId: 7
-        },
-        {
             id: 'review-send',
             label: 'Revisar y enviar',
             expandable: false,
@@ -1638,7 +1581,8 @@ export default function BusinessVerification() {
         if (location.state?.targetStep) {
             // Allow navigation to any step (or restrict if needed)
             // Since we validate access in Dashboard, we assume it's safe here
-            goToStep(location.state.targetStep);
+            const nextTarget = [6, 7].includes(location.state.targetStep) ? 8 : location.state.targetStep;
+            goToStep(nextTarget);
 
             // Clear the state to avoid repeated navigation on re-renders
             window.history.replaceState({}, document.title);
@@ -1647,23 +1591,23 @@ export default function BusinessVerification() {
 
     const handleContinue = () => {
         if (currentStep === 8) {
-            if (validateAllSteps() && submitVerification()) {
-                // Mark task as complete and navigate back to dashboard
-                // In a real app, this would trigger a backend process
-                // For now, we'll simulate a successful submission
-                alert('Tu solicitud ha sido enviada a revisión. Te notificaremos cuando tu cuenta esté activa.');
+            submitVerification();
+            alert('Tu solicitud ha sido enviada a revisión. Te notificaremos cuando tu cuenta esté activa.');
 
-                const tasks = JSON.parse(localStorage.getItem('onboardingTasks') || '[]');
-                const updatedTasks = tasks.map(task =>
-                    task.id === 'activate-account' ? { ...task, completed: true } : task
-                );
-                localStorage.setItem('onboardingTasks', JSON.stringify(updatedTasks));
-                navigate('/dashboard');
-            }
+            const tasks = JSON.parse(localStorage.getItem('onboardingTasks') || '[]');
+            const updatedTasks = tasks.map(task =>
+                task.id === 'activate-account' ? { ...task, completed: true } : task
+            );
+            localStorage.setItem('onboardingTasks', JSON.stringify(updatedTasks));
+            navigate('/dashboard');
         } else {
             // Mark current step as completed
             if (!completedSteps.includes(currentStep)) {
                 setCompletedSteps([...completedSteps, currentStep]);
+            }
+            if (currentStep === 5) {
+                goToStep(8);
+                return;
             }
             nextStep();
         }
@@ -1689,8 +1633,6 @@ export default function BusinessVerification() {
             case 3: return "Representante de la empresa";
             case 4: return "Productos y servicios";
             case 5: return "Datos públicos";
-            case 6: return "Añade tu banco";
-            case 7: return "Asegura tu cuenta";
             case 8: return "Revisar y enviar";
             default: return "";
         }
@@ -1800,26 +1742,6 @@ export default function BusinessVerification() {
                                 errors={errors}
                             />
                         )}
-                        {currentStep === 6 && (
-                            <BankDataStep
-                                bankData={bankData}
-                                updateBankData={updateBankData}
-                                onManualInput={() => setIsManualBankModalOpen(true)}
-                            />
-                        )}
-                        {currentStep === 7 && (
-                            <SecureAccountStep
-                                securityData={securityData}
-                                updateSecurityData={updateSecurityData}
-                                onSetupMethod={(method) => {
-                                    if (method === 'email') {
-                                        setIsEmailModalOpen(true);
-                                    }
-                                }}
-                                email={representativeData.email}
-                                errors={errors}
-                            />
-                        )}
                         {currentStep === 8 && (
                             <ReviewAndSubmitStep
                                 taxData={taxData}
@@ -1840,12 +1762,10 @@ export default function BusinessVerification() {
                     <div className="max-w-[680px] mx-auto flex justify-end">
                         <button
                             onClick={handleContinue}
-                            disabled={currentStep === 8 && !validateAllSteps()}
+                            disabled={false}
                             className={cn(
                                 "rounded-md px-6 py-2.5 text-[13px] font-semibold text-white shadow-sm transition-colors",
-                                (currentStep === 8 && !validateAllSteps())
-                                    ? "bg-gray-300 cursor-not-allowed"
-                                    : "bg-[#635bff] hover:bg-[#5851e0]"
+                                "bg-[#635bff] hover:bg-[#5851e0]"
                             )}
                         >
                             {currentStep === 8 ? 'Activar cuenta' : 'Continuar'}
