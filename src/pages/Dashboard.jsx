@@ -2328,19 +2328,16 @@ export default function Dashboard() {
     ];
 
     // Items principales (fuera del expandible)
-    const mainVerificationItems = [
-        { id: 6, label: "Añade tu banco" },
-        { id: 7, label: "Asegura tu cuenta" }
-    ];
+    const mainVerificationItems = [];
 
     // Calculate completed verification steps (steps strictly less than current step are definitely done, 
     // or we can assume if currentStep is > id, it's done. 
     // If account is fully verified (step 8 submitted), all are done.
     // For now, based on currentStep: items < currentStep are completed.
-    // Contar items completados (5 dentro de Verifica tu empresa + 2 items principales)
+    // Contar items completados (5 dentro de Verifica tu empresa)
     const completedVerificationStepsCount = verificationState.currentStep > 1 ? verificationState.currentStep - 1 : 0;
 
-    // Total tasks = 1 (customize) + 5 (verification steps) + 2 (main items)
+    // Total tasks = 1 (customize) + 5 (verification steps)
     const totalTasks = 1 + verificationSteps.length + mainVerificationItems.length;
     const completedCount = (completedTasks.includes("customize_account") ? 1 : 0) + completedVerificationStepsCount;
     const progressPercent = Math.round((completedCount / totalTasks) * 100);
@@ -3387,7 +3384,7 @@ export default function Dashboard() {
                                                         </div>
                                                         <div className="flex items-start justify-between">
                                                             <div>
-                                                                <div className="text-[13px] text-[#32325d] mb-1">Transferencias</div>
+                                                                <div className="text-[13px] text-[#32325d] mb-1">Cobros</div>
                                                                 <div className="text-[20px] font-normal text-[#32325d]">—</div>
                                                             </div>
                                                             <button
