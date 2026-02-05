@@ -2629,8 +2629,7 @@ export default function Dashboard() {
     const handleSettings = () => navigate("/dashboard/settings");
     const handleGuide = () => setShowOnboarding(true);
     const handleRequestLive = () => {
-        setCustomizeStep("form");
-        setShowCustomizeModal(true);
+        navigate("/activate-account");
     };
     const currentUser = {
         name: "Clara Alvarez",
