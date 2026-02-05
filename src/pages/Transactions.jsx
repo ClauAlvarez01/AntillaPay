@@ -1094,7 +1094,7 @@ export default function TransactionsPage() {
     return (
         <div className="w-full space-y-6">
             <div className="space-y-4">
-                <h1 className="text-[28px] font-bold text-[#32325d]">Transacciones</h1>
+                <h1 className="text-[28px] font-bold text-[#32325d]">Cobros</h1>
 
                 <div className="flex items-center gap-6 border-b border-gray-100">
                     <button
@@ -1107,7 +1107,7 @@ export default function TransactionsPage() {
                                 : "text-[#697386] hover:text-[#32325d]"
                         )}
                     >
-                        Cobros por cuenta bancaria
+                        Por cuenta bancaria
                     </button>
                     <button
                         type="button"
@@ -1119,25 +1119,12 @@ export default function TransactionsPage() {
                                 : "text-[#697386] hover:text-[#32325d]"
                         )}
                     >
-                        Cobros por transferencia
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("transferencias_salida")}
-                        className={cn(
-                            "pb-3 text-[13px] font-semibold transition-colors",
-                            activeTab === "transferencias_salida"
-                                ? "text-[#635bff] border-b-2 border-[#635bff]"
-                                : "text-[#697386] hover:text-[#32325d]"
-                        )}
-                    >
-                        Transferencias de salida
+                        Por transferencia
                     </button>
                 </div>
             </div>
 
-            {activeTab !== "transferencias_salida" ? (
-                <>
+            <>
                     <div className="space-y-6">
                         <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div className="relative w-full max-w-[520px]">
@@ -1145,7 +1132,7 @@ export default function TransactionsPage() {
                                 <Input
                                     value={searchQuery}
                                     onChange={(event) => setSearchQuery(event.target.value)}
-                                    placeholder="Buscar por cliente, email o ID"
+                                    placeholder="Buscar por cliente, email"
                                     className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
                                 />
                             </div>
@@ -1298,142 +1285,6 @@ export default function TransactionsPage() {
                         )}
                     </div>
                 </>
-            ) : (
-                <>
-                    <div className="space-y-6">
-                        <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="relative w-full max-w-[520px]">
-                                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aab2c4]" />
-                                <Input
-                                    value={transferSearchQuery}
-                                    onChange={(event) => setTransferSearchQuery(event.target.value)}
-                                    placeholder="Buscar por cliente o ID"
-                                    className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="relative">
-                            <div className="flex flex-wrap items-center gap-2">
-                                {TRANSFER_FILTERS.map((filter) => (
-                                    <FilterPill
-                                        key={filter.id}
-                                        label={filter.label}
-                                        active={transferChipFilters[filter.id]}
-                                        onClick={() => handleToggleTransferFilter(filter.id)}
-                                    />
-                                ))}
-                                {transferChipFilters.created && transferCreatedDate && (
-                                    <span className="text-[12px] font-semibold text-[#635bff] ml-1">
-                                        {new Date(transferCreatedDate).toLocaleDateString("es-ES", {
-                                            day: "2-digit",
-                                            month: "short",
-                                            year: "numeric"
-                                        })}
-                                    </span>
-                                )}
-
-                                {transferChipFilters.status && (
-                                    <div className="min-w-[200px]">
-                                        <Select value={transferStatusFilter === "all" ? "" : transferStatusFilter} onValueChange={setTransferStatusFilter}>
-                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
-                                                <SelectValue placeholder="Seleccione Estado" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {availableTransferStatuses.map((status) => (
-                                                    <SelectItem key={status} value={status}>{status}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-
-                            </div>
-
-                            {isTransferCreatedCalendarOpen && (
-                                <div className="absolute left-0 top-full mt-2 z-20">
-                                    <Calendar
-                                        mode="single"
-                                        selected={transferCreatedDate}
-                                        onSelect={(date) => {
-                                            setTransferCreatedDate(date);
-                                            if (date) {
-                                                setIsTransferCreatedCalendarOpen(false);
-                                            }
-                                        }}
-                                        className="rounded-2xl border border-gray-200 bg-white shadow-xl"
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="text-[13px] text-[#697386]">
-                                Mostrando {filteredTransfers.length} transferencias de salida
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={!filteredTransfers.length}
-                                    onClick={() => openExportModal("transfers")}
-                                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
-                                >
-                                    <Upload className="w-4 h-4 text-[#8792a2]" />
-                                    Exportar
-                                </Button>
-                            </div>
-                        </div>
-
-                        {filteredTransfers.length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-gray-200 p-10 text-center text-[#8792a2]">
-                                No se encontraron transferencias de salida con los filtros actuales.
-                            </div>
-                        ) : (
-                            <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-gray-50/60">
-                                                <TableHead className="px-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Cliente</TableHead>
-                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Fecha</TableHead>
-                                                <TableHead className="py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Importe</TableHead>
-                                                <TableHead className="pr-6 py-3 text-[11px] uppercase tracking-wider text-[#8792a2]">Estado</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {filteredTransfers.map((transfer) => (
-                                                <TableRow key={transfer.id} className="border-b border-gray-100 last:border-b-0">
-                                                    <TableCell className="px-6 py-4">
-                                                        <div className="text-[13px] font-semibold text-[#32325d]">{transfer.email}</div>
-                                                    </TableCell>
-                                                    <TableCell className="px-6 py-4 text-[13px] text-[#4f5b76]">
-                                                        {formatDate(transfer.date)}
-                                                    </TableCell>
-                                                    <TableCell className="py-4 text-[13px] font-semibold text-[#32325d]">
-                                                        {formatCurrency(transfer.amount, transfer.currency || "USD")}
-                                                    </TableCell>
-                                                    <TableCell className="pr-6 py-4">
-                                                        <span
-                                                            className={cn(
-                                                                "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
-                                                                TRANSFER_STATUS_STYLES[transfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
-                                                            )}
-                                                        >
-                                                            {transfer.status}
-                                                        </span>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </>
-            )}
             <Dialog open={isTransferDetailModalOpen} onOpenChange={setIsTransferDetailModalOpen}>
                 <DialogContent className="w-[95%] sm:max-w-[560px] rounded-3xl p-0 max-h-[85vh] overflow-y-auto border-none shadow-2xl [&>button]:hidden">
                     {selectedTransfer && (

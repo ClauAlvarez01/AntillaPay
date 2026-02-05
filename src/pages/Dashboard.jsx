@@ -64,6 +64,7 @@ import CustomerDetail from "./CustomerDetail";
 import BalancesPage from "./Balances";
 import BalanceSummaryReport from "./BalanceSummaryReport";
 import TransactionsPage from "./Transactions";
+import TransfersPage from "./TransfersPage";
 
 import SettingsPage from "./Settings";
 import PersonalData from "./settings/PersonalData";
@@ -2271,6 +2272,9 @@ export default function Dashboard() {
         if (path.startsWith("/dashboard/transactions") || path.startsWith("/dashboard/transacciones")) {
             return "transactions";
         }
+        if (path.startsWith("/dashboard/transfers")) {
+            return "transfers";
+        }
         if (path.startsWith("/dashboard/payment-links")) {
             return "payments_links";
         }
@@ -2370,6 +2374,12 @@ export default function Dashboard() {
         }
         if (path.startsWith("/dashboard/transactions") || path.startsWith("/dashboard/transacciones")) {
             setActiveView("transactions");
+            setSelectedProductId(null);
+            setSelectedCustomerId(null);
+            return;
+        }
+        if (path.startsWith("/dashboard/transfers")) {
+            setActiveView("transfers");
             setSelectedProductId(null);
             setSelectedCustomerId(null);
             return;
@@ -3047,7 +3057,7 @@ export default function Dashboard() {
                         />
                         <SidebarItem
                             icon={ArrowLeftRight}
-                            label="Transacciones"
+                            label="Cobros"
                             active={activeView === "transactions"}
                             onClick={() => {
                                 setActiveView("transactions");
@@ -3080,8 +3090,11 @@ export default function Dashboard() {
                         <SidebarItem
                             icon={ArrowLeftRight}
                             label="Transferencia"
-                            active={false}
-                            onClick={() => setShowTransferModal(true)}
+                            active={activeView === "transfers"}
+                            onClick={() => {
+                                setActiveView("transfers");
+                                navigate("/dashboard/transfers");
+                            }}
                         />
                     </nav>
 
@@ -3138,6 +3151,7 @@ export default function Dashboard() {
                                 activeView === "customer_detail" ||
                                 activeView === "saldos" ||
                                 activeView === "transactions" ||
+                                activeView === "transfers" ||
                                 activeView === "settings"
                                 ? "p-4 md:p-8 bg-white"
                                 : "p-4 md:p-10"
@@ -3152,6 +3166,7 @@ export default function Dashboard() {
                                     activeView === "customer_detail" ||
                                     activeView === "saldos" ||
                                     activeView === "transactions" ||
+                                    activeView === "transfers" ||
                                     activeView === "settings"
                                     ? "w-full"
                                     : "max-w-6xl mx-auto"
@@ -3722,6 +3737,16 @@ export default function Dashboard() {
                                         transition={{ duration: 0.2 }}
                                     >
                                         <TransactionsPage />
+                                    </motion.div>
+                                ) : activeView === "transfers" ? (
+                                    <motion.div
+                                        key="transfers_view"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <TransfersPage />
                                     </motion.div>
                                 ) : activeView === "balance_report" ? (
                                     <motion.div
