@@ -446,7 +446,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
-    const exportColumns = ["ID", "Fecha de creación", "Estado", "Moneda", "URL", "Nombre"];
+    const exportColumns = ["ID", "Fecha de creación", "Estado", "Moneda", "URL", "Nombre", "Métodos de pago"];
     const exportRangeOptions = [
         "Hoy",
         "Mes en curso",
@@ -617,13 +617,21 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
             const createdAt = new Date(link.createdAt || link.created_at || Date.now());
             const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
             const isActive = link.status === "Activo";
+            const paymentMethodsValue = (() => {
+                const methods = link.paymentMethods;
+                const accepted = [];
+                if (methods?.bank) accepted.push("Cuenta Bancaria");
+                if (methods?.antilla) accepted.push("Saldo Antilla");
+                return accepted.length > 0 ? accepted.join(" | ") : "--";
+            })();
             const values = [
                 link.id || "",
                 createdAtValue,
                 isActive ? "true" : "false",
                 link.currencyCode || "",
                 link.url || `${paymentLinksBaseUrl}${link.id || ""}`,
-                link.name || ""
+                link.name || "",
+                paymentMethodsValue
             ];
             return values.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(",");
         }).join("\n");
@@ -633,13 +641,21 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
         const createdAt = new Date(link.createdAt || link.created_at || Date.now());
         const createdAtValue = Number.isNaN(createdAt.getTime()) ? "" : createdAt.toISOString();
         const isActive = link.status === "Activo";
+        const paymentMethodsValue = (() => {
+            const methods = link.paymentMethods;
+            const accepted = [];
+            if (methods?.bank) accepted.push("Cuenta Bancaria");
+            if (methods?.antilla) accepted.push("Saldo Antilla");
+            return accepted.length > 0 ? accepted.join(" | ") : "--";
+        })();
         return [
             link.id || "",
             createdAtValue,
             isActive ? "true" : "false",
             link.currencyCode || "",
             link.url || `${paymentLinksBaseUrl}${link.id || ""}`,
-            link.name || ""
+            link.name || "",
+            paymentMethodsValue
         ];
     });
     const buildSpreadsheetHtml = (headers, rows) => {
@@ -1675,9 +1691,10 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                     </div>
                     <div className="px-6 pb-6">
                         {filteredLinks.length > 0 && (
-                            <div className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 py-4 text-[13px] font-semibold text-[#6b7280] border-b border-gray-200">
+                            <div className="grid grid-cols-[2fr_2fr_1.5fr_1fr_auto] gap-4 py-4 text-[13px] font-semibold text-[#6b7280] border-b border-gray-200">
                                 <div>Nombre</div>
                                 <div>Precio</div>
+                                <div>Métodos de pago</div>
                                 <div>Fecha de creación</div>
                                 <div />
                             </div>
@@ -1697,10 +1714,17 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                         ) : (
                             filteredLinks.map((link) => {
                                 const isActive = link.status === "Activo";
+                                const paymentMethodsValue = (() => {
+                                    const methods = link.paymentMethods;
+                                    const accepted = [];
+                                    if (methods?.bank) accepted.push("Cuenta Bancaria");
+                                    if (methods?.antilla) accepted.push("Saldo Antilla");
+                                    return accepted;
+                                })();
                                 return (
                                     <div
                                         key={link.id}
-                                        className="grid grid-cols-[2fr_2fr_1fr_auto] gap-4 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0"
+                                        className="grid grid-cols-[2fr_2fr_1.5fr_1fr_auto] gap-4 py-4 text-[14px] text-[#32325d] border-b border-gray-100 last:border-b-0"
                                     >
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold">{link.name}</span>
@@ -1718,6 +1742,22 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                             {link.priceType === "customer_choice"
                                                 ? `A elección del cliente (${link.currencyCode})`
                                                 : link.priceLabel}
+                                        </div>
+                                        <div className="text-[#4f5b76]">
+                                            {paymentMethodsValue.length > 0 ? (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {paymentMethodsValue.map((method) => (
+                                                        <span
+                                                            key={method}
+                                                            className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[12px] font-semibold text-[#4f5b76]"
+                                                        >
+                                                            {method}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                "--"
+                                            )}
                                         </div>
                                         <div className="text-[#4f5b76]">{formatPaymentLinkDate(link.createdAt)}</div>
                                         <div className="relative flex justify-end">

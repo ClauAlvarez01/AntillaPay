@@ -10,6 +10,8 @@ import {
     Lock,
     Mail,
     Monitor,
+    Plus,
+    Search,
     Smartphone,
     Upload,
     User,
@@ -152,7 +154,7 @@ export default function PaymentLinksCreate() {
     const [description, setDescription] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [previewMode, setPreviewMode] = useState("monitor");
-    const [activeSection, setActiveSection] = useState("after_payment");
+    const [activeSection, setActiveSection] = useState("payment");
     const [replaceConfirmationMessage, setReplaceConfirmationMessage] = useState(false);
     const [confirmationMessage, setConfirmationMessage] = useState("");
     const [createPdfInvoice, setCreatePdfInvoice] = useState(false);
@@ -179,7 +181,18 @@ export default function PaymentLinksCreate() {
     const [minAmount, setMinAmount] = useState("");
     const [maxAmount, setMaxAmount] = useState("");
     const [showExitConfirm, setShowExitConfirm] = useState(false);
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [productSearchOpen, setProductSearchOpen] = useState(false);
+    const [productSearchQuery, setProductSearchQuery] = useState("");
+    const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+    const [amount, setAmount] = useState("");
+    const [paymentMethodAntilla, setPaymentMethodAntilla] = useState(false);
+    const [paymentMethodBank, setPaymentMethodBank] = useState(false);
+    const [selectedCheckoutPaymentMethod, setSelectedCheckoutPaymentMethod] = useState(null);
+    const [paymentMethodsError, setPaymentMethodsError] = useState("");
     const fileInputRef = useRef(null);
+    const productSearchRef = useRef(null);
+    const productSearchInputRef = useRef(null);
     const customFieldCounter = useRef(0);
     const currencyMenuRef = useRef(null);
     const currencySearchRef = useRef(null);
@@ -187,9 +200,18 @@ export default function PaymentLinksCreate() {
     const isUsd = selectedCurrency.code === "USD";
     const currencySymbol = getCurrencySymbol(selectedCurrency.code);
     const currencyPreview = selectedCurrency.code === "USD" ? "US$" : currencySymbol;
-    const previewAmount = suggestPresetAmount && presetAmount.trim() ? presetAmount.trim() : "0,00";
-    const previewAmountDisplay = `${currencyPreview} ${previewAmount}`;
-    const previewAmountDisplaySuffix = `${previewAmount} ${currencyPreview}`;
+
+    const hasAnyPaymentMethodSelected = paymentMethodBank || paymentMethodAntilla;
+    
+    const totalFromProducts = selectedProducts.reduce((sum, product) => {
+        return sum + (product.amount || 0);
+    }, 0);
+    const displayTotal = totalFromProducts > 0 ? totalFromProducts : (parseFloat(amount) || 0);
+    const formattedTotal = displayTotal.toFixed(2);
+    
+    const previewAmount = suggestPresetAmount && presetAmount.trim() ? presetAmount.trim() : formattedTotal;
+    const previewAmountDisplay = `${currencyPreview}${displayTotal.toFixed(2)}`;
+    const previewAmountDisplaySuffix = `${displayTotal.toFixed(2)} ${currencyPreview}`;
     const isDirty = Boolean(
         title ||
         description ||
@@ -225,7 +247,7 @@ export default function PaymentLinksCreate() {
     const confirmationPreviewTitle = replaceConfirmationMessage && confirmationMessage.trim()
         ? confirmationMessage.trim()
         : "Gracias por el pago";
-    const previewDomain = "buy.stripe.com";
+    const previewDomain = "buy.antillapay.com";
     const createCustomField = () => ({
         id: `custom-field-${customFieldCounter.current++}`,
         type: "Texto",
@@ -397,6 +419,59 @@ export default function PaymentLinksCreate() {
         }
     }, [createPdfInvoice, afterPaymentPreviewTab]);
 
+    useEffect(() => {
+        if (productSearchOpen) {
+            productSearchInputRef.current?.focus();
+        }
+    }, [productSearchOpen]);
+
+    useEffect(() => {
+        if (!hasAnyPaymentMethodSelected) {
+            setSelectedCheckoutPaymentMethod(null);
+        }
+    }, [hasAnyPaymentMethodSelected]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!productSearchOpen) return;
+            if (productSearchRef.current && !productSearchRef.current.contains(event.target)) {
+                setProductSearchOpen(false);
+            }
+        };
+        const handleEscape = (event) => {
+            if (event.key === "Escape") {
+                setProductSearchOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleEscape);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [productSearchOpen]);
+
+    const getStoredProducts = () => {
+        const stored = window.localStorage.getItem("antillapay_products");
+        if (!stored) return [];
+        const products = JSON.parse(stored);
+        return products.filter((p) => p.status === "Activo");
+    };
+
+    const handleSelectProduct = (product) => {
+        setSelectedProducts((prev) => [...prev, product]);
+        setProductSearchOpen(false);
+        setProductSearchQuery("");
+    };
+
+    const handleRemoveProduct = (productId) => {
+        setSelectedProducts((prev) => prev.filter((p) => p.id !== productId));
+    };
+
+    const handleCreateNewProduct = () => {
+        navigate("/dashboard/products/create");
+    };
+
     const handleImageChange = (event) => {
         const file = event.target.files?.[0];
         if (!file) {
@@ -413,6 +488,10 @@ export default function PaymentLinksCreate() {
     };
 
     const handleCreateLink = () => {
+        if (!hasAnyPaymentMethodSelected) {
+            setPaymentMethodsError("Selecciona al menos un método de pago.");
+            return;
+        }
         const now = new Date();
         const id = `pl_${now.getTime()}_${Math.random().toString(36).slice(2, 8)}`;
         const newLink = {
@@ -421,7 +500,11 @@ export default function PaymentLinksCreate() {
             currencyCode: selectedCurrency.code,
             priceType: "customer_choice",
             status: "Desactivado",
-            createdAt: now.toISOString()
+            createdAt: now.toISOString(),
+            paymentMethods: {
+                bank: paymentMethodBank,
+                antilla: paymentMethodAntilla
+            }
         };
         navigate("/dashboard/payment-links", { state: { newPaymentLink: newLink } });
     };
@@ -452,7 +535,11 @@ export default function PaymentLinksCreate() {
                 <button
                     type="button"
                     onClick={handleCreateLink}
-                    className="inline-flex items-center gap-2 rounded-md bg-[#4c43e6] px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-colors hover:bg-[#3f38c8]"
+                    disabled={!hasAnyPaymentMethodSelected}
+                    className={`inline-flex items-center gap-2 rounded-md px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-sm transition-colors ${hasAnyPaymentMethodSelected
+                        ? "bg-[#4c43e6] hover:bg-[#3f38c8]"
+                        : "bg-[#aab2c4] cursor-not-allowed"
+                        }`}
                 >
                     Crear enlace
                     <Check className="w-3.5 h-3.5" />
@@ -486,68 +573,133 @@ export default function PaymentLinksCreate() {
 
                     {activeSection === "payment" ? (
                         <>
-                    <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6">
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-[12px] font-semibold text-[#32325d]">Título</label>
-                                <input
-                                    type="text"
-                                    placeholder="Nombre del motivo o del servicio"
-                                    value={title}
-                                    onChange={(event) => setTitle(event.target.value)}
-                                    className="w-full h-9 rounded-md border border-gray-200 px-3 text-[12px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <label className="text-[12px] font-semibold text-[#32325d]">Descripción</label>
-                                    <span className="text-[10px] text-[#8792a2] border border-gray-200 rounded-full px-2 py-0.5">
-                                        Opcional
-                                    </span>
-                                </div>
-                                <textarea
-                                    rows={4}
-                                    placeholder="Dales a los clientes más información sobre lo que están pagando."
-                                    value={description}
-                                    onChange={(event) => setDescription(event.target.value)}
-                                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-[12px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                />
-                            </div>
+                    <div className="space-y-5">
+                        <h3 className="text-[14px] font-semibold text-[#4f5b76]">Producto</h3>
+                        
+                        <div className="space-y-2">
+                            <label className="text-[12px] font-semibold text-[#32325d]">Título</label>
+                            <input
+                                type="text"
+                                placeholder="Pago de Gasolina"
+                                value={title}
+                                onChange={(event) => setTitle(event.target.value)}
+                                className="w-full h-9 rounded-md border border-gray-200 px-3 text-[13px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                            />
                         </div>
+
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <label className="text-[12px] font-semibold text-[#32325d]">Imagen</label>
+                                <label className="text-[12px] font-semibold text-[#32325d]">Descripción</label>
                                 <span className="text-[10px] text-[#8792a2] border border-gray-200 rounded-full px-2 py-0.5">
                                     Opcional
                                 </span>
                             </div>
-                            <div className="h-[140px] w-full border border-dashed border-gray-200 rounded-xl flex items-center justify-center text-[12px] text-[#635bff] font-semibold overflow-hidden">
+                            <textarea
+                                rows={4}
+                                placeholder="Pago de suministro de gasolina a Gasolina S.R.L."
+                                value={description}
+                                onChange={(event) => setDescription(event.target.value)}
+                                className="w-full rounded-md border border-gray-200 px-3 py-2 text-[13px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                            />
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="relative" ref={productSearchRef}>
                                 <button
                                     type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="w-full h-full flex items-center justify-center gap-2"
+                                    onClick={() => setProductSearchOpen((prev) => !prev)}
+                                    className="w-full flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3.5 py-2.5 text-[13px] text-[#aab2c4] hover:border-gray-300 transition-colors"
                                 >
-                                    {imageUrl ? (
-                                        <img
-                                            src={imageUrl}
-                                            alt="Vista previa de la imagen"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <>
-                                            <Upload className="w-3.5 h-3.5" />
-                                            Cargar
-                                        </>
-                                    )}
+                                    <span>Encuentra o agrega un producto de prueba...</span>
+                                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${productSearchOpen ? "rotate-180" : ""}`} />
                                 </button>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="hidden"
-                                />
+                                {productSearchOpen && (() => {
+                                    const availableProducts = getStoredProducts();
+                                    const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                    const normalizedQuery = normalizeText(productSearchQuery.trim());
+                                    const filteredProducts = normalizedQuery
+                                        ? availableProducts.filter((product) => 
+                                            normalizeText(product.name).includes(normalizedQuery) ||
+                                            (product.description && normalizeText(product.description).includes(normalizedQuery))
+                                        )
+                                        : availableProducts;
+                                    const selectedProductIds = selectedProducts.map((p) => p.id);
+                                    const unselectedProducts = filteredProducts.filter((p) => !selectedProductIds.includes(p.id));
+                                    
+                                    return (
+                                        <div className="absolute left-0 right-0 z-20 mt-2 rounded-xl border border-gray-200 bg-white shadow-[0_20px_35px_-20px_rgba(15,23,42,0.45)] overflow-hidden">
+                                            <div className="border-b border-gray-100 px-4 py-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Search className="w-4 h-4 text-[#9ca3af]" />
+                                                    <input
+                                                        ref={productSearchInputRef}
+                                                        value={productSearchQuery}
+                                                        onChange={(event) => setProductSearchQuery(event.target.value)}
+                                                        placeholder="Encuentra o agrega un producto de prueba..."
+                                                        className="flex-1 text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleCreateNewProduct}
+                                                className="w-full flex items-center justify-center gap-2 bg-[#635bff] text-white px-4 py-3 text-[13px] font-semibold hover:bg-[#5851e0] transition-colors"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Agregar nuevo producto
+                                            </button>
+                                            {unselectedProducts.length > 0 && (
+                                                <div className="max-h-64 overflow-auto py-1">
+                                                    {unselectedProducts.map((product) => (
+                                                        <button
+                                                            key={product.id}
+                                                            type="button"
+                                                            onClick={() => handleSelectProduct(product)}
+                                                            className="w-full text-left px-4 py-3 text-[13px] hover:bg-[#f7f7f9] transition-colors"
+                                                        >
+                                                            <div className="font-semibold text-[#32325d]">{product.name}</div>
+                                                            {product.description && (
+                                                                <div className="text-[12px] text-[#6b7280] mt-0.5 line-clamp-1">{product.description}</div>
+                                                            )}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
                             </div>
+
+                            {selectedProducts.length > 0 && (
+                                <div className="space-y-2">
+                                    {selectedProducts.map((product) => (
+                                        <div key={product.id} className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2">
+                                            <div className="flex-1">
+                                                <div className="text-[13px] font-medium text-[#32325d]">{product.name}</div>
+                                                <div className="text-[12px] text-[#6b7280]">
+                                                    {product.currency} {product.amount?.toFixed(2) || "0.00"}
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveProduct(product.id)}
+                                                className="text-[#8792a2] hover:text-[#ef4444] transition-colors"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={() => setProductSearchOpen(true)}
+                                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#635bff] hover:text-[#5851e0] transition-colors"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Agregar producto
+                            </button>
                         </div>
                     </div>
 
@@ -611,347 +763,95 @@ export default function PaymentLinksCreate() {
                         </div>
                     </div>
 
+                    <div className="space-y-2">
+                        <label className="text-[12px] font-semibold text-[#32325d]">Importe (requerido)</label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={(event) => setAmount(event.target.value)}
+                                placeholder="32"
+                                className="w-full h-9 rounded-md border border-gray-200 px-3 pr-12 text-[13px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
+                                <button type="button" className="text-[#9ca3af] hover:text-[#4f5b76]">
+                                    <ChevronDown className="w-3 h-3 rotate-180" />
+                                </button>
+                                <button type="button" className="text-[#9ca3af] hover:text-[#4f5b76]">
+                                    <ChevronDown className="w-3 h-3" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76] cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={showAdditionalInfo}
+                            onChange={(event) => setShowAdditionalInfo(event.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-[#635bff] focus:ring-[#635bff]"
+                        />
+                        <span>Agregar información adicional</span>
+                    </label>
+
+                    {showAdditionalInfo && (
+                        <div className="rounded-lg border border-gray-200 bg-[#fafbfc] p-4 space-y-4">
+                            <textarea
+                                rows={3}
+                                placeholder="Cobro sobre los meses Febrero y Marzo"
+                                className="w-full resize-none rounded-md border border-gray-200 bg-white px-3 py-2 text-[13px] text-[#4f5b76] placeholder:text-[#aab2c4] focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
+                            />
+                        </div>
+                    )}
+
                     <div className="space-y-3">
-                        <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
-                            <input
-                                type="checkbox"
-                                checked={suggestPresetAmount}
-                                onChange={(event) => setSuggestPresetAmount(event.target.checked)}
-                                className="h-4 w-4 rounded border-gray-300"
-                            />
-                            <span>Sugerir un importe predefinido</span>
-                            <Info className="w-3 h-3 text-gray-300" />
-                        </label>
-                        {suggestPresetAmount && (
-                            <div className="pl-7">
-                                <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-[13px] text-[#32325d] shadow-sm">
-                                    <span className="text-[#6b7280]">{currencySymbol}</span>
-                                    <input
-                                        type="text"
-                                        value={presetAmount}
-                                        onChange={(event) => setPresetAmount(event.target.value)}
-                                        placeholder="10,00"
-                                        className="flex-1 bg-transparent text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
-                            <input
-                                type="checkbox"
-                                checked={useLimits}
-                                onChange={(event) => setUseLimits(event.target.checked)}
-                                className="h-4 w-4 rounded border-gray-300"
-                            />
-                            <span>Establecer límites</span>
-                            <Info className="w-3 h-3 text-gray-300" />
-                        </label>
-                        {useLimits && (
-                            <div className="grid grid-cols-1 gap-3 pl-7 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <div className="text-[12px] text-[#4f5b76]">Importe mínimo</div>
-                                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-[13px] text-[#32325d] shadow-sm">
-                                        <span className="text-[#6b7280]">{currencySymbol}</span>
-                                        <input
-                                            type="text"
-                                            value={minAmount}
-                                            onChange={(event) => setMinAmount(event.target.value)}
-                                            placeholder="0,5"
-                                            className="flex-1 bg-transparent text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
-                                        />
+                        <div className="text-[13px] font-semibold text-[#32325d]">Métodos de pago</div>
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-[13px] text-[#4f5b76] cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={paymentMethodBank}
+                                    onChange={(event) => {
+                                        setPaymentMethodBank(event.target.checked);
+                                        setPaymentMethodsError("");
+                                    }}
+                                    className="h-4 w-4 rounded border-gray-300 text-[#635bff] focus:ring-[#635bff]"
+                                />
+                                <span>Cuenta Bancaria</span>
+                            </label>
+                            {paymentMethodBank && (
+                                <div className="ml-6 mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                    <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                    <div className="text-[12px] text-amber-800">
+                                        <span className="font-semibold">Pendiente de configuración:</span> La integración con cuenta bancaria está por definir con el PSP.
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <div className="text-[12px] text-[#4f5b76]">Importe máximo</div>
-                                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-3.5 py-2 text-[13px] text-[#32325d] shadow-sm">
-                                        <span className="text-[#6b7280]">{currencySymbol}</span>
-                                        <input
-                                            type="text"
-                                            value={maxAmount}
-                                            onChange={(event) => setMaxAmount(event.target.value)}
-                                            placeholder="10.000"
-                                            className="flex-1 bg-transparent text-[13px] text-[#32325d] placeholder:text-[#aab2c4] focus:outline-none"
-                                        />
+                            )}
+                            <label className="flex items-center gap-2 text-[13px] text-[#4f5b76] cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={paymentMethodAntilla}
+                                    onChange={(event) => {
+                                        setPaymentMethodAntilla(event.target.checked);
+                                        setPaymentMethodsError("");
+                                    }}
+                                    className="h-4 w-4 rounded border-gray-300 text-[#635bff] focus:ring-[#635bff]"
+                                />
+                                <span>Saldo Antilla</span>
+                            </label>
+
+                            {(!hasAnyPaymentMethodSelected || paymentMethodsError) && (
+                                <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                    <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                    <div className="text-[12px] text-amber-800">
+                                        {paymentMethodsError || "Selecciona al menos un método de pago para poder crear el enlace."}
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <button
-                            type="button"
-                            onClick={() => setAdvancedOpen((prev) => !prev)}
-                            className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#32325d]"
-                        >
-                            Opciones avanzadas
-                            <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${advancedOpen ? "rotate-180" : ""}`} />
-                        </button>
-                        {advancedOpen && (
-                            <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-3">
-                                <div className="flex flex-wrap items-center gap-3 text-[13px] text-[#4f5b76]">
-                                    <div className="relative">
-                                        <select
-                                            value={callToAction}
-                                            onChange={(event) => setCallToAction(event.target.value)}
-                                            className="w-[140px] appearance-none rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                        >
-                                            <option>Pagar</option>
-                                            <option>Reservar</option>
-                                            <option>Donar</option>
-                                        </select>
-                                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
-                                    </div>
-                                    <span>como la llamada a la acción</span>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
-                                        <input
-                                            type="checkbox"
-                                            checked={collectCustomerName}
-                                            onChange={(event) => {
-                                                const nextValue = event.target.checked;
-                                                setCollectCustomerName(nextValue);
-                                                if (!nextValue) {
-                                                    setCustomerNameOptional(false);
-                                                }
-                                            }}
-                                            className="h-4 w-4 rounded border-gray-300"
-                                        />
-                                        <span>Recopilar los nombres de los clientes</span>
-                                    </label>
-                                    {collectCustomerName && (
-                                        <label className="flex items-center gap-2 pl-7 text-[12px] text-[#4f5b76]">
-                                            <input
-                                                type="checkbox"
-                                                checked={customerNameOptional}
-                                                onChange={(event) => setCustomerNameOptional(event.target.checked)}
-                                                className="h-4 w-4 rounded border-gray-300"
-                                            />
-                                            <span>Marcar como opcional</span>
-                                        </label>
-                                    )}
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
-                                        <input
-                                            type="checkbox"
-                                            checked={collectCompanyName}
-                                            onChange={(event) => {
-                                                const nextValue = event.target.checked;
-                                                setCollectCompanyName(nextValue);
-                                                if (!nextValue) {
-                                                    setCompanyNameOptional(false);
-                                                }
-                                            }}
-                                            className="h-4 w-4 rounded border-gray-300"
-                                        />
-                                        <span>Recopilar los nombres de las empresas</span>
-                                    </label>
-                                    {collectCompanyName && (
-                                        <label className="flex items-center gap-2 pl-7 text-[12px] text-[#4f5b76]">
-                                            <input
-                                                type="checkbox"
-                                                checked={companyNameOptional}
-                                                onChange={(event) => setCompanyNameOptional(event.target.checked)}
-                                                className="h-4 w-4 rounded border-gray-300"
-                                            />
-                                            <span>Marcar como opcional</span>
-                                        </label>
-                                    )}
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
-                                        <input
-                                            type="checkbox"
-                                            checked={customFieldsEnabled}
-                                            onChange={(event) => {
-                                                const nextValue = event.target.checked;
-                                                setCustomFieldsEnabled(nextValue);
-                                                if (nextValue && customFields.length === 0) {
-                                                    addCustomField();
-                                                }
-                                            }}
-                                            className="h-4 w-4 rounded border-gray-300"
-                                        />
-                                        <span>Añadir campos personalizados</span>
-                                        <Info className="w-3 h-3 text-gray-300" />
-                                    </label>
-                                    {customFieldsEnabled && (
-                                        <div className="space-y-4 pl-7">
-                                            {customFields.map((field) => (
-                                                <div key={field.id} className="space-y-3 border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-                                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[150px_1fr]">
-                                                        <div className="relative">
-                                                            <select
-                                                                value={field.type}
-                                                                onChange={(event) => updateCustomField(field.id, { type: event.target.value })}
-                                                                className="w-full appearance-none rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                                            >
-                                                                <option>Texto</option>
-                                                                <option>Solo números</option>
-                                                                <option>Desplegable</option>
-                                                            </select>
-                                                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            value={field.label}
-                                                            onChange={(event) => updateCustomField(field.id, { label: event.target.value })}
-                                                            placeholder="Nombre de la etiqueta"
-                                                            className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                                        />
-                                                    </div>
-
-                                                    <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={field.hasDefault}
-                                                            onChange={(event) => {
-                                                                const nextValue = event.target.checked;
-                                                                updateCustomField(field.id, {
-                                                                    hasDefault: nextValue,
-                                                                    defaultValue: nextValue ? field.defaultValue : ""
-                                                                });
-                                                            }}
-                                                            className="h-4 w-4 rounded border-gray-300"
-                                                        />
-                                                        <span>Establece un valor predeterminado</span>
-                                                        <Info className="w-3 h-3 text-gray-300" />
-                                                    </label>
-                                                    {field.hasDefault && (
-                                                        <div className="pl-7">
-                                                            <input
-                                                                type="text"
-                                                                value={field.defaultValue}
-                                                                onChange={(event) => updateCustomField(field.id, { defaultValue: event.target.value })}
-                                                                className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                                            />
-                                                        </div>
-                                                    )}
-
-                                                    <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={field.hasLimit}
-                                                            onChange={(event) => {
-                                                                const nextValue = event.target.checked;
-                                                                updateCustomField(field.id, {
-                                                                    hasLimit: nextValue,
-                                                                    limitValue: nextValue ? field.limitValue : ""
-                                                                });
-                                                            }}
-                                                            className="h-4 w-4 rounded border-gray-300"
-                                                        />
-                                                        <span>Establecer límites</span>
-                                                    </label>
-                                                    {field.hasLimit && (
-                                                        <div className="flex flex-wrap items-center gap-3 pl-7 text-[12px] text-[#4f5b76]">
-                                                            <div className="relative">
-                                                                <select
-                                                                    value={field.limitType}
-                                                                    onChange={(event) => updateCustomField(field.id, { limitType: event.target.value })}
-                                                                    className="appearance-none rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                                                >
-                                                                    <option>Como maximo</option>
-                                                                    <option>Como minimo</option>
-                                                                </select>
-                                                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 w-3.5 h-3.5 -translate-y-1/2 text-gray-400" />
-                                                            </div>
-                                                            <input
-                                                                type="text"
-                                                                value={field.limitValue}
-                                                                onChange={(event) => updateCustomField(field.id, { limitValue: event.target.value })}
-                                                                className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                                            />
-                                                            <span>caracteres</span>
-                                                        </div>
-                                                    )}
-
-                                                    <label className="flex items-center gap-2 text-[12px] text-[#4f5b76]">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={field.isOptional}
-                                                            onChange={(event) => updateCustomField(field.id, { isOptional: event.target.checked })}
-                                                            className="h-4 w-4 rounded border-gray-300"
-                                                        />
-                                                        <span>Marcar como opcional</span>
-                                                    </label>
-                                                </div>
-                                            ))}
-                                            <button
-                                                type="button"
-                                                onClick={addCustomField}
-                                                className="text-[13px] font-medium text-[#635bff] hover:text-[#4f46e5]"
-                                            >
-                                                Añadir otro campo
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
-                                        <input
-                                            type="checkbox"
-                                            checked={limitPayments}
-                                            onChange={(event) => setLimitPayments(event.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300"
-                                        />
-                                        <span>Limitar la cantidad de pagos</span>
-                                        <Info className="w-3 h-3 text-gray-300" />
-                                    </label>
-                                    {limitPayments && (
-                                        <div className="flex items-center gap-3 pl-7 text-[13px] text-[#4f5b76]">
-                                            <input
-                                                type="text"
-                                                value={paymentsTotal}
-                                                onChange={(event) => setPaymentsTotal(event.target.value)}
-                                                className="w-16 rounded-lg border border-gray-200 px-2.5 py-1.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                            />
-                                            <span>Pagos totales</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[13px] text-[#4f5b76]">
-                                        <input
-                                            type="checkbox"
-                                            checked={customMessage}
-                                            onChange={(event) => {
-                                                const nextValue = event.target.checked;
-                                                setCustomMessage(nextValue);
-                                                if (!nextValue) {
-                                                    setCustomMessageText("");
-                                                    setPreviewTab("checkout");
-                                                } else {
-                                                    setPreviewTab("inactive");
-                                                }
-                                            }}
-                                            className="h-4 w-4 rounded border-gray-300"
-                                        />
-                                        <span>Cambiar mensaje predeterminado</span>
-                                    </label>
-                                    {customMessage && (
-                                        <div className="pl-7">
-                                            <textarea
-                                                rows={3}
-                                                value={customMessageText}
-                                                onChange={(event) => setCustomMessageText(event.target.value)}
-                                                placeholder="Añade tu mensaje personalizado"
-                                                className="w-full resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-[13px] text-[#32325d] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#635bff20]"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                        </>
+                                            </>
                     ) : (
                         <div className="space-y-8">
                             <div className="space-y-4">
@@ -992,7 +892,7 @@ export default function PaymentLinksCreate() {
                                     <span>Crear una factura en PDF</span>
                                 </label>
                                 <p className="text-[11px] text-[#8792a2]">
-                                    Stripe cobra 0,4 % del total de la transacción, hasta un máximo de 2,00 US$ por factura.
+                                    AntillaPay cobra 0,4 % del total de la transacción, hasta un máximo de 2,00 US$ por factura.
                                     <span className="text-[#635bff]"> Más información.</span>
                                 </p>
                                 <p className="text-[11px] text-[#8792a2] leading-relaxed">
@@ -1227,7 +1127,7 @@ export default function PaymentLinksCreate() {
                                                 {confirmationPreviewTitle}
                                             </div>
                                             <div className="text-[11px] text-[#8792a2]">
-                                                Aparecerá un pago a Stripe en tu extracto.
+                                                Aparecerá un pago a AntillaPay en tu extracto.
                                             </div>
                                             <div className="mt-3 w-full max-w-[280px] border border-gray-200 rounded-lg px-3 py-2 text-[11px] text-[#6b7280] flex items-center justify-between bg-[#f9fafb]">
                                                 <span className="font-semibold tracking-[0.2em] text-[#6b7280]">ANTILLAPAY</span>
@@ -1236,7 +1136,7 @@ export default function PaymentLinksCreate() {
                                             <div className="pt-4 flex items-center gap-3 text-[10px] text-[#aab2c4]">
                                                 <div className="flex items-center gap-1.5">
                                                     <span>Powered by</span>
-                                                    <span className="font-semibold text-[#4f5b76]">stripe</span>
+                                                    <span className="font-semibold text-[#4f5b76]">antillapay</span>
                                                 </div>
                                                 <div className="h-3 w-px bg-gray-200" />
                                                 <div className="flex items-center gap-3">
@@ -1267,17 +1167,54 @@ export default function PaymentLinksCreate() {
                                                 TEST MODE
                                             </span>
                                         </div>
-                                        <div>
-                                            <div className="text-[11px] text-[#697386]">Título</div>
-                                            {title.trim() && (
-                                                <div className="mt-1 text-[12px] font-semibold text-[#32325d]">
-                                                    {title.trim()}
+                                        
+                                        {selectedProducts.length > 0 ? (
+                                            <div className="space-y-4">
+                                                <div className="text-[13px] font-semibold text-[#32325d]">
+                                                    Link de pago
                                                 </div>
-                                            )}
-                                            <div className="mt-2 h-11 border border-gray-200 rounded-lg px-3 flex items-center text-[#6b7280] text-[18px] shadow-sm">
-                                                {previewAmountDisplaySuffix}
+                                                <div className="text-[12px] text-[#6b7280]">
+                                                    {selectedProducts.length} producto{selectedProducts.length > 1 ? 's' : ''}
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {selectedProducts.map((product) => (
+                                                        <div key={product.id} className="bg-[#f9fafb] rounded-lg p-3 border border-gray-200">
+                                                            <div className="flex items-start justify-between">
+                                                                <div className="flex-1">
+                                                                    <div className="text-[13px] font-semibold text-[#32325d]">
+                                                                        {product.name}
+                                                                    </div>
+                                                                    <div className="text-[11px] text-[#6b7280] mt-0.5">
+                                                                        1 × ${product.amount?.toFixed(2) || "0.00"}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-[13px] font-semibold text-[#32325d]">
+                                                                    ${product.amount?.toFixed(2) || "0.00"}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="bg-[#f3f4f6] rounded-lg p-3 border border-gray-200">
+                                                    <div className="text-[14px] font-semibold text-[#32325d]">
+                                                        ${displayTotal.toFixed(2)}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <div>
+                                                <div className="text-[11px] text-[#697386]">Título</div>
+                                                {title.trim() && (
+                                                    <div className="mt-1 text-[12px] font-semibold text-[#32325d]">
+                                                        {title.trim()}
+                                                    </div>
+                                                )}
+                                                <div className="mt-2 h-11 border border-gray-200 rounded-lg px-3 flex items-center text-[#6b7280] text-[18px] shadow-sm">
+                                                    {previewAmountDisplaySuffix}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
                                         {description.trim() && (
                                             <div className="text-[11px] text-[#697386] leading-relaxed">
                                                 {description}
@@ -1297,12 +1234,7 @@ export default function PaymentLinksCreate() {
                                         <div className="space-y-6 md:pl-10 md:pr-6 md:max-w-[360px] md:mx-auto">
                                             {/* Apple Pay Button */}
                                             <button className="w-full h-10 bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
-                                                <div className="flex items-center gap-1.5 text-white">
-                                                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                                        <path d="M17.057 10.78c.045.068.513.784 1.151 1.72.336.495.632.936.883 1.32.743 1.135.918 2.053.493 2.767-.37.621-1.127 1.09-2.022 1.115-.96.027-1.353-.198-2.315-.198-.958 0-1.442.203-2.35.215-.98.013-1.841-.532-2.227-1.177-.852-1.424-.654-3.56.402-4.994.498-.675 1.25-.992 1.956-.992.68 0 1.235.211 1.722.457.195.1.378.204.55.3.14-.085.318-.184.5-.285.503-.274 1.1-.6 1.751-.564.264.014.851.05 1.506.471l-.106.182c.114.124.167.247.106.386zm-1.855-3.045c-.015.044-.2.522-.72 1-.41.376-.874.629-1.218.736-.084.026-.145-.022-.12-.089.167-.704.582-1.393 1.192-1.921.468-.406 1.055-.654 1.255-.548.064.034.026-.1.026-.1.011 0-.301 1.015-.415.922z" />
-                                                    </svg>
-                                                    <span className="text-[15px] font-semibold tracking-tight">Pay</span>
-                                                </div>
+                                                <img src="/logo.png" alt="AntillaPay" className="h-5 w-auto" />
                                             </button>
 
                                             {/* OR Separator */}
@@ -1318,78 +1250,50 @@ export default function PaymentLinksCreate() {
                                             </div>
 
                                             <div className="space-y-5">
-                                            {/* Contact Info */}
-                                            {renderContactInfoSection()}
-
                                                 {/* Payment Methods */}
                                                 <div className="space-y-3">
                                                     <div className="text-[16px] font-semibold text-[#1a1f36]">Método de pago</div>
                                                     <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                                                        {/* Card */}
-                                                        <div className="flex items-center justify-between px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-4 h-4 rounded-full border border-gray-400" />
+                                                        {paymentMethodBank && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedCheckoutPaymentMethod("bank")}
+                                                                className={`w-full flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors ${paymentMethodAntilla ? "border-b border-gray-100" : ""}`}
+                                                            >
+                                                                <div className={`w-4 h-4 rounded-full border ${selectedCheckoutPaymentMethod === "bank" ? "border-[#635bff]" : "border-gray-400"} flex items-center justify-center`}>
+                                                                    {selectedCheckoutPaymentMethod === "bank" && (
+                                                                        <div className="w-2 h-2 rounded-full bg-[#635bff]" />
+                                                                    )}
+                                                                </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <svg className="w-5 h-5 text-[#4f5b76]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
                                                                     </svg>
-                                                                    <span className="text-[14px] font-medium text-[#1a1f36]">Tarjeta</span>
+                                                                    <span className="text-[14px] font-medium text-[#1a1f36]">Cuenta Bancaria</span>
                                                                 </div>
-                                                            </div>
-                                                            <div className="flex items-center gap-1.5">
-                                                                <span className="inline-flex items-center justify-center w-8 h-5 rounded-[4px] border border-gray-200 bg-white text-[8px] font-bold tracking-wide text-[#1a3d8f]">
-                                                                    VISA
-                                                                </span>
-                                                                <span className="relative inline-flex items-center justify-center w-8 h-5 rounded-[4px] border border-gray-200 bg-white">
-                                                                    <span className="w-3 h-3 rounded-full bg-[#eb001b]" />
-                                                                    <span className="-ml-1.5 w-3 h-3 rounded-full bg-[#f79e1b]" />
-                                                                </span>
-                                                                <span className="inline-flex items-center justify-center w-8 h-5 rounded-[4px] bg-[#1976d2] text-[8px] font-bold text-white leading-none">
-                                                                    AM
-                                                                    <span className="-ml-0.5">EX</span>
-                                                                </span>
-                                                                <span className="inline-flex items-center justify-center w-8 h-5 rounded-[4px] border border-gray-200 bg-white text-[8px] font-bold text-[#1d4ed8]">
-                                                                    D
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        {/* Klarna */}
-                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
-                                                            <div className="w-4 h-4 rounded-full border border-gray-300" />
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-5 h-5 rounded bg-[#ffb3c7] flex items-center justify-center text-[10px] font-bold text-white uppercase italic">K</div>
-                                                                <span className="text-[14px] font-medium text-[#1a1f36]">Klarna</span>
-                                                            </div>
-                                                        </div>
-                                                        {/* Cash App */}
-                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
-                                                            <div className="w-4 h-4 rounded-full border border-gray-300" />
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-5 h-5 rounded bg-[#00d632] flex items-center justify-center text-[10px] font-bold text-white">$</div>
-                                                                <span className="text-[14px] font-medium text-[#1a1f36]">Cash App Pay</span>
-                                                            </div>
-                                                        </div>
-                                                        {/* Amazon Pay */}
-                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100">
-                                                            <div className="w-4 h-4 rounded-full border border-gray-300" />
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-6 h-5 rounded bg-white border border-gray-200 flex items-center justify-center text-[9px] font-semibold text-[#111827] relative">
-                                                                    pay
-                                                                    <span className="absolute -bottom-0.5 left-1 right-1 h-[2px] rounded-full bg-[#f59e0b]" />
+                                                            </button>
+                                                        )}
+                                                        {paymentMethodAntilla && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedCheckoutPaymentMethod("antilla")}
+                                                                className="w-full flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors"
+                                                            >
+                                                                <div className={`w-4 h-4 rounded-full border ${selectedCheckoutPaymentMethod === "antilla" ? "border-[#635bff]" : "border-gray-400"} flex items-center justify-center`}>
+                                                                    {selectedCheckoutPaymentMethod === "antilla" && (
+                                                                        <div className="w-2 h-2 rounded-full bg-[#635bff]" />
+                                                                    )}
                                                                 </div>
-                                                                <span className="text-[14px] font-medium text-[#1a1f36]">Amazon Pay</span>
-                                                            </div>
-                                                        </div>
-                                                        {/* Crypto */}
-                                                        <div className="flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors cursor-pointer">
-                                                            <div className="w-4 h-4 rounded-full border border-gray-300" />
-                                                            <div className="flex items-center gap-2">
-                                                                <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center text-[10px] font-bold text-white">₿</div>
-                                                                <span className="text-[14px] font-medium text-[#1a1f36]">Criptomonedas</span>
-                                                            </div>
-                                                        </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-5 h-5 rounded bg-[#635bff] flex items-center justify-center text-[10px] font-bold text-white">A</div>
+                                                                    <span className="text-[14px] font-medium text-[#1a1f36]">Saldo Antilla</span>
+                                                                </div>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
+
+                                                {selectedCheckoutPaymentMethod === "bank" && renderContactInfoSection()}
 
                                                 {/* Pay Button */}
                                                 <button
@@ -1404,7 +1308,7 @@ export default function PaymentLinksCreate() {
                                                     <div className="flex items-center gap-3 text-[10px] text-[#94a3b8]">
                                                         <div className="flex items-center gap-1.5">
                                                             <span>Powered by</span>
-                                                            <span className="font-semibold text-[#4f5b76]">stripe</span>
+                                                            <span className="font-semibold text-[#4f5b76]">antillapay</span>
                                                         </div>
                                                         <div className="h-3 w-px bg-gray-200" />
                                                         <div className="flex items-center gap-3">
@@ -1418,12 +1322,7 @@ export default function PaymentLinksCreate() {
                                     ) : (
                                         <div className="space-y-6">
                                             <button className="w-full h-10 bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
-                                                <div className="flex items-center gap-1.5 text-white">
-                                                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                                        <path d="M17.057 10.78c.045.068.513.784 1.151 1.72.336.495.632.936.883 1.32.743 1.135.918 2.053.493 2.767-.37.621-1.127 1.09-2.022 1.115-.96.027-1.353-.198-2.315-.198-.958 0-1.442.203-2.35.215-.98.013-1.841-.532-2.227-1.177-.852-1.424-.654-3.56.402-4.994.498-.675 1.25-.992 1.956-.992.68 0 1.235.211 1.722.457.195.1.378.204.55.3.14-.085.318-.184.5-.285.503-.274 1.1-.6 1.751-.564.264.014.851.05 1.506.471l-.106.182c.114.124.167.247.106.386zm-1.855-3.045c-.015.044-.2.522-.72 1-.41.376-.874.629-1.218.736-.084.026-.145-.022-.12-.089.167-.704.582-1.393 1.192-1.921.468-.406 1.055-.654 1.255-.548.064.034.026-.1.026-.1.011 0-.301 1.015-.415.922z" />
-                                                    </svg>
-                                                    <span className="text-[15px] font-semibold tracking-tight">Pay</span>
-                                                </div>
+                                                <img src="/logo.png" alt="AntillaPay" className="h-5 w-auto" />
                                             </button>
 
                                             <div className="relative flex items-center justify-center">
@@ -1510,7 +1409,7 @@ export default function PaymentLinksCreate() {
                                                 <div className="pt-4 flex items-center justify-center gap-3 text-[10px] text-[#94a3b8]">
                                                     <div className="flex items-center gap-1.5">
                                                         <span>Powered by</span>
-                                                        <span className="font-semibold text-[#4f5b76]">stripe</span>
+                                                        <span className="font-semibold text-[#4f5b76]">antillapay</span>
                                                     </div>
                                                     <div className="h-3 w-px bg-gray-200" />
                                                     <div className="flex items-center gap-3">

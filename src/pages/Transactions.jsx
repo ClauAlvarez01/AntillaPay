@@ -1107,7 +1107,7 @@ export default function TransactionsPage() {
                                 : "text-[#697386] hover:text-[#32325d]"
                         )}
                     >
-                        Por cuenta bancaria
+                        Por Cuenta Bancaria
                     </button>
                     <button
                         type="button"
@@ -1119,7 +1119,7 @@ export default function TransactionsPage() {
                                 : "text-[#697386] hover:text-[#32325d]"
                         )}
                     >
-                        Por transferencia
+                        Por Saldo Antilla
                     </button>
                 </div>
             </div>
