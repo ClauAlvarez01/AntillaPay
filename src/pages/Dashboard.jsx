@@ -3089,7 +3089,7 @@ export default function Dashboard() {
                         />
                         <SidebarItem
                             icon={ArrowLeftRight}
-                            label="Transferencia"
+                            label="Transferencias"
                             active={activeView === "transfers"}
                             onClick={() => {
                                 setActiveView("transfers");
