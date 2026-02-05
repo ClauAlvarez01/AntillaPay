@@ -622,10 +622,6 @@ export default function ProductCatalog() {
 
             return true;
         });
-
-    const totalCount = products.length;
-    const activeCount = products.filter((product) => product.status === "Activo").length;
-    const inactiveCount = products.filter((product) => product.status === "Inactivo").length;
     const hasActiveFilters = appliedStatusFilter !== "Todo" || Boolean(appliedDateFilter);
     const todayInputValue = getTodayInputValue(exportTimezone);
     const isCustomExportRange = exportRange === "Personalizado";
@@ -662,69 +658,6 @@ export default function ProductCatalog() {
                         </span>
                     </Button>
                 </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-                <button
-                    type="button"
-                    onClick={() => {
-                        setAppliedStatusFilter("Todo");
-                        setStatusFilterValue("Todo");
-                    }}
-                    className={cn(
-                        "rounded-xl border px-4 py-3 text-left transition-colors",
-                        appliedStatusFilter === "Todo"
-                            ? "border-[#635bff] bg-[#f6f5ff]"
-                            : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                    )}
-                >
-                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Todo" ? "text-[#635bff]" : "text-[#6b7280]")}>
-                        Todos
-                    </p>
-                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Todo" ? "text-[#635bff]" : "text-[#4b5563]")}>
-                        {totalCount}
-                    </p>
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setAppliedStatusFilter("Activo");
-                        setStatusFilterValue("Activo");
-                    }}
-                    className={cn(
-                        "rounded-xl border px-4 py-3 text-left transition-colors",
-                        appliedStatusFilter === "Activo"
-                            ? "border-emerald-200 bg-emerald-50"
-                            : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                    )}
-                >
-                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Activo" ? "text-emerald-700" : "text-[#6b7280]")}>
-                        Activo
-                    </p>
-                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Activo" ? "text-emerald-700" : "text-[#4b5563]")}>
-                        {activeCount}
-                    </p>
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setAppliedStatusFilter("Inactivo");
-                        setStatusFilterValue("Inactivo");
-                    }}
-                    className={cn(
-                        "rounded-xl border px-4 py-3 text-left transition-colors",
-                        appliedStatusFilter === "Inactivo"
-                            ? "border-slate-200 bg-slate-50"
-                            : "border-gray-200 bg-white hover:border-[#cbd5f5]"
-                    )}
-                >
-                    <p className={cn("text-[13px] font-semibold", appliedStatusFilter === "Inactivo" ? "text-slate-700" : "text-[#6b7280]")}>
-                        Inactivo
-                    </p>
-                    <p className={cn("text-[18px] font-semibold mt-1", appliedStatusFilter === "Inactivo" ? "text-slate-700" : "text-[#4b5563]")}>
-                        {inactiveCount}
-                    </p>
-                </button>
             </div>
 
             <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center">
