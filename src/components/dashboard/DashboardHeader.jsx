@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
     MoreHorizontal,
     Plus,
-    Settings,
     LogOut,
     User,
     ChevronDown,
@@ -79,7 +78,7 @@ const OverflowMenu = ({ onSettings, onGuide }) => (
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[220px]">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={onSettings}>Configuracion</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onSettings}>Información de mi cuenta</DropdownMenuItem>
             <DropdownMenuItem onSelect={onGuide}>Guia de configuracion</DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
@@ -161,8 +160,8 @@ const AccountDropdown = ({ onSettings, currentUser }) => {
                             onClick={onSettings}
                             className="w-full h-9 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors text-left group"
                         >
-                            <Settings className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
-                            <span className="text-[14px] font-medium">Configuración</span>
+                            <Info className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
+                            <span className="text-[14px] font-medium">Información de mi cuenta</span>
                         </button>
                     </div>
 
@@ -221,8 +220,8 @@ export default function DashboardHeader({
                 <div className="flex items-center gap-3">
                     <ActionMenu onAddProduct={onAddProduct} onCreatePaymentLink={onCreatePaymentLink} />
                     <div className="hidden md:flex items-center gap-2">
-                        <IconButton label="Configuracion" onClick={onSettings}>
-                            <Settings className="h-5 w-5" />
+                        <IconButton label="Información de mi cuenta" onClick={onSettings}>
+                            <Info className="h-5 w-5" />
                         </IconButton>
                         {showGuideButton && (
                             <Button

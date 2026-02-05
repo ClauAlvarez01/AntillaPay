@@ -15,13 +15,13 @@ import {
     DollarSign,
     FileText,
     Home,
+    Info,
     LayoutDashboard,
     Link2,
     LogOut,
     Maximize2,
     Package,
     Plus,
-    Settings,
     Upload,
     User,
     Users,
@@ -67,15 +67,6 @@ import TransactionsPage from "./Transactions";
 import TransfersPage from "./TransfersPage";
 
 import SettingsPage from "./Settings";
-import PersonalData from "./settings/PersonalData";
-import Communication from "./settings/Communication";
-import Business from "./settings/Business";
-import TeamSecurity from "./settings/TeamSecurity";
-import Compliance from "./settings/Compliance";
-import BillingSettings from "./settings/BillingSettings";
-import PaymentsSettings from "./settings/PaymentsSettings";
-import FinancialConnectionsSettings from "./settings/FinancialConnectionsSettings";
-import RadarSettings from "./settings/RadarSettings";
 import DevelopersOverview from "@/pages/developers/DevelopersOverview";
 import DevelopersWebhooks from "@/pages/developers/DevelopersWebhooks";
 import DevelopersEvents from "@/pages/developers/DevelopersEvents";
@@ -3049,8 +3040,8 @@ export default function Dashboard() {
                                         onClick={handleSettings}
                                         className="w-full h-9 flex items-center gap-3 px-3 rounded-lg hover:bg-gray-50 text-[#32325d] transition-colors text-left group"
                                     >
-                                        <Settings className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
-                                        <span className="text-[14px] font-medium">Configuración</span>
+                                        <Info className="w-4 h-4 text-[#8898aa] group-hover:text-[#635bff] transition-colors" />
+                                        <span className="text-[14px] font-medium">Información de mi cuenta</span>
                                     </button>
                                 </div>
 
@@ -3221,20 +3212,7 @@ export default function Dashboard() {
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        {(() => {
-                                            const path = location.pathname.toLowerCase();
-                                            if (path === "/dashboard/settings" || path === "/dashboard/settings/") return <SettingsPage />;
-                                            if (path.startsWith("/dashboard/settings/personal-data")) return <PersonalData />;
-                                            if (path.startsWith("/dashboard/settings/communication")) return <Communication />;
-                                            if (path.startsWith("/dashboard/settings/business")) return <Business />;
-                                            if (path.startsWith("/dashboard/settings/team-security")) return <TeamSecurity />;
-                                            if (path.startsWith("/dashboard/settings/compliance")) return <Compliance />;
-                                            if (path.startsWith("/dashboard/settings/billing")) return <BillingSettings />;
-                                            if (path.startsWith("/dashboard/settings/payments")) return <PaymentsSettings />;
-                                            if (path.startsWith("/dashboard/settings/financial-connections")) return <FinancialConnectionsSettings />;
-                                            if (path.startsWith("/dashboard/settings/radar")) return <RadarSettings />;
-                                            return <SettingsPage />;
-                                        })()}
+                                        <SettingsPage />
                                     </motion.div>
                                 ) : activeView === "home" ? (
                                     <motion.div
