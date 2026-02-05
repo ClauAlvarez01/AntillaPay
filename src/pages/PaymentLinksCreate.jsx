@@ -1008,9 +1008,6 @@ export default function PaymentLinksCreate() {
                                             <Lock className="w-3 h-3 text-[#94a3b8]" />
                                             <span>{previewDomain}</span>
                                         </div>
-                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] text-[#64748b]">
-                                            Utiliza tu dominio
-                                        </span>
                                     </div>
                                     <div />
                                 </div>
@@ -1133,16 +1130,9 @@ export default function PaymentLinksCreate() {
                                                 <span className="font-semibold tracking-[0.2em] text-[#6b7280]">ANTILLAPAY</span>
                                                 <span>{previewAmountDisplay}</span>
                                             </div>
-                                            <div className="pt-4 flex items-center gap-3 text-[10px] text-[#aab2c4]">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span>Powered by</span>
-                                                    <span className="font-semibold text-[#4f5b76]">antillapay</span>
-                                                </div>
-                                                <div className="h-3 w-px bg-gray-200" />
-                                                <div className="flex items-center gap-3">
-                                                    <span className="hover:text-[#4f5b76] cursor-pointer">Condiciones</span>
-                                                    <span className="hover:text-[#4f5b76] cursor-pointer">Privacidad</span>
-                                                </div>
+                                            <div className="pt-4 flex items-center gap-1.5 text-[10px] text-[#aab2c4]">
+                                                <span>Powered by</span>
+                                                <span className="font-semibold text-[#4f5b76]">antillapay</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1232,21 +1222,8 @@ export default function PaymentLinksCreate() {
                                     {/* Payment Section */}
                                     {isUsd ? (
                                         <div className="space-y-6 md:pl-10 md:pr-6 md:max-w-[360px] md:mx-auto">
-                                            {/* Apple Pay Button */}
-                                            <button className="w-full h-10 bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
-                                                <img src="/logo.png" alt="AntillaPay" className="h-5 w-auto" />
-                                            </button>
-
-                                            {/* OR Separator */}
-                                            <div className="relative flex items-center justify-center">
-                                                <div className="absolute inset-0 flex items-center">
-                                                    <div className="w-full border-t border-gray-200"></div>
-                                                </div>
-                                                <div className="relative bg-white px-3">
-                                                    <div className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center bg-white">
-                                                        <span className="text-[9px] text-gray-400 font-medium">o</span>
-                                                    </div>
-                                                </div>
+                                            <div className="w-full flex justify-center py-4">
+                                                <img src="/logo.png" alt="AntillaPay" className="h-32 w-auto" />
                                             </div>
 
                                             <div className="space-y-5">
@@ -1303,37 +1280,13 @@ export default function PaymentLinksCreate() {
                                                     {callToAction}
                                                 </button>
 
-                                                {/* Footer */}
-                                                <div className="pt-6 flex flex-col items-center gap-4">
-                                                    <div className="flex items-center gap-3 text-[10px] text-[#94a3b8]">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span>Powered by</span>
-                                                            <span className="font-semibold text-[#4f5b76]">antillapay</span>
-                                                        </div>
-                                                        <div className="h-3 w-px bg-gray-200" />
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="hover:text-[#4f5b76] cursor-pointer">Condiciones</span>
-                                                            <span className="hover:text-[#4f5b76] cursor-pointer">Privacidad</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <div className="pt-6" />
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="space-y-6">
-                                            <button className="w-full h-10 bg-black rounded-md flex items-center justify-center transition-opacity hover:opacity-90">
-                                                <img src="/logo.png" alt="AntillaPay" className="h-5 w-auto" />
-                                            </button>
-
-                                            <div className="relative flex items-center justify-center">
-                                                <div className="absolute inset-0 flex items-center">
-                                                    <div className="w-full border-t border-gray-200"></div>
-                                                </div>
-                                                <div className="relative bg-white px-3">
-                                                    <div className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center bg-white">
-                                                        <span className="text-[9px] text-gray-400 font-medium">o</span>
-                                                    </div>
-                                                </div>
+                                            <div className="w-full flex justify-center py-4">
+                                                <img src="/logo.png" alt="AntillaPay" className="h-32 w-auto" />
                                             </div>
 
                                             <div className="space-y-4">
@@ -1406,17 +1359,7 @@ export default function PaymentLinksCreate() {
                                                     {callToAction}
                                                 </button>
 
-                                                <div className="pt-4 flex items-center justify-center gap-3 text-[10px] text-[#94a3b8]">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span>Powered by</span>
-                                                        <span className="font-semibold text-[#4f5b76]">antillapay</span>
-                                                    </div>
-                                                    <div className="h-3 w-px bg-gray-200" />
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="hover:text-[#4f5b76] cursor-pointer">Condiciones</span>
-                                                        <span className="hover:text-[#4f5b76] cursor-pointer">Privacidad</span>
-                                                    </div>
-                                                </div>
+                                                <div className="pt-4" />
                                             </div>
                                         </div>
                                     )}
