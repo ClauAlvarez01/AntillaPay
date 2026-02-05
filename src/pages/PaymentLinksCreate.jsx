@@ -7,6 +7,9 @@ import {
     ChevronDown,
     Info,
     Link,
+    Eye,
+    EyeOff,
+    Key,
     Lock,
     Mail,
     Monitor,
@@ -190,6 +193,15 @@ export default function PaymentLinksCreate() {
     const [paymentMethodBank, setPaymentMethodBank] = useState(false);
     const [selectedCheckoutPaymentMethod, setSelectedCheckoutPaymentMethod] = useState(null);
     const [paymentMethodsError, setPaymentMethodsError] = useState("");
+    const [antillaUser, setAntillaUser] = useState("");
+    const [antillaPassword, setAntillaPassword] = useState("");
+    const [antillaShowPassword, setAntillaShowPassword] = useState(false);
+    const [antillaLoginStep, setAntillaLoginStep] = useState("login");
+    const [antilla2faCode, setAntilla2faCode] = useState("");
+    const [antillaVerified, setAntillaVerified] = useState(false);
+    const [antillaLoading, setAntillaLoading] = useState(false);
+    const [bankEmailFilled, setBankEmailFilled] = useState(false);
+    const [bankEmailValue, setBankEmailValue] = useState("");
     const fileInputRef = useRef(null);
     const productSearchRef = useRef(null);
     const productSearchInputRef = useRef(null);
@@ -430,6 +442,43 @@ export default function PaymentLinksCreate() {
             setSelectedCheckoutPaymentMethod(null);
         }
     }, [hasAnyPaymentMethodSelected]);
+
+    useEffect(() => {
+        if (selectedCheckoutPaymentMethod !== "antilla") {
+            setAntillaUser("");
+            setAntillaPassword("");
+            setAntillaShowPassword(false);
+            setAntillaLoginStep("login");
+            setAntilla2faCode("");
+            setAntillaVerified(false);
+            setAntillaLoading(false);
+        }
+    }, [selectedCheckoutPaymentMethod]);
+
+    const handleAntillaLogin = () => {
+        if (!antillaUser.trim() || !antillaPassword.trim()) return;
+        setAntillaLoading(true);
+        setTimeout(() => {
+            setAntillaLoading(false);
+            setAntillaLoginStep("2fa");
+        }, 800);
+    };
+
+    const handleAntilla2fa = () => {
+        if (!antilla2faCode.trim()) return;
+        setAntillaLoading(true);
+        setTimeout(() => {
+            setAntillaLoading(false);
+            setAntillaVerified(true);
+        }, 800);
+    };
+
+    const canPay = (() => {
+        if (!selectedCheckoutPaymentMethod) return false;
+        if (selectedCheckoutPaymentMethod === "bank") return bankEmailFilled;
+        if (selectedCheckoutPaymentMethod === "antilla") return antillaVerified;
+        return false;
+    })();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -704,7 +753,10 @@ export default function PaymentLinksCreate() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[12px] font-semibold text-[#32325d]">Divisa</label>
+                        <div className="flex items-center gap-2">
+                            <label className="text-[12px] font-semibold text-[#32325d]">Moneda</label>
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Requerido</span>
+                        </div>
                         <div className="relative" ref={currencyMenuRef}>
                             <button
                                 type="button"
@@ -764,7 +816,7 @@ export default function PaymentLinksCreate() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[12px] font-semibold text-[#32325d]">Importe (requerido)</label>
+                        <label className="text-[12px] font-semibold text-[#32325d]">Importe</label>
                         <div className="relative">
                             <input
                                 type="number"
@@ -805,7 +857,10 @@ export default function PaymentLinksCreate() {
                     )}
 
                     <div className="space-y-3">
-                        <div className="text-[13px] font-semibold text-[#32325d]">Métodos de pago</div>
+                        <div className="flex items-center gap-2">
+                            <div className="text-[13px] font-semibold text-[#32325d]">Métodos de pago</div>
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Requerido</span>
+                        </div>
                         <div className="space-y-2">
                             <label className="flex items-center gap-2 text-[13px] text-[#4f5b76] cursor-pointer">
                                 <input
@@ -1221,12 +1276,12 @@ export default function PaymentLinksCreate() {
 
                                     {/* Payment Section */}
                                     {isUsd ? (
-                                        <div className="space-y-6 md:pl-10 md:pr-6 md:max-w-[360px] md:mx-auto">
+                                        <div className="space-y-6 flex flex-col items-center w-full">
                                             <div className="w-full flex justify-center py-4">
                                                 <img src="/logo.png" alt="AntillaPay" className="h-32 w-auto" />
                                             </div>
 
-                                            <div className="space-y-5">
+                                            <div className="space-y-5 w-full max-w-[320px]">
                                                 {/* Payment Methods */}
                                                 <div className="space-y-3">
                                                     <div className="text-[16px] font-semibold text-[#1a1f36]">Método de pago</div>
@@ -1262,7 +1317,7 @@ export default function PaymentLinksCreate() {
                                                                     )}
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className="w-5 h-5 rounded bg-[#635bff] flex items-center justify-center text-[10px] font-bold text-white">A</div>
+                                                                    <img src="/logo.png" alt="Antilla" className="w-5 h-5 object-contain" />
                                                                     <span className="text-[14px] font-medium text-[#1a1f36]">Saldo Antilla</span>
                                                                 </div>
                                                             </button>
@@ -1270,12 +1325,182 @@ export default function PaymentLinksCreate() {
                                                     </div>
                                                 </div>
 
-                                                {selectedCheckoutPaymentMethod === "bank" && renderContactInfoSection()}
+                                                {selectedCheckoutPaymentMethod === "bank" && (
+                                                    <div className="space-y-3">
+                                                        <div className="text-[14px] font-semibold text-[#1a1f36]">Información de contacto</div>
+                                                        <div className="text-[12px] text-[#4f5b76]">Correo electrónico</div>
+                                                        <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                                                            <div className={`flex items-center gap-2 px-3 py-2 ${collectCustomerName || collectCompanyName ? "border-b border-gray-100" : ""}`}>
+                                                                <Mail className="w-3.5 h-3.5 text-[#9ca3af]" />
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="correoelectrónico@ejemplo.com"
+                                                                    value={bankEmailValue}
+                                                                    onChange={(e) => {
+                                                                        setBankEmailValue(e.target.value);
+                                                                        setBankEmailFilled(e.target.value.trim().length > 0);
+                                                                    }}
+                                                                    className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                                                                />
+                                                            </div>
+                                                            {collectCustomerName && (
+                                                                <div className={`flex items-center justify-between gap-2 px-3 py-2 ${collectCompanyName ? "border-b border-gray-100" : ""}`}>
+                                                                    <div className="flex items-center gap-2 flex-1">
+                                                                        <User className="w-3.5 h-3.5 text-[#9ca3af]" />
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="Nombre completo"
+                                                                            className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                                                                        />
+                                                                    </div>
+                                                                    {customerNameOptional && (
+                                                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Opcional</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {collectCompanyName && (
+                                                                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                                                                    <div className="flex items-center gap-2 flex-1">
+                                                                        <Building2 className="w-3.5 h-3.5 text-[#9ca3af]" />
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="Nombre de la empresa"
+                                                                            className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                                                                        />
+                                                                    </div>
+                                                                    {companyNameOptional && (
+                                                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Opcional</span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {selectedCheckoutPaymentMethod === "antilla" && (
+                                                    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                                                        {antillaVerified ? (
+                                                            <div className="p-4 flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
+                                                                    <Check className="w-4 h-4 text-green-600" />
+                                                                </div>
+                                                                <div>
+                                                                    <div className="text-[13px] font-semibold text-[#1a1f36]">Cuenta verificada</div>
+                                                                    <div className="text-[11px] text-[#6b7280]">{antillaUser}</div>
+                                                                </div>
+                                                            </div>
+                                                        ) : antillaLoginStep === "login" ? (
+                                                            <div className="p-4 space-y-3">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <div className="w-6 h-6 rounded bg-[#635bff] flex items-center justify-center text-[9px] font-bold text-white">A</div>
+                                                                    <span className="text-[13px] font-semibold text-[#1a1f36]">Iniciar sesión en Antilla</span>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[11px] text-[#4f5b76] font-medium">Usuario</label>
+                                                                    <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+                                                                        <User className="w-3.5 h-3.5 text-[#9ca3af]" />
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="Tu usuario de Antilla"
+                                                                            value={antillaUser}
+                                                                            onChange={(e) => setAntillaUser(e.target.value)}
+                                                                            className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[11px] text-[#4f5b76] font-medium">Contraseña</label>
+                                                                    <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+                                                                        <Lock className="w-3.5 h-3.5 text-[#9ca3af]" />
+                                                                        <input
+                                                                            type={antillaShowPassword ? "text" : "password"}
+                                                                            placeholder="Tu contraseña"
+                                                                            value={antillaPassword}
+                                                                            onChange={(e) => setAntillaPassword(e.target.value)}
+                                                                            onKeyDown={(e) => e.key === "Enter" && handleAntillaLogin()}
+                                                                            className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none"
+                                                                        />
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setAntillaShowPassword(!antillaShowPassword)}
+                                                                            className="text-[#9ca3af] hover:text-[#4f5b76] transition-colors"
+                                                                        >
+                                                                            {antillaShowPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleAntillaLogin}
+                                                                    disabled={!antillaUser.trim() || !antillaPassword.trim() || antillaLoading}
+                                                                    className={`w-full rounded-lg py-2 text-[13px] font-semibold transition-all ${
+                                                                        antillaUser.trim() && antillaPassword.trim() && !antillaLoading
+                                                                            ? "bg-[#635bff] hover:bg-[#5851e0] text-white shadow-sm"
+                                                                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                                    }`}
+                                                                >
+                                                                    {antillaLoading ? (
+                                                                        <span className="flex items-center justify-center gap-2">
+                                                                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                                            Verificando...
+                                                                        </span>
+                                                                    ) : "Siguiente"}
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="p-4 space-y-3">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <div className="w-6 h-6 rounded bg-[#635bff] flex items-center justify-center text-[9px] font-bold text-white">A</div>
+                                                                    <span className="text-[13px] font-semibold text-[#1a1f36]">Verificación en dos pasos</span>
+                                                                </div>
+                                                                <p className="text-[11px] text-[#6b7280] leading-relaxed">
+                                                                    Ingresa el código de verificación enviado a tu cuenta.
+                                                                </p>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[11px] text-[#4f5b76] font-medium">Código de verificación</label>
+                                                                    <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+                                                                        <Key className="w-3.5 h-3.5 text-[#9ca3af]" />
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="000000"
+                                                                            value={antilla2faCode}
+                                                                            onChange={(e) => setAntilla2faCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                                                            onKeyDown={(e) => e.key === "Enter" && handleAntilla2fa()}
+                                                                            className="flex-1 bg-transparent text-[13px] text-[#1a1f36] placeholder:text-[#aab2c4] focus:outline-none tracking-widest"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleAntilla2fa}
+                                                                    disabled={!antilla2faCode.trim() || antillaLoading}
+                                                                    className={`w-full rounded-lg py-2 text-[13px] font-semibold transition-all ${
+                                                                        antilla2faCode.trim() && !antillaLoading
+                                                                            ? "bg-[#635bff] hover:bg-[#5851e0] text-white shadow-sm"
+                                                                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                                    }`}
+                                                                >
+                                                                    {antillaLoading ? (
+                                                                        <span className="flex items-center justify-center gap-2">
+                                                                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                                            Verificando...
+                                                                        </span>
+                                                                    ) : "Verificar"}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
 
                                                 {/* Pay Button */}
                                                 <button
                                                     type="button"
-                                                    className="w-full bg-[#0070f3] hover:bg-[#0060d3] text-white text-[14px] font-semibold rounded-lg py-2.5 shadow-md transition-all active:scale-[0.99] mt-2"
+                                                    disabled={!canPay}
+                                                    className={`w-full text-[14px] font-semibold rounded-lg py-2.5 shadow-md transition-all mt-2 ${
+                                                        canPay
+                                                            ? "bg-[#0070f3] hover:bg-[#0060d3] text-white active:scale-[0.99]"
+                                                            : "bg-[#0070f3]/40 text-white/70 cursor-not-allowed"
+                                                    }`}
                                                 >
                                                     {callToAction}
                                                 </button>
