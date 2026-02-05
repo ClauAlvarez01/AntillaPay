@@ -60,7 +60,6 @@ const MockEvents = [
         type: "payment_link.created",
         created: "2026-02-03 10:30:00",
         status: "success",
-        resource: "plink_2s3d4f",
         deliveries: [
             {
                 id: "whdl_1",
@@ -91,7 +90,6 @@ const MockEvents = [
         type: "payment_link.updated",
         created: "2026-02-03 09:15:22",
         status: "success",
-        resource: "plink_2s3d4f",
         deliveries: [
             {
                 id: "whdl_2",
@@ -124,7 +122,6 @@ const MockEvents = [
         type: "payment.failed",
         created: "2026-02-02 08:45:10",
         status: "failed",
-        resource: "pay_9d8f7s",
         deliveries: [
             {
                 id: "whdl_3",
@@ -158,7 +155,6 @@ const MockEvents = [
         type: "transfer.created",
         created: "2026-02-01 14:20:05",
         status: "success",
-        resource: "tr_2s3d4f",
         deliveries: [
             {
                 id: "whdl_4",
@@ -209,8 +205,7 @@ export default function DevelopersEvents() {
         return events.filter((event) => {
             const matchesQuery = !term
                 || event.type.toLowerCase().includes(term)
-                || event.id.toLowerCase().includes(term)
-                || event.resource.toLowerCase().includes(term);
+                || event.id.toLowerCase().includes(term);
             const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
             return matchesQuery && matchesStatus;
         });
@@ -292,11 +287,10 @@ export default function DevelopersEvents() {
                 <Table>
                     <TableHeader className="bg-gray-50/50">
                         <TableRow>
-                            <TableHead className="w-[30%]">Tipo</TableHead>
-                            <TableHead>Recurso</TableHead>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead>ID</TableHead>
-                            <TableHead className="w-[56px]"></TableHead>
+                            <TableHead className="w-1/4">Tipo</TableHead>
+                            <TableHead className="w-1/4">Fecha</TableHead>
+                            <TableHead className="w-1/4">ID</TableHead>
+                            <TableHead className="w-1/4"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -316,11 +310,6 @@ export default function DevelopersEvents() {
                                             {evt.type}
                                         </span>
                                     </div>
-                                </TableCell>
-                                <TableCell className="text-[13px] text-[#4f5b76]">
-                                    <Badge variant="secondary" className="font-mono text-[11px] bg-gray-100 text-gray-600 hover:bg-gray-200">
-                                        {evt.resource}
-                                    </Badge>
                                 </TableCell>
                                 <TableCell className="text-[13px] text-[#4f5b76]">
                                     {evt.created}
@@ -355,7 +344,7 @@ export default function DevelopersEvents() {
                         ))}
                         {filteredEvents.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center text-[13px] text-[#9aa3b2] py-10">
+                                <TableCell colSpan={4} className="text-center text-[13px] text-[#9aa3b2] py-10">
                                     No hay eventos que coincidan con tu búsqueda.
                                 </TableCell>
                             </TableRow>

@@ -31,11 +31,11 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const MockApiLogs = [
-    { id: "req_1a9f", method: "POST", path: "/v1/payment_links", status: 201, time: "2026-02-03 10:30:00", latency: "240ms", ip: "203.0.113.4", env: "live" },
-    { id: "req_2b7d", method: "GET", path: "/v1/payment_links", status: 200, time: "2026-02-03 10:29:15", latency: "120ms", ip: "203.0.113.4", env: "live" },
-    { id: "req_3c2a", method: "POST", path: "/v1/payments", status: 402, time: "2026-02-03 10:25:00", latency: "310ms", ip: "198.51.100.2", env: "live" },
-    { id: "req_4d9e", method: "POST", path: "/v1/payment_links", status: 201, time: "2026-02-03 09:10:00", latency: "280ms", ip: "203.0.113.4", env: "test" },
-    { id: "req_5e1c", method: "GET", path: "/v1/events", status: 200, time: "2026-02-03 09:05:00", latency: "85ms", ip: "198.51.100.2", env: "test" },
+    { id: "req_1a9f", method: "POST", path: "/v1/payment_links", status: 201, time: "2026-02-03 10:30:00", eventId: "evt_abc123", env: "live" },
+    { id: "req_2b7d", method: "GET", path: "/v1/payment_links", status: 200, time: "2026-02-03 10:29:15", eventId: "evt_def456", env: "live" },
+    { id: "req_3c2a", method: "POST", path: "/v1/payments", status: 402, time: "2026-02-03 10:25:00", eventId: "evt_ghi789", env: "live" },
+    { id: "req_4d9e", method: "POST", path: "/v1/payment_links", status: 201, time: "2026-02-03 09:10:00", eventId: "evt_jkl012", env: "test" },
+    { id: "req_5e1c", method: "GET", path: "/v1/events", status: 200, time: "2026-02-03 09:05:00", eventId: "evt_mno345", env: "test" },
 ];
 
 const FilterPill = ({ label, active, onClick }) => (
@@ -68,7 +68,7 @@ export default function DevelopersLogs() {
                 || log.path.toLowerCase().includes(term)
                 || log.method.toLowerCase().includes(term)
                 || log.id.toLowerCase().includes(term)
-                || log.ip.toLowerCase().includes(term);
+                || log.eventId.toLowerCase().includes(term);
             const matchesStatus = statusFilter === "all"
                 || (statusFilter === "success" && log.status < 400)
                 || (statusFilter === "error" && log.status >= 400);
@@ -143,12 +143,11 @@ export default function DevelopersLogs() {
                         <>
                             <TableHeader className="bg-gray-50/50">
                                 <TableRow>
-                                    <TableHead>Método</TableHead>
-                                    <TableHead>Ruta</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                    <TableHead>IP</TableHead>
-                                    <TableHead>Latencia</TableHead>
-                                    <TableHead className="text-right">Fecha</TableHead>
+                                    <TableHead className="w-1/5">Método</TableHead>
+                                    <TableHead className="w-1/5">Ruta</TableHead>
+                                    <TableHead className="w-1/5">Estado</TableHead>
+                                    <TableHead className="w-1/5">ID de Evento</TableHead>
+                                    <TableHead className="w-1/5 text-right">Fecha</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -174,11 +173,8 @@ export default function DevelopersLogs() {
                                                 {log.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-[13px] text-[#4f5b76]">
-                                            {log.ip}
-                                        </TableCell>
-                                        <TableCell className="text-[13px] text-[#4f5b76]">
-                                            {log.latency}
+                                        <TableCell className="font-mono text-[13px] text-[#32325d]">
+                                            {log.eventId}
                                         </TableCell>
                                         <TableCell className="text-right text-[13px] text-[#697386]">
                                             {log.time}
@@ -187,7 +183,7 @@ export default function DevelopersLogs() {
                                 ))}
                                 {filteredApiLogs.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center text-[13px] text-[#9aa3b2] py-10">
+                                        <TableCell colSpan={5} className="text-center text-[13px] text-[#9aa3b2] py-10">
                                             No hay registros que coincidan con tu búsqueda.
                                         </TableCell>
                                     </TableRow>
@@ -228,6 +224,10 @@ export default function DevelopersLogs() {
                                     <Copy className="w-4 h-4 mr-2" />
                                     Copiar ID
                                 </Button>
+                                <Button size="sm" variant="outline" className="flex-1 border-gray-200 rounded-full" onClick={() => handleCopy(selectedLog.data.eventId, "ID de Evento")}>
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Copiar Evento
+                                </Button>
                                 <Button size="sm" variant="outline" className="border-gray-200 rounded-full" onClick={() => handleCopy(selectedLog.data.path, "Ruta")}>
                                     Copiar ruta
                                 </Button>
@@ -235,12 +235,8 @@ export default function DevelopersLogs() {
 
                             <div className="space-y-2 text-[13px] text-[#4f5b76]">
                                 <div className="flex justify-between">
-                                    <span>IP</span>
-                                    <span className="font-mono text-[#32325d]">{selectedLog.data.ip}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Latencia</span>
-                                    <span className="font-mono text-[#32325d]">{selectedLog.data.latency}</span>
+                                    <span>ID de Evento</span>
+                                    <span className="font-mono text-[#32325d]">{selectedLog.data.eventId}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Entorno</span>
