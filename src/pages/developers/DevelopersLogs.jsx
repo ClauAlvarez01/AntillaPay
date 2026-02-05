@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
     History,
-    ShieldAlert,
     Search,
     User,
     ArrowUpRight,
@@ -39,12 +38,6 @@ const MockApiLogs = [
     { id: "req_5e1c", method: "GET", path: "/v1/events", status: 200, time: "2026-02-03 09:05:00", latency: "85ms", ip: "198.51.100.2", env: "test" },
 ];
 
-const MockAuditLogs = [
-    { id: "aud_1a", action: "api_key.created", actor: "clara@antillapay.com", target: "pk_test_51...", time: "2026-02-03 15:00:00" },
-    { id: "aud_2b", action: "webhook.updated", actor: "clara@antillapay.com", target: "we_antillapay_default", time: "2026-02-03 14:30:00" },
-    { id: "aud_3c", action: "api_key.rotated", actor: "clara@antillapay.com", target: "sk_test_51...", time: "2026-02-02 12:10:00" },
-];
-
 const FilterPill = ({ label, active, onClick }) => (
     <button
         type="button"
@@ -64,10 +57,8 @@ const FilterPill = ({ label, active, onClick }) => (
 );
 
 export default function DevelopersLogs() {
-    const [activeTab, setActiveTab] = useState("api");
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
-    const [auditFilter, setAuditFilter] = useState("all");
     const [selectedLog, setSelectedLog] = useState(null);
 
     const filteredApiLogs = useMemo(() => {
@@ -84,23 +75,6 @@ export default function DevelopersLogs() {
             return matchesQuery && matchesStatus;
         });
     }, [query, statusFilter]);
-
-    const filteredAuditLogs = useMemo(() => {
-        const term = query.trim().toLowerCase();
-        return MockAuditLogs.filter((log) => {
-            const matchesQuery = !term
-                || log.action.toLowerCase().includes(term)
-                || log.actor.toLowerCase().includes(term)
-                || log.target.toLowerCase().includes(term);
-            const category = log.action.includes("api_key")
-                ? "keys"
-                : log.action.includes("webhook")
-                    ? "webhooks"
-                    : "other";
-            const matchesCategory = auditFilter === "all" || auditFilter === category;
-            return matchesQuery && matchesCategory;
-        });
-    }, [query, auditFilter]);
 
     const handleCopy = (value, label) => {
         if (navigator?.clipboard) {
@@ -122,28 +96,13 @@ export default function DevelopersLogs() {
             {/* Tabs */}
             <div className="flex items-center border-b border-gray-200">
                 <button
-                    onClick={() => setActiveTab("api")}
                     className={cn(
                         "px-4 py-2.5 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2",
-                        activeTab === "api"
-                            ? "border-[#635bff] text-[#635bff]"
-                            : "border-transparent text-[#697386] hover:text-[#32325d]"
+                        "border-[#635bff] text-[#635bff]"
                     )}
                 >
                     <History className="w-4 h-4" />
                     Logs de API
-                </button>
-                <button
-                    onClick={() => setActiveTab("audit")}
-                    className={cn(
-                        "px-4 py-2.5 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2",
-                        activeTab === "audit"
-                            ? "border-[#635bff] text-[#635bff]"
-                            : "border-transparent text-[#697386] hover:text-[#32325d]"
-                    )}
-                >
-                    <ShieldAlert className="w-4 h-4" />
-                    Auditoría
                 </button>
             </div>
 
@@ -155,7 +114,7 @@ export default function DevelopersLogs() {
                         <Input
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
-                            placeholder={activeTab === "api" ? "Buscar logs de API" : "Buscar auditoría"}
+                            placeholder="Buscar logs de API"
                             className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
                         />
                     </div>
@@ -171,121 +130,70 @@ export default function DevelopersLogs() {
 
                 <div className="relative mt-2 flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-2">
-                        {activeTab === "api" ? (
-                            <>
-                                <FilterPill label="Todos" active={statusFilter === "all"} onClick={() => setStatusFilter("all")} />
-                                <FilterPill label="Exitosos" active={statusFilter === "success"} onClick={() => setStatusFilter("success")} />
-                                <FilterPill label="Errores" active={statusFilter === "error"} onClick={() => setStatusFilter("error")} />
-                            </>
-                        ) : (
-                            <>
-                                <FilterPill label="Todos" active={auditFilter === "all"} onClick={() => setAuditFilter("all")} />
-                                <FilterPill label="Claves" active={auditFilter === "keys"} onClick={() => setAuditFilter("keys")} />
-                                <FilterPill label="Webhooks" active={auditFilter === "webhooks"} onClick={() => setAuditFilter("webhooks")} />
-                            </>
-                        )}
+                        <>
+                            <FilterPill label="Todos" active={statusFilter === "all"} onClick={() => setStatusFilter("all")} />
+                            <FilterPill label="Exitosos" active={statusFilter === "success"} onClick={() => setStatusFilter("success")} />
+                            <FilterPill label="Errores" active={statusFilter === "error"} onClick={() => setStatusFilter("error")} />
+                        </>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     <Table>
-                        {activeTab === "api" ? (
-                            <>
-                                <TableHeader className="bg-gray-50/50">
-                                    <TableRow>
-                                        <TableHead>Método</TableHead>
-                                        <TableHead>Ruta</TableHead>
-                                        <TableHead>Estado</TableHead>
-                                        <TableHead>IP</TableHead>
-                                        <TableHead>Latencia</TableHead>
-                                        <TableHead className="text-right">Fecha</TableHead>
+                        <>
+                            <TableHeader className="bg-gray-50/50">
+                                <TableRow>
+                                    <TableHead>Método</TableHead>
+                                    <TableHead>Ruta</TableHead>
+                                    <TableHead>Estado</TableHead>
+                                    <TableHead>IP</TableHead>
+                                    <TableHead>Latencia</TableHead>
+                                    <TableHead className="text-right">Fecha</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredApiLogs.map((log) => (
+                                    <TableRow key={log.id} className="hover:bg-gray-50/50 cursor-pointer" onClick={() => setSelectedLog({ type: "api", data: log })}>
+                                        <TableCell>
+                                            <Badge variant="outline" className="font-mono bg-white">
+                                                {log.method}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="font-mono text-[13px] text-[#32325d]">
+                                            {log.path}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={cn(
+                                                    "shadow-none",
+                                                    log.status >= 200 && log.status < 300
+                                                        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                                        : "bg-red-50 text-red-700 hover:bg-red-100"
+                                                )}
+                                            >
+                                                {log.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-[13px] text-[#4f5b76]">
+                                            {log.ip}
+                                        </TableCell>
+                                        <TableCell className="text-[13px] text-[#4f5b76]">
+                                            {log.latency}
+                                        </TableCell>
+                                        <TableCell className="text-right text-[13px] text-[#697386]">
+                                            {log.time}
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredApiLogs.map((log) => (
-                                        <TableRow key={log.id} className="hover:bg-gray-50/50 cursor-pointer" onClick={() => setSelectedLog({ type: "api", data: log })}>
-                                            <TableCell>
-                                                <Badge variant="outline" className="font-mono bg-white">
-                                                    {log.method}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="font-mono text-[13px] text-[#32325d]">
-                                                {log.path}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    className={cn(
-                                                        "shadow-none",
-                                                        log.status >= 200 && log.status < 300
-                                                            ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                                            : "bg-red-50 text-red-700 hover:bg-red-100"
-                                                    )}
-                                                >
-                                                    {log.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-[13px] text-[#4f5b76]">
-                                                {log.ip}
-                                            </TableCell>
-                                            <TableCell className="text-[13px] text-[#4f5b76]">
-                                                {log.latency}
-                                            </TableCell>
-                                            <TableCell className="text-right text-[13px] text-[#697386]">
-                                                {log.time}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {filteredApiLogs.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={6} className="text-center text-[13px] text-[#9aa3b2] py-10">
-                                                No hay registros que coincidan con tu búsqueda.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </>
-                        ) : (
-                            <>
-                                <TableHeader className="bg-gray-50/50">
+                                ))}
+                                {filteredApiLogs.length === 0 && (
                                     <TableRow>
-                                        <TableHead>Acción</TableHead>
-                                        <TableHead>Usuario</TableHead>
-                                        <TableHead>Objetivo</TableHead>
-                                        <TableHead className="text-right">Fecha</TableHead>
+                                        <TableCell colSpan={6} className="text-center text-[13px] text-[#9aa3b2] py-10">
+                                            No hay registros que coincidan con tu búsqueda.
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredAuditLogs.map((log) => (
-                                        <TableRow key={log.id} className="hover:bg-gray-50/50 cursor-pointer" onClick={() => setSelectedLog({ type: "audit", data: log })}>
-                                            <TableCell className="font-medium text-[#32325d]">
-                                                {log.action}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
-                                                        {log.actor[0].toUpperCase()}
-                                                    </div>
-                                                    <span className="text-[13px] text-[#4f5b76]">{log.actor}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="font-mono text-[13px] text-[#697386]">
-                                                {log.target}
-                                            </TableCell>
-                                            <TableCell className="text-right text-[13px] text-[#697386]">
-                                                {log.time}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {filteredAuditLogs.length === 0 && (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-[13px] text-[#9aa3b2] py-10">
-                                                No hay registros que coincidan con tu búsqueda.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </>
-                        )}
+                                )}
+                            </TableBody>
+                        </>
                     </Table>
                 </div>
             </div>
@@ -342,34 +250,6 @@ export default function DevelopersLogs() {
                         </div>
                     )}
 
-                    {selectedLog?.type === "audit" && (
-                        <div className="space-y-6">
-                            <SheetHeader>
-                                <SheetTitle className="text-[18px] font-semibold text-[#32325d]">Registro de auditoría</SheetTitle>
-                                <SheetDescription className="text-[12px] text-[#697386]">{selectedLog.data.time}</SheetDescription>
-                            </SheetHeader>
-
-                            <div className="space-y-3 text-[13px] text-[#4f5b76]">
-                                <div className="flex justify-between">
-                                    <span>Acción</span>
-                                    <span className="font-mono text-[#32325d]">{selectedLog.data.action}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Usuario</span>
-                                    <span className="font-mono text-[#32325d]">{selectedLog.data.actor}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Objetivo</span>
-                                    <span className="font-mono text-[#32325d]">{selectedLog.data.target}</span>
-                                </div>
-                            </div>
-
-                            <Button size="sm" variant="outline" className="border-gray-200 rounded-full" onClick={() => handleCopy(selectedLog.data.id, "ID")}>
-                                <Copy className="w-4 h-4 mr-2" />
-                                Copiar ID
-                            </Button>
-                        </div>
-                    )}
                 </SheetContent>
             </Sheet>
         </div>
