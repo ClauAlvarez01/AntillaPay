@@ -556,30 +556,12 @@ export default function BalancesPage({ onOpenReport }) {
                         Extraer
                     </Button>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                className="h-8 rounded-md bg-white border border-gray-200 text-[#32325d] text-[13px] font-semibold hover:bg-gray-50 flex items-center gap-1.5 shadow-sm"
-                            >
-                                Gestionar extracciones
-                                <ChevronDown className="w-3.5 h-3.5 opacity-50" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-[280px] rounded-xl p-1 shadow-xl border-gray-100">
-                            <DropdownMenuItem
-                                onClick={() => setIsCalendarModalOpen(true)}
-                                className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                            >
-                                Gestionar calendario de extracciones
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => setIsManageBanksModalOpen(true)}
-                                className="rounded-lg py-2.5 text-[14px] text-[#32325d] cursor-pointer"
-                            >
-                                Gestionar cuentas bancarias
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        <Button
+                            onClick={() => setIsManageBanksModalOpen(true)}
+                            className="h-8 rounded-md bg-white border border-gray-200 text-[#32325d] text-[13px] font-semibold hover:bg-gray-50 flex items-center gap-1.5 shadow-sm"
+                        >
+                            Gestionar cuentas bancarias
+                        </Button>
                 </div>
             </div>
 
@@ -1112,11 +1094,20 @@ export default function BalancesPage({ onOpenReport }) {
                                 {bankAccounts.map((account) => (
                                     <div
                                         key={account.id}
-                                        className="p-4 rounded-xl border border-gray-100 flex items-center justify-between bg-white hover:border-[#cbd5f5] transition-all"
+                                        className={cn(
+                                            "p-4 rounded-xl border flex items-center justify-between transition-all cursor-pointer",
+                                            account.isDefault
+                                                ? "border-[#635bff] bg-[#f5f3ff] shadow-sm"
+                                                : "border-gray-100 bg-white hover:border-[#cbd5f5]"
+                                        )}
+                                        onClick={() => setDefaultBank(account.id)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
-                                                <CreditCard className="w-5 h-5 text-gray-400" />
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                                                account.isDefault ? "bg-white shadow-sm" : "bg-gray-50"
+                                            )}>
+                                                <CreditCard className={cn("w-5 h-5", account.isDefault ? "text-[#635bff]" : "text-gray-400")} />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
@@ -1131,17 +1122,17 @@ export default function BalancesPage({ onOpenReport }) {
 
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors p-1">
+                                                <button className="text-[#aab2c4] hover:text-[#32325d] transition-colors p-1" onClick={(e) => e.stopPropagation()}>
                                                     <MoreHorizontal className="w-5 h-5" />
                                                 </button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-[200px] rounded-xl p-1 shadow-xl">
                                                 {!account.isDefault && (
-                                                    <DropdownMenuItem onClick={() => setDefaultBank(account.id)} className="rounded-lg py-2 text-[14px] text-[#32325d] cursor-pointer">
+                                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDefaultBank(account.id); }} className="rounded-lg py-2 text-[14px] text-[#32325d] cursor-pointer">
                                                         Marcar predeterminada
                                                     </DropdownMenuItem>
                                                 )}
-                                                <DropdownMenuItem onClick={() => removeBank(account.id)} className="rounded-lg py-2 text-[14px] text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer">
+                                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); removeBank(account.id); }} className="rounded-lg py-2 text-[14px] text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer">
                                                     Eliminar cuenta
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
