@@ -6,7 +6,8 @@ import {
     Terminal,
     Copy,
     ChevronRight,
-    ExternalLink
+    ExternalLink,
+    AlertTriangle
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -223,7 +224,21 @@ export default function DevelopersDocs() {
     const currentDoc = DOCUMENTS.find(d => d.id === activeDoc) || DOCUMENTS[0];
 
     return (
-        <div className="flex h-auto min-h-[600px] gap-8 max-w-7xl mx-auto p-6 bg-white rounded-lg">
+        <>
+            {/* Alert Banner */}
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-4 flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <div>
+                    <span className="font-semibold">Atención:</span> Esta vista está diseñada para ser embebida como iframe.
+                </div>
+            </div>
+            
+            <div className="flex h-auto min-h-[600px] gap-8 max-w-7xl mx-auto p-6 bg-white rounded-lg relative">
+                {/* Red Ribbon Banner */}
+                <div className="absolute top-0 right-0 bg-red-600 text-white px-4 py-2 rounded-bl-lg shadow-lg z-10 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">Vista como iframe</span>
+                </div>
             {/* Sidebar Navigation */}
             <div className="w-64 shrink-0 hidden md:block border-r border-gray-100 pr-4">
                 <div className="space-y-6">
@@ -277,5 +292,6 @@ export default function DevelopersDocs() {
                 <div className="mt-12 pt-8 border-t border-gray-100" />
             </div>
         </div>
+        </>
     );
 }
