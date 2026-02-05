@@ -8,6 +8,8 @@ import ProductCreate from "./ProductCreate";
 import Pricing from "./Pricing";
 
 import Developers from "./Developers";
+import DevelopersApiKeys from "./developers/DevelopersApiKeys";
+import Authentication from "./developers/docs/Authentication";
 
 import Solutions from "./Solutions";
 
@@ -179,6 +181,7 @@ function PagesContent() {
             <Route path="/activate-account" element={<BusinessVerification />} />
             <Route path="/dashboard/payment-links/create" element={<PaymentLinksCreate />} />
             <Route path="/dashboard/products/create" element={<ProductCreate />} />
+            <Route path="/developers/docs/authentication" element={<Authentication />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             <Route path="/customers" element={<Dashboard />} />
             <Route path="/*" element={
