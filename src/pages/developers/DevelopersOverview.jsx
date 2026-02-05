@@ -10,7 +10,8 @@ import {
     Terminal,
     RefreshCw,
     BookOpen,
-    KeyRound
+    KeyRound,
+    Box
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,13 @@ const QUICK_ACTIONS = [
         description: 'Crea enlaces de pago con monto fijo o productos.',
         icon: Link2,
         path: '/dashboard/payment-links/create'
+    },
+    {
+        id: 'create-product',
+        title: 'Crear producto',
+        description: 'Agrega un producto a tu catálogo para venderlo o usarlo en enlaces de pago.',
+        icon: Box,
+        path: '/dashboard/products/create'
     },
     {
         id: 'docs',
@@ -109,7 +117,7 @@ export default function DevelopersOverview() {
                                 <Button
                                     key={action.id}
                                     variant="outline"
-                                    className="h-auto p-4 flex flex-col items-start gap-2 border-gray-200 hover:border-[#635bff] hover:bg-[#635bff]/5 transition-all group"
+                                    className="h-auto p-4 flex flex-col items-start gap-2 border-gray-200 hover:border-[#635bff] hover:bg-[#635bff]/5 transition-all group whitespace-normal break-words"
                                     onClick={() => navigate(action.path)}
                                 >
                                     <div className="p-2 bg-[#635bff]/10 rounded-lg group-hover:bg-[#635bff] transition-colors">

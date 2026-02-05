@@ -571,9 +571,6 @@ export default function DevelopersWebhooks() {
                             </p>
                         </div>
                     </div>
-                    <Button variant="outline" className="border-[#d7d9e4]" onClick={openEventView}>
-                        Configurar eventos
-                    </Button>
                 </div>
 
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -629,7 +626,7 @@ export default function DevelopersWebhooks() {
                                     <TableHead>Eventos</TableHead>
                                     <TableHead>Versión</TableHead>
                                     <TableHead>Modo</TableHead>
-                                    <TableHead className="text-right">Acciones</TableHead>
+                                    <TableHead className="text-right"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -685,10 +682,11 @@ export default function DevelopersWebhooks() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => setDetailsOpen(true)}>Ver detalles</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={openEventView}>Configurar eventos</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-red-600" onClick={handleToggleStatus}>
-                                                    {endpoint.status === 'enabled' ? 'Deshabilitar' : 'Habilitar'}
+                                                <DropdownMenuItem
+                                                    className={endpoint.status === 'enabled' ? 'text-red-600' : undefined}
+                                                    onClick={handleToggleStatus}
+                                                >
+                                                    {endpoint.status === 'enabled' ? 'Deshabilitar' : 'Activar'}
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -708,7 +706,6 @@ export default function DevelopersWebhooks() {
                                     <TableHead>Evento</TableHead>
                                     <TableHead>Endpoint</TableHead>
                                     <TableHead>Fecha</TableHead>
-                                    <TableHead className="text-right"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -730,11 +727,6 @@ export default function DevelopersWebhooks() {
                                             {delivery.endpoint}
                                         </TableCell>
                                         <TableCell className="text-[13px] text-[#4f5b76]">{delivery.time}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" className="h-8 text-[#635bff]" onClick={() => setDeliveryDetails(delivery)}>
-                                                Ver
-                                            </Button>
-                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>

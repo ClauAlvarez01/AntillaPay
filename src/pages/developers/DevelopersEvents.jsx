@@ -6,7 +6,8 @@ import {
     Clock,
     RotateCcw,
     Copy,
-    Plus
+    Plus,
+    MoreHorizontal
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,12 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import {
     Sheet,
     SheetContent,
@@ -288,7 +295,8 @@ export default function DevelopersEvents() {
                             <TableHead className="w-[30%]">Tipo</TableHead>
                             <TableHead>Recurso</TableHead>
                             <TableHead>Fecha</TableHead>
-                            <TableHead className="text-right">ID</TableHead>
+                            <TableHead>ID</TableHead>
+                            <TableHead className="w-[56px]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -317,14 +325,37 @@ export default function DevelopersEvents() {
                                 <TableCell className="text-[13px] text-[#4f5b76]">
                                     {evt.created}
                                 </TableCell>
-                                <TableCell className="text-right font-mono text-[11px] text-[#697386]">
+                                <TableCell className="font-mono text-[11px] text-[#697386]">
                                     {evt.id}
+                                </TableCell>
+                                <TableCell className="text-right pl-1">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-gray-500"
+                                                onClick={(event) => event.stopPropagation()}
+                                            >
+                                                <MoreHorizontal className="w-4 h-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="end"
+                                            onClick={(event) => event.stopPropagation()}
+                                        >
+                                            <DropdownMenuItem onSelect={() => handleEventClick(evt)}>
+                                                Ver detalles
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                         ))}
                         {filteredEvents.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center text-[13px] text-[#9aa3b2] py-10">
+                                <TableCell colSpan={5} className="text-center text-[13px] text-[#9aa3b2] py-10">
                                     No hay eventos que coincidan con tu búsqueda.
                                 </TableCell>
                             </TableRow>
