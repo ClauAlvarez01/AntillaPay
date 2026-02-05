@@ -70,7 +70,7 @@ const InfoItem = ({ icon: Icon, label, value, muted }) => {
   );
 };
 
-const SectionCard = ({ icon: Icon, title, badge, children, defaultOpen = true }) => {
+const SectionCard = ({ icon: Icon, title, children, defaultOpen = true }) => {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -84,7 +84,6 @@ const SectionCard = ({ icon: Icon, title, badge, children, defaultOpen = true })
             <Icon className="w-[18px] h-[18px] text-[#635bff]" />
           </div>
           <h3 className="text-[16px] font-semibold text-[#32325d]">{title}</h3>
-          {badge}
         </div>
         {open
           ? <ChevronUp className="w-5 h-5 text-[#8792a2]" />
@@ -100,18 +99,6 @@ const SectionCard = ({ icon: Icon, title, badge, children, defaultOpen = true })
   );
 };
 
-const StatusBadge = ({ complete }) => (
-  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-    complete
-      ? 'bg-green-50 text-green-700 border border-green-200'
-      : 'bg-amber-50 text-amber-700 border border-amber-200'
-  }`}>
-    {complete
-      ? <><CheckCircle2 className="w-3 h-3" /> Completo</>
-      : <><AlertCircle className="w-3 h-3" /> Pendiente</>
-    }
-  </span>
-);
 
 function formatAddress(parts) {
   return parts.filter(Boolean).join(', ') || null;
@@ -215,7 +202,6 @@ export default function Settings() {
             <SectionCard
               icon={FileText}
               title="Datos fiscales"
-              badge={<StatusBadge complete={hasTax} />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
                 <InfoItem icon={Hash} label="NIT" value={tax.nit} muted />
@@ -228,7 +214,6 @@ export default function Settings() {
             <SectionCard
               icon={Building2}
               title="Datos de la empresa"
-              badge={<StatusBadge complete={hasCompany} />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
                 <InfoItem icon={Tag} label="Nombre comercial (DBA)" value={company.nombreComercial} muted />
@@ -250,7 +235,6 @@ export default function Settings() {
             <SectionCard
               icon={User}
               title="Representante de la empresa"
-              badge={<StatusBadge complete={hasRep} />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
                 <InfoItem icon={User} label="Nombre completo" value={formatAddress([rep.nombreLegal, rep.apellidoLegal])} muted />
@@ -274,7 +258,6 @@ export default function Settings() {
             <SectionCard
               icon={ShoppingBag}
               title="Productos y servicios"
-              badge={<StatusBadge complete={hasProducts} />}
             >
               <div className="space-y-1">
                 <InfoItem icon={Tag} label="Categoría" value={resolveCategoryLabel(products.categoria)} muted />
@@ -296,7 +279,6 @@ export default function Settings() {
             <SectionCard
               icon={Globe}
               title="Datos públicos para clientes"
-              badge={<StatusBadge complete={hasPublic} />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
                 <InfoItem
