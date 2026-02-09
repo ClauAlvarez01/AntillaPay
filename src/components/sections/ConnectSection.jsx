@@ -62,15 +62,15 @@ export default function ConnectSection() {
                   transition={{ delay: i * 0.1 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-teal-600" />
+                  <div className="w-5 h-5 rounded-lg bg-teal-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-lg bg-teal-600" />
                   </div>
                   <span className="text-gray-700">{feature}</span>
                 </motion.li>
               ))}
             </ul>
 
-            <Button className="rounded-full bg-teal-600 hover:bg-teal-700 mb-6">
+            <Button className="rounded-lg bg-teal-600 hover:bg-teal-700 mb-6">
               {t('connectSection.cta')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
@@ -106,7 +106,7 @@ export default function ConnectSection() {
                   <button
                     key={mode.id}
                     onClick={() => setActiveMode(mode.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                       activeMode === mode.id
                         ? 'bg-teal-600 text-white'
                         : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
@@ -136,9 +136,9 @@ export default function ConnectSection() {
 
                 {/* Animated Arrow */}
                 <div className="flex-1 relative h-1 mx-4">
-                  <div className="absolute inset-0 bg-gray-200 rounded-full" />
+                  <div className="absolute inset-0 bg-gray-200 rounded-lg" />
                   <motion.div
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-400 to-teal-400 rounded-full"
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-400 to-teal-400 rounded-lg"
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
                     transition={{ duration: 1, delay: 0.5 }}
@@ -167,9 +167,9 @@ export default function ConnectSection() {
 
                 {/* Animated Arrow */}
                 <div className="flex-1 relative h-1 mx-4">
-                  <div className="absolute inset-0 bg-gray-200 rounded-full" />
+                  <div className="absolute inset-0 bg-gray-200 rounded-lg" />
                   <motion.div
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-400 to-green-400 rounded-full"
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-400 to-green-400 rounded-lg"
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
                     transition={{ duration: 1, delay: 1 }}
@@ -230,7 +230,7 @@ export default function ConnectSection() {
                         <span className="text-sm text-gray-700">{order.name}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        <span className={`text-xs px-2 py-0.5 rounded-lg ${
                           order.status === 'Completado' 
                             ? 'bg-green-100 text-green-700' 
                             : order.status === 'Procesando'
@@ -248,7 +248,7 @@ export default function ConnectSection() {
             </div>
 
             {/* Decorative */}
-            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-br from-teal-50 via-transparent to-cyan-50 rounded-full blur-3xl opacity-50" />
+            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-br from-teal-50 via-transparent to-cyan-50 rounded-lg blur-3xl opacity-50" />
           </motion.div>
         </div>
       </div>

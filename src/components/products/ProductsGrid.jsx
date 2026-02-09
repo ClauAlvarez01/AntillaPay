@@ -133,7 +133,7 @@ export default function ProductsGrid() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <Button className="rounded-full bg-indigo-600 hover:bg-indigo-700">
+              <Button className="rounded-lg bg-indigo-600 hover:bg-indigo-700">
                 {t('products.cta')}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>

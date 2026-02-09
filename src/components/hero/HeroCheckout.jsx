@@ -132,8 +132,8 @@ export default function HeroCheckout() {
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                     <div className="w-8 h-5 bg-gradient-to-r from-blue-600 to-blue-400 rounded text-white text-[6px] flex items-center justify-center font-bold">VISA</div>
                     <div className="w-8 h-5 bg-gradient-to-r from-red-500 to-orange-400 rounded flex items-center justify-center">
-                      <div className="w-3 h-3 bg-red-600 rounded-full opacity-80" />
-                      <div className="w-3 h-3 bg-orange-400 rounded-full -ml-1.5 opacity-80" />
+                      <div className="w-3 h-3 bg-red-600 rounded-lg opacity-80" />
+                      <div className="w-3 h-3 bg-orange-400 rounded-lg -ml-1.5 opacity-80" />
                     </div>
                   </div>
                 </div>

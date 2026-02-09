@@ -101,7 +101,7 @@ export default function Resources() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                   activeCategory === cat
                     ? 'bg-gradient-to-r from-blue-100 to-yellow-50 text-gray-900 border border-gray-200 shadow-sm'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -116,7 +116,7 @@ export default function Resources() {
             placeholder="Buscar recursos..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-64 rounded-full"
+            className="w-full sm:w-64 rounded-lg"
           />
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function Resources() {
                 className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all cursor-pointer group"
               >
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                  <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
                     {resource.category}
                   </span>
                 </div>
@@ -193,9 +193,9 @@ export default function Resources() {
             <Input 
               type="email" 
               placeholder="tu@email.com" 
-              className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+              className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-lg"
             />
-            <Button className="bg-white text-indigo-600 hover:bg-white/90 rounded-full">
+            <Button className="bg-white text-indigo-600 hover:bg-white/90 rounded-lg">
               Suscribirse
             </Button>
           </div>

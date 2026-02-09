@@ -25,7 +25,7 @@ export default function ProductSteps({ steps }) {
               className="relative"
             >
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
+                <div className="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">
                   {i + 1}
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">

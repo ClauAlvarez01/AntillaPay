@@ -195,7 +195,7 @@ export default function Payments() {
             <div className="flex justify-end sm:hidden mb-4">
               <Link
                 to="/?section=modular&slide=2#soluciones-modulares"
-                className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
                 aria-label="Volver a la sección interactiva del inicio"
               >
                 <ArrowLeft className="w-6 h-6 text-blue-900" />
@@ -208,7 +208,7 @@ export default function Payments() {
               </h1>
               <Link
                 to="/?section=modular&slide=2#soluciones-modulares"
-                className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
+                className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
                 aria-label="Volver a la sección interactiva del inicio"
               >
                 <ArrowLeft className="w-6 h-6 text-blue-900" />
@@ -364,7 +364,7 @@ export default function Payments() {
                   
                   {/* Footer with badge */}
                   <div className="mt-4">
-                    <span className="inline-block text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+                    <span className="inline-block text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg">
                       {card.badge}
                     </span>
                   </div>
@@ -512,7 +512,7 @@ export default function Payments() {
             <div className="flex flex-wrap gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-white text-violet-600 hover:bg-gray-100 rounded-full px-6 py-2 text-sm font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30 active:scale-[0.98]"
+                className="bg-white text-violet-600 hover:bg-gray-100 rounded-lg px-6 py-2 text-sm font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30 active:scale-[0.98]"
                 onClick={() => window.location.href = '/login'}
               >
                 Comenzar ahora
@@ -520,7 +520,7 @@ export default function Payments() {
               </Button>
               <Button 
                 size="lg" 
-                className="bg-white text-violet-600 hover:bg-gray-100 rounded-full px-6 py-2 text-sm font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30 active:scale-[0.98]"
+                className="bg-white text-violet-600 hover:bg-gray-100 rounded-lg px-6 py-2 text-sm font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30 active:scale-[0.98]"
                 onClick={() => window.location.href = '/contact'}
               >
                 Contactar ventas

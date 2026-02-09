@@ -175,7 +175,7 @@ export default function PaymentsSettings() {
                 value={paymentMethodsSearch}
                 onChange={(event) => setPaymentMethodsSearch(event.target.value)}
                 placeholder="Buscar métodos"
-                className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                className="h-9 rounded-lg border-gray-200 bg-white pl-10 text-[13px]"
               />
             </div>
 

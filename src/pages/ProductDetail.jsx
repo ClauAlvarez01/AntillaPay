@@ -243,7 +243,7 @@ export default function ProductDetail({ productId: productIdProp }) {
                             <div className="flex items-center gap-2">
                                 <h1 className="text-[26px] font-bold text-[#32325d]">{product.name}</h1>
                                 <span className={cn(
-                                    "px-2.5 py-0.5 rounded-full text-[11px] font-semibold",
+                                    "px-2.5 py-0.5 rounded-lg text-[11px] font-semibold",
                                     productStatus === "Inactivo"
                                         ? "bg-gray-100 text-[#6b7280]"
                                         : "bg-[#e8f7e7] text-[#2f855a]"
@@ -261,7 +261,7 @@ export default function ProductDetail({ productId: productIdProp }) {
                     <button
                         type="button"
                         onClick={() => navigate("/dashboard/products/create", { state: { productToEdit: product } })}
-                        className="rounded-full border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5] hover:bg-white active:bg-white focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
+                        className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5] hover:bg-white active:bg-white focus:outline-none focus:ring-2 focus:ring-[#93c5fd]"
                     >
                         Editar producto
                     </button>
@@ -349,7 +349,7 @@ export default function ProductDetail({ productId: productIdProp }) {
                                         {formatAmount(price.amount, price.currency)}
                                     </div>
                                     {price.isDefault && (
-                                        <span className="mt-1 inline-flex items-center rounded-full border border-[#93c5fd] bg-[#eff6ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2563eb]">
+                                        <span className="mt-1 inline-flex items-center rounded-lg border border-[#93c5fd] bg-[#eff6ff] px-2.5 py-0.5 text-[11px] font-semibold text-[#2563eb]">
                                             Predeterminado
                                         </span>
                                     )}

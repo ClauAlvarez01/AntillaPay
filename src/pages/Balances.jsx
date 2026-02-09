@@ -358,10 +358,10 @@ const FilterPill = ({ label, active, onClick }) => (
             "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
             active
                 ? "border-[#635bff] bg-[#635bff] text-white"
-                : "border-dashed border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
+                : "border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
         )}
     >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-400">
+        <span className="flex h-5 w-5 items-center justify-center rounded-lg border border-gray-400">
             <Plus className="h-3 w-3" />
         </span>
         {label}
@@ -572,7 +572,7 @@ export default function BalancesPage({ onOpenReport }) {
                     <section className="space-y-6">
                         <div className="space-y-0 relative">
                             {/* Horizontal Bar Visualizer */}
-                            <div className="h-2 w-full bg-[#e3e8ee] rounded-full overflow-hidden mb-6">
+                            <div className="h-2 w-full bg-[#e3e8ee] rounded-lg overflow-hidden mb-6">
                                 <div
                                     className="h-full bg-[#635bff]"
                                     style={{ width: `${(availableBalance / (availableBalance + pendingBalance)) * 100}%` }}
@@ -630,7 +630,7 @@ export default function BalancesPage({ onOpenReport }) {
                                 {chipFilters.status && (
                                     <div className="min-w-[180px]">
                                         <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
-                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                            <SelectTrigger className="h-8 rounded-lg border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
                                                 <SelectValue placeholder="Seleccione Estado" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -770,7 +770,7 @@ export default function BalancesPage({ onOpenReport }) {
                                                     <TableCell className="py-4">
                                                         <Badge
                                                             variant="outline"
-                                                            className={cn("rounded-full border text-[11px] font-semibold capitalize", STATUS_STYLES[transfer.status])}
+                                                            className={cn("rounded-lg border text-[11px] font-semibold capitalize", STATUS_STYLES[transfer.status])}
                                                         >
                                                             {transfer.status}
                                                         </Badge>
@@ -850,7 +850,7 @@ export default function BalancesPage({ onOpenReport }) {
                                                 </div>
                                             </div>
                                             {selectedBankId === account.id && (
-                                                <div className="w-5 h-5 rounded-full bg-[#635bff] flex items-center justify-center">
+                                                <div className="w-5 h-5 rounded-lg bg-[#635bff] flex items-center justify-center">
                                                     <Check className="w-3 h-3 text-white" />
                                                 </div>
                                             )}
@@ -912,7 +912,7 @@ export default function BalancesPage({ onOpenReport }) {
                                         <Badge
                                             variant="outline"
                                             className={cn(
-                                                "w-fit text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full",
+                                                "w-fit text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg",
                                                 STATUS_STYLES[selectedTransfer.status]
                                             )}
                                         >
@@ -1076,7 +1076,7 @@ export default function BalancesPage({ onOpenReport }) {
 
                         {bankAccounts.length === 0 ? (
                             <div className="text-center py-12 space-y-4">
-                                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                                <div className="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center mx-auto">
                                     <CreditCard className="w-8 h-8 text-[#aab2c4]" />
                                 </div>
                                 <p className="text-[14px] text-[#4f5b76]">No se han añadido cuentas bancarias</p>
@@ -1233,10 +1233,10 @@ export default function BalancesPage({ onOpenReport }) {
                                 )}
                             >
                                 <div className={cn(
-                                    "mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                                    "mt-1 w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all",
                                     transferType === "manual" ? "border-[#635bff] bg-[#635bff]" : "border-gray-300"
                                 )}>
-                                    {transferType === "manual" && <div className="w-2 h-2 rounded-full bg-white" />}
+                                    {transferType === "manual" && <div className="w-2 h-2 rounded-lg bg-white" />}
                                 </div>
                                 <div className="space-y-1">
                                     <div className="text-[15px] font-bold text-[#32325d]">Extracciones manuales</div>
@@ -1252,10 +1252,10 @@ export default function BalancesPage({ onOpenReport }) {
                                 )}
                             >
                                 <div className={cn(
-                                    "mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                                    "mt-1 w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all",
                                     transferType === "auto" ? "border-[#635bff] bg-[#635bff]" : "border-gray-300"
                                 )}>
-                                    {transferType === "auto" && <div className="w-2 h-2 rounded-full bg-white" />}
+                                    {transferType === "auto" && <div className="w-2 h-2 rounded-lg bg-white" />}
                                 </div>
                                 <div className="space-y-3 flex-1">
                                     <div className="space-y-1">
@@ -1297,11 +1297,11 @@ export default function BalancesPage({ onOpenReport }) {
                                                         >
                                                             <span
                                                                 className={cn(
-                                                                    "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                    "mr-3 flex h-4 w-4 items-center justify-center rounded-lg border",
                                                                     transferWeeklyDays.length === 7 ? "border-[#635bff]" : "border-gray-300"
                                                                 )}
                                                             >
-                                                                {transferWeeklyDays.length === 7 && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                                {transferWeeklyDays.length === 7 && <span className="h-2 w-2 rounded-lg bg-[#635bff]" />}
                                                             </span>
                                                             Seleccionar todos
                                                         </DropdownMenuItem>
@@ -1321,11 +1321,11 @@ export default function BalancesPage({ onOpenReport }) {
                                                                 >
                                                                     <span
                                                                         className={cn(
-                                                                            "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                            "mr-3 flex h-4 w-4 items-center justify-center rounded-lg border",
                                                                             checked ? "border-[#635bff]" : "border-gray-300"
                                                                         )}
                                                                     >
-                                                                        {checked && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                                        {checked && <span className="h-2 w-2 rounded-lg bg-[#635bff]" />}
                                                                     </span>
                                                                     {day}
                                                                 </DropdownMenuItem>
@@ -1368,11 +1368,11 @@ export default function BalancesPage({ onOpenReport }) {
                                                         >
                                                             <span
                                                                 className={cn(
-                                                                    "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                    "mr-3 flex h-4 w-4 items-center justify-center rounded-lg border",
                                                                     transferMonthlyDays.length === 31 ? "border-[#635bff]" : "border-gray-300"
                                                                 )}
                                                             >
-                                                                {transferMonthlyDays.length === 31 && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                                {transferMonthlyDays.length === 31 && <span className="h-2 w-2 rounded-lg bg-[#635bff]" />}
                                                             </span>
                                                             Seleccionar todos
                                                         </DropdownMenuItem>
@@ -1392,11 +1392,11 @@ export default function BalancesPage({ onOpenReport }) {
                                                                 >
                                                                     <span
                                                                         className={cn(
-                                                                            "mr-3 flex h-4 w-4 items-center justify-center rounded-full border",
+                                                                            "mr-3 flex h-4 w-4 items-center justify-center rounded-lg border",
                                                                             checked ? "border-[#635bff]" : "border-gray-300"
                                                                         )}
                                                                     >
-                                                                        {checked && <span className="h-2 w-2 rounded-full bg-[#635bff]" />}
+                                                                        {checked && <span className="h-2 w-2 rounded-lg bg-[#635bff]" />}
                                                                     </span>
                                                                     {day}
                                                                 </DropdownMenuItem>

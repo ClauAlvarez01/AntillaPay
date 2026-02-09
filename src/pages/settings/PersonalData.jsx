@@ -377,7 +377,7 @@ export default function PersonalData() {
             {isGoogleConnected ? (
               <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-pink-500 flex items-center justify-center text-white font-semibold">
+                  <div className="h-10 w-10 rounded-lg bg-pink-500 flex items-center justify-center text-white font-semibold">
                     C
                   </div>
                   <div>

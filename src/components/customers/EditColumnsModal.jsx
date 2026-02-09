@@ -154,7 +154,7 @@ export default function EditColumnsModal({
                                                                 onChange={() => handleToggleVisibility(column.key)}
                                                                 className="peer sr-only"
                                                             />
-                                                            <span className="h-4 w-4 rounded-full border border-gray-400 bg-white flex items-center justify-center transition-colors peer-checked:border-[#1a6cff] after:content-[''] after:h-2 after:w-2 after:rounded-full after:bg-[#1a6cff] after:opacity-0 peer-checked:after:opacity-100" />
+                                                            <span className="h-4 w-4 rounded-lg border border-gray-400 bg-white flex items-center justify-center transition-colors peer-checked:border-[#1a6cff] after:content-[''] after:h-2 after:w-2 after:rounded-lg after:bg-[#1a6cff] after:opacity-0 peer-checked:after:opacity-100" />
                                                             <span className="text-[13px] text-[#32325d]">{column.label}</span>
                                                         </label>
                                                         {isLocked && (

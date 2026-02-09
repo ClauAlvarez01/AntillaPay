@@ -134,10 +134,10 @@ const FilterPill = ({ label, active, onClick }) => (
             "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
             active
                 ? "border-[#635bff] bg-[#635bff] text-white"
-                : "border-dashed border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
+                : "border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
         )}
     >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-400">
+        <span className="flex h-5 w-5 items-center justify-center rounded-lg border border-gray-400">
             <Plus className="h-3 w-3" />
         </span>
         {label}
@@ -159,7 +159,7 @@ const EmptyState = ({ onAdd }) => (
         <Button
             type="button"
             onClick={onAdd}
-            className="mt-2 rounded-full bg-[#635bff] px-4 text-white hover:bg-[#5851e0]"
+            className="mt-2 rounded-lg bg-[#635bff] px-4 text-white hover:bg-[#5851e0]"
         >
             <Plus className="h-4 w-4" />
             Agregar un cliente de prueba
@@ -431,7 +431,7 @@ export default function CustomersPage() {
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
                         placeholder="Buscar clientes"
-                        className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                        className="h-9 rounded-lg border-gray-200 bg-white pl-10 text-[13px]"
                     />
                 </div>
             </div>
@@ -458,7 +458,7 @@ export default function CustomersPage() {
                     {chipFilters.type && (
                         <div className="min-w-[160px]">
                             <Select value={typeFilter} onValueChange={setTypeFilter}>
-                                <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                <SelectTrigger className="h-8 rounded-lg border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
                                     <SelectValue placeholder="Tipo" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -493,7 +493,7 @@ export default function CustomersPage() {
                 <div className="text-[13px] text-[#697386]">
                     Mostrando {filteredCustomers.length} clientes
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-5">
                     <Button
                         type="button"
                         variant="outline"
@@ -519,7 +519,7 @@ export default function CustomersPage() {
             {customers.length === 0 ? (
                 <EmptyState onAdd={() => setIsDialogOpen(true)} />
             ) : (
-                <div className="rounded-2xl border border-gray-100 bg-white">
+                <div className="mt-4 rounded-2xl border border-gray-100 bg-white">
                     <div className="max-h-[520px] overflow-auto">
                         <Table>
                             <TableHeader className="sticky top-0 z-10 bg-white">

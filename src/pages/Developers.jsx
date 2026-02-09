@@ -217,7 +217,7 @@ export default function Developers() {
               animate={{ opacity: 1, y: 0 }}
               className="lg:col-span-3"
             >
-              <span className="inline-flex items-center gap-2 px-3 py-1 bg-white text-blue-700 rounded-full text-xs font-medium mb-4 shadow-sm">
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-white text-blue-700 rounded-lg text-xs font-medium mb-4 shadow-sm">
                 <Terminal className="w-4 h-4" />
                 Para desarrolladores en Cuba
               </span>
@@ -245,9 +245,9 @@ export default function Developers() {
                 <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-700">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-500" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                      <div className="w-3 h-3 rounded-full bg-green-500" />
+                      <div className="w-3 h-3 rounded-lg bg-red-500" />
+                      <div className="w-3 h-3 rounded-lg bg-yellow-500" />
+                      <div className="w-3 h-3 rounded-lg bg-green-500" />
                     </div>
                     <span className="ml-3 text-xs text-slate-400 font-mono">
                       {CODE_SNIPPETS[currentSnippet].language}
@@ -341,7 +341,7 @@ export default function Developers() {
                   </motion.div>
                 )}
               </div>
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-blue-500 rounded-lg mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
             </motion.div>
           </div>
         </div>

@@ -159,7 +159,7 @@ export default function PaymentsShowcase({ onLoginClick }) {
             <Button 
               onClick={onLoginClick}
               size="lg"
-              className="bg-violet-600 hover:bg-violet-700 rounded-full px-8 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className="bg-violet-600 hover:bg-violet-700 rounded-lg px-8 transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
               {t('home.payments.cta')}
               <ArrowRight className="ml-2 w-5 h-5" />

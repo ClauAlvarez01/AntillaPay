@@ -98,7 +98,7 @@ export default function DevelopersSection() {
               })}
             </div>
 
-            <Button className="rounded-full bg-cyan-500 hover:bg-cyan-600 text-white">
+            <Button className="rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white">
               {t('common.learnMore')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>

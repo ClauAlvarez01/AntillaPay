@@ -47,9 +47,10 @@ const formatProductDate = (dateValue) => {
 };
 
 const formatProductPrice = (product) => {
-    const defaultPrice = product.prices?.find((price) => price.isDefault) || product.prices?.[0];
-    const amountValue = defaultPrice?.amount ?? product.amount;
-    const currencyValue = defaultPrice?.currency || product.currency || "USD";
+    const priceList = Array.isArray(product?.prices) ? product.prices : [];
+    const defaultPrice = priceList.find((price) => price.isDefault) || priceList[0];
+    const amountValue = defaultPrice?.amount ?? product?.amount;
+    const currencyValue = defaultPrice?.currency || product?.currency || "USD";
     const amount = typeof amountValue === "number" ? amountValue : parseFloat(amountValue || "0");
     const currency = currencyValue || "USD";
     const symbolMap = { USD: "US$", EUR: "€", GBP: "£" };
@@ -64,20 +65,7 @@ const formatProductPrice = (product) => {
 export default function ProductCatalog() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState(PRODUCT_TABS[0]);
-    const [products, setProducts] = useState(() => {
-        if (typeof window === "undefined") return [];
-        const stored = window.localStorage.getItem("antillapay_products");
-        if (!stored) return [];
-        const parsed = JSON.parse(stored);
-        return parsed.map(p => ({
-            ...p,
-            status: p.status === "Archivado" ? "Inactivo" : p.status,
-            prices: (p.prices || []).map(pr => ({
-                ...pr,
-                status: pr.status === "Archivado" ? "Inactivo" : pr.status
-            }))
-        }));
-    });
+    const [products, setProducts] = useState([]);
 
     const [showStatusFilter, setShowStatusFilter] = useState(false);
     const [statusFilterValue, setStatusFilterValue] = useState("Todo");
@@ -138,7 +126,41 @@ export default function ProductCatalog() {
 
     useEffect(() => {
         if (typeof window === "undefined") return;
-        window.localStorage.setItem("antillapay_products", JSON.stringify(products));
+        try {
+            const stored = window.localStorage.getItem("antillapay_products");
+            if (!stored) return;
+            const parsed = JSON.parse(stored);
+            if (!Array.isArray(parsed)) return;
+            const normalized = parsed.map((p, index) => {
+                const baseProduct = p && typeof p === "object" ? p : {};
+                const safePrices = Array.isArray(baseProduct.prices) ? baseProduct.prices : [];
+                const normalizedPrices = safePrices.map((pr) => {
+                    const basePrice = pr && typeof pr === "object" ? pr : {};
+                    return {
+                        ...basePrice,
+                        status: basePrice.status === "Archivado" ? "Inactivo" : basePrice.status
+                    };
+                });
+                return {
+                    ...baseProduct,
+                    id: baseProduct.id ?? `prod_${index}`,
+                    status: baseProduct.status === "Archivado" ? "Inactivo" : baseProduct.status,
+                    prices: normalizedPrices
+                };
+            });
+            setProducts(normalized);
+        } catch (error) {
+            // If storage is corrupted, ignore it to avoid breaking the view.
+        }
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        try {
+            window.localStorage.setItem("antillapay_products", JSON.stringify(products));
+        } catch (error) {
+            // If storage is unavailable, skip persisting without breaking the view.
+        }
     }, [products]);
 
     useEffect(() => {
@@ -578,7 +600,8 @@ export default function ProductCatalog() {
         .filter((product) => {
             const query = searchQuery.trim().toLowerCase();
             if (!query) return true;
-            return product.name?.toLowerCase().includes(query);
+            const nameValue = String(product?.name ?? "").toLowerCase();
+            return nameValue.includes(query);
         })
         .filter((product) => appliedStatusFilter === "Todo" || product.status === appliedStatusFilter)
         .filter((product) => {
@@ -623,6 +646,7 @@ export default function ProductCatalog() {
             return true;
         });
     const hasActiveFilters = appliedStatusFilter !== "Todo" || Boolean(appliedDateFilter);
+    const totalCount = products.length;
     const todayInputValue = getTodayInputValue(exportTimezone);
     const isCustomExportRange = exportRange === "Personalizado";
     const isExportReady = !isCustomExportRange || (exportCustomStart && exportCustomEnd);
@@ -649,11 +673,11 @@ export default function ProductCatalog() {
                 <div className="flex items-center gap-3">
                     <Button
                         onClick={() => navigate("/dashboard/products/create")}
-                        className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
+                        className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-lg px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
                     >
                         <Plus className="w-4 h-4" />
                         Crea un producto
-                        <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
+                        <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-lg bg-white/20 text-[11px] font-semibold">
                             N
                         </span>
                     </Button>
@@ -667,7 +691,7 @@ export default function ProductCatalog() {
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
                         placeholder="Buscar por nombre del producto"
-                        className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                        className="h-9 rounded-lg border-gray-200 bg-white pl-10 text-[13px]"
                     />
                 </div>
             </div>
@@ -688,11 +712,11 @@ export default function ProductCatalog() {
                                     }
                                 }}
                                 className={cn(
-                                    "inline-flex items-center gap-2 rounded-full border border-dashed border-gray-200 px-2.5 py-1 text-[12px] text-[#4f5b76] hover:border-[#cbd5f5] transition-colors",
+                                    "inline-flex items-center gap-2 rounded-full border border-gray-200 px-2.5 py-1 text-[12px] text-[#4f5b76] hover:border-[#cbd5f5] transition-colors",
                                     ((label === "Estado" && showStatusFilter) || (label === "Creación" && showDateFilter)) && "bg-gray-50 border-[#cbd5f5]"
                                 )}
                             >
-                                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-200 text-[11px] text-[#8792a2]">
+                                <span className="inline-flex items-center justify-center w-4 h-4 rounded-lg border border-gray-200 text-[11px] text-[#8792a2]">
                                     +
                                 </span>
                                 {label}
@@ -765,7 +789,7 @@ export default function ProductCatalog() {
                                                                 {opt}
                                                             </span>
                                                             {statusFilterValue === opt && (
-                                                                <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                                                <div className="w-4 h-4 rounded-lg bg-[#4f5b76] flex items-center justify-center">
                                                                     <Check className="w-2.5 h-2.5 text-white" />
                                                                 </div>
                                                             )}
@@ -831,7 +855,7 @@ export default function ProductCatalog() {
                                                                 {opt}
                                                             </span>
                                                             {dateFilterValue === opt && (
-                                                                <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                                                <div className="w-4 h-4 rounded-lg bg-[#4f5b76] flex items-center justify-center">
                                                                     <Check className="w-2.5 h-2.5 text-white" />
                                                                 </div>
                                                             )}
@@ -1427,14 +1451,6 @@ export default function ProductCatalog() {
                 <div className="flex items-center gap-3">
                     <button
                         type="button"
-                        onClick={() => openExportModal("prices")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
-                    >
-                        <Upload className="w-4 h-4 text-[#8792a2]" />
-                        Exportar precios
-                    </button>
-                    <button
-                        type="button"
                         onClick={() => openExportModal("products")}
                         className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-semibold text-[#32325d] hover:border-[#cbd5f5]"
                     >
@@ -1465,7 +1481,7 @@ export default function ProductCatalog() {
                                         <div className="flex items-center gap-2 text-[#4f5b76]">
                                             <span>{formatProductPrice(product)}</span>
                                             {product.prices && product.prices.length > 1 && (
-                                                <span className="px-2 py-0.5 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
+                                                <span className="px-2 py-0.5 rounded-lg border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[11px] font-semibold">
                                                     {product.prices.length} tarifas
                                                 </span>
                                             )}
@@ -1473,7 +1489,7 @@ export default function ProductCatalog() {
                                         <div className="text-[#4f5b76]">
                                             <Badge
                                                 variant="outline"
-                                                className={cn("rounded-full border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
+                                                className={cn("rounded-lg border text-[11px]", PRODUCT_STATUS_STYLES[product.status] || "bg-slate-50 text-slate-700 border-slate-200")}
                                             >
                                                 {product.status}
                                             </Badge>
@@ -1569,7 +1585,7 @@ export default function ProductCatalog() {
                         >
                             <Plus className="w-4 h-4" />
                             Añadir un producto
-                            <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
+                            <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-lg bg-white/20 text-[11px] font-semibold">
                                 N
                             </span>
                         </Button>
@@ -1592,7 +1608,7 @@ export default function ProductCatalog() {
                         >
                             <Plus className="w-4 h-4" />
                             Añadir un producto
-                            <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
+                            <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-lg bg-white/20 text-[11px] font-semibold">
                                 N
                             </span>
                         </Button>
@@ -1778,7 +1794,7 @@ export default function ProductCatalog() {
                                 </button>
                             </div>
                             <div className="px-6 py-10 flex flex-col items-center gap-4">
-                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-full animate-spin" />
+                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-lg animate-spin" />
                                 <p className="text-[14px] text-[#6b7280]">Preparando exportación...</p>
                             </div>
                             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">

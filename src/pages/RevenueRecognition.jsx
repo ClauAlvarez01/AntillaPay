@@ -144,7 +144,7 @@ export default function RevenueRecognition() {
                 transition={{ duration: 0.5 }}
                 className="flex items-start gap-6"
               >
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
                   <span className="text-xl font-bold text-amber-700">{i + 1}</span>
                 </div>
                 <div>

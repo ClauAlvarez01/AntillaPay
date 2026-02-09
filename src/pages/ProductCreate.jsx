@@ -453,7 +453,7 @@ export default function ProductCreate() {
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     {price.isDefault && (
-                                                        <span className="px-3 py-1 rounded-full border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[12px] font-semibold">
+                                                        <span className="px-3 py-1 rounded-lg border border-[#93c5fd] bg-[#eff6ff] text-[#2563eb] text-[12px] font-semibold">
                                                             Predeterminado
                                                         </span>
                                                     )}

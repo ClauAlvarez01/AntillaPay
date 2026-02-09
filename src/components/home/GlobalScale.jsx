@@ -32,7 +32,7 @@ export default function GlobalScale() {
           opacity: [0.3, 0.5, 0.3]
         }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-1/4 right-1/4 w-96 h-96 bg-violet-500/30 rounded-full blur-3xl"
+        className="absolute top-1/4 right-1/4 w-96 h-96 bg-violet-500/30 rounded-lg blur-3xl"
       />
       <motion.div
         animate={{
@@ -40,7 +40,7 @@ export default function GlobalScale() {
           opacity: [0.2, 0.4, 0.2]
         }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl"
+        className="absolute bottom-1/4 right-1/3 w-72 h-72 bg-blue-500/30 rounded-lg blur-3xl"
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,13 +79,13 @@ export default function GlobalScale() {
             >
               <div className="relative w-80 h-80">
                 {/* Globe Circle */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-600/20 to-violet-600/20 border-2 border-violet-400/30" />
+                <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-blue-600/20 to-violet-600/20 border-2 border-violet-400/30" />
                 
                 {/* Orbit Rings */}
                 <motion.div
                   animate={{ rotate: -360 }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-400/20"
+                  className="absolute inset-0 rounded-lg border-2 border-dashed border-cyan-400/20"
                 />
                 
                 {/* Dots representing locations */}
@@ -112,7 +112,7 @@ export default function GlobalScale() {
                         top: '50%',
                         transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
                       }}
-                      className="w-3 h-3 bg-cyan-400 rounded-full shadow-lg shadow-cyan-400/50"
+                      className="w-3 h-3 bg-cyan-400 rounded-lg shadow-lg shadow-cyan-400/50"
                     />
                   );
                 })}

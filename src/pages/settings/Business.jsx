@@ -329,7 +329,7 @@ export default function Business() {
                       <p className="text-sm text-gray-600 mt-1">•••• •••• •••• 4242</p>
                       <p className="text-xs text-gray-500 mt-1">Routing: ••••••110</p>
                     </div>
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-lg font-medium">
                       Verificada
                     </span>
                   </div>
@@ -425,9 +425,9 @@ export default function Business() {
               <h2 className="text-base font-semibold text-gray-900 mb-6">Divisas aceptadas</h2>
               <div className="max-w-2xl">
                 <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">USD</span>
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">EUR</span>
-                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">CUP</span>
+                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg">USD</span>
+                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg">EUR</span>
+                  <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-lg">CUP</span>
                 </div>
               </div>
             </section>

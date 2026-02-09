@@ -133,7 +133,7 @@ export default function Pricing() {
                 Ideal para emprendedores y pequeñas empresas que inician su camino en el comercio electrónico en Cuba. Sin costos ocultos ni sorpresas.
               </p>
               <Button 
-                className="rounded-full bg-violet-600 hover:bg-violet-700 mb-6"
+                className="rounded-lg bg-violet-600 hover:bg-violet-700 mb-6"
                 onClick={() => navigate('/login')}
               >
                 Comenzar ahora <ArrowRight className="ml-2 w-4 h-4" />
@@ -157,7 +157,7 @@ export default function Pricing() {
                 Soluciones personalizadas para medianas y grandes empresas, cadenas de tiendas y entidades estatales con necesidades específicas de integración.
               </p>
               <Button 
-                className="rounded-full bg-white text-gray-900 hover:bg-gray-100 mb-6 transition-colors"
+                className="rounded-lg bg-white text-gray-900 hover:bg-gray-100 mb-6 transition-colors"
                 onClick={() => navigate('/contact')}
               >
                 Solicitar cotización <ArrowRight className="ml-2 w-4 h-4" />
@@ -192,7 +192,7 @@ export default function Pricing() {
                 transition={{ delay: i * 0.1 }}
                 className="flex gap-4"
               >
-                <div className="flex-shrink-0 w-1 bg-gradient-to-b from-violet-500 to-purple-500 rounded-full" />
+                <div className="flex-shrink-0 w-1 bg-gradient-to-b from-violet-500 to-purple-500 rounded-lg" />
                 <div>
                   <feature.icon className="w-6 h-6 text-violet-600 mb-2" />
                   <h3 className="font-semibold text-gray-900 mb-1">{feature.title}</h3>
@@ -287,7 +287,7 @@ export default function Pricing() {
             <p className="text-lg text-gray-600 mb-8">
               Nuestro equipo de ventas trabajará contigo para crear un paquete de precios que se ajuste a tus necesidades específicas, incluyendo descuentos por volumen y tarifas especiales.
             </p>
-            <Button size="lg" className="rounded-full bg-violet-600 hover:bg-violet-700">
+            <Button size="lg" className="rounded-lg bg-violet-600 hover:bg-violet-700">
               Contacta con ventas <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </div>
@@ -326,7 +326,7 @@ export default function Pricing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="rounded-full bg-white text-gray-900 hover:bg-gray-100"
+              className="rounded-lg bg-white text-gray-900 hover:bg-gray-100"
               onClick={() => navigate('/login')}
             >
               Crear cuenta <ArrowRight className="ml-2 w-4 h-4" />
@@ -334,7 +334,7 @@ export default function Pricing() {
             <Button 
               variant="outline" 
               size="lg" 
-              className="rounded-full border-white bg-white/10 text-white hover:bg-white hover:text-gray-900 transition-colors"
+              className="rounded-lg border-white bg-white/10 text-white hover:bg-white hover:text-gray-900 transition-colors"
             >
               Contactar ventas
             </Button>

@@ -40,7 +40,7 @@ const IconButton = ({ label, onClick, children }) => (
         type="button"
         onClick={onClick}
         aria-label={label}
-        className="relative h-9 w-9 rounded-full text-[#4f5b76] transition-colors hover:text-[#32325d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]/40"
+        className="relative h-9 w-9 rounded-lg text-[#4f5b76] transition-colors hover:text-[#32325d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]/40"
     >
         {children}
     </button>
@@ -52,7 +52,7 @@ const ActionMenu = ({ onAddProduct, onCreatePaymentLink }) => (
             <Button
                 type="button"
                 aria-label="Crear nueva accion"
-                className="h-9 w-9 rounded-full bg-[#635bff] text-white shadow-sm hover:bg-[#5851e0]"
+                className="h-9 w-9 rounded-lg bg-[#635bff] text-white shadow-sm hover:bg-[#5851e0]"
             >
                 <Plus className="h-4 w-4" />
             </Button>
@@ -71,7 +71,7 @@ const OverflowMenu = ({ onSettings, onGuide }) => (
             <button
                 type="button"
                 aria-label="Mas opciones"
-                className="h-9 w-9 rounded-full text-[#4f5b76] transition-colors hover:text-[#32325d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]/40"
+                className="h-9 w-9 rounded-lg text-[#4f5b76] transition-colors hover:text-[#32325d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]/40"
             >
                 <MoreHorizontal className="h-5 w-5" />
             </button>
@@ -228,7 +228,7 @@ export default function DashboardHeader({
                                 type="button"
                                 variant="outline"
                                 onClick={onGuide}
-                                className="rounded-full border-gray-200 text-[12px] text-[#4f5b76] hover:text-[#32325d] relative overflow-hidden pl-3 pr-3"
+                                className="rounded-lg border-gray-200 text-[12px] text-[#4f5b76] hover:text-[#32325d] relative overflow-hidden pl-3 pr-3"
                             >
                                 <div className="absolute left-0 top-0 bottom-0 bg-[#635bff]/10 transition-all duration-500" style={{ width: `${guideProgress}%` }} />
                                 <span className="relative z-10 flex items-center gap-2">

@@ -67,7 +67,7 @@ const StepIndicator = ({ currentStep, totalSteps }) => (
             <div
                 key={step}
                 className={cn(
-                    "h-1 flex-1 rounded-full transition-all",
+                    "h-1 flex-1 rounded-lg transition-all",
                     step <= currentStep ? "bg-[#635bff]" : "bg-gray-200"
                 )}
             />

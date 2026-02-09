@@ -103,15 +103,15 @@ export default function BillingSection() {
                   transition={{ delay: i * 0.1 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-purple-600" />
+                  <div className="w-5 h-5 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-lg bg-purple-600" />
                   </div>
                   <span className="text-gray-700">{feature}</span>
                 </motion.li>
               ))}
             </ul>
 
-            <Button className="rounded-full bg-purple-600 hover:bg-purple-700 mb-6">
+            <Button className="rounded-lg bg-purple-600 hover:bg-purple-700 mb-6">
               {t('billingSection.cta')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
@@ -144,7 +144,7 @@ export default function BillingSection() {
                 <button
                   key={brand.id}
                   onClick={() => setActiveBrand(brand.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                     activeBrand === brand.id
                       ? 'bg-gray-900 text-white'
                       : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
@@ -181,7 +181,7 @@ export default function BillingSection() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
                         {plan.popular && (
-                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-lg">
                             {t('plans.popular')}
                           </span>
                         )}

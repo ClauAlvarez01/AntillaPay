@@ -31,7 +31,7 @@ export default function FinalCTA({ onLoginClick }) {
             <Button 
               onClick={onLoginClick}
               size="lg"
-              className="bg-violet-600 hover:bg-violet-700 text-lg px-8 rounded-full shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
+              className="bg-violet-600 hover:bg-violet-700 text-lg px-8 rounded-lg shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
             >
               {t('home.finalCta.ctaStart')}
               <ArrowRight className="ml-2 w-5 h-5" />
@@ -40,7 +40,7 @@ export default function FinalCTA({ onLoginClick }) {
               onClick={() => navigate(createPageUrl('Contact'))}
               size="lg"
               variant="outline"
-              className="text-lg px-8 border-2 rounded-full"
+              className="text-lg px-8 border-2 rounded-lg"
             >
               {t('home.finalCta.ctaSales')}
             </Button>

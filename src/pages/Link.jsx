@@ -58,7 +58,7 @@ export default function Link() {
         </motion.div>
 
         <div className="text-center">
-          <Button className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-full">
+          <Button className="bg-violet-600 hover:bg-violet-700 text-white px-8 py-6 text-lg rounded-lg">
             {t('common.getStarted')}
           </Button>
         </div>

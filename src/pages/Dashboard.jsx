@@ -65,10 +65,10 @@ import BalancesPage from "./Balances";
 import BalanceSummaryReport from "./BalanceSummaryReport";
 import TransactionsPage from "./Transactions";
 import TransfersPage from "./TransfersPage";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import SettingsPage from "./Settings";
 import DevelopersWebhooks from "@/pages/developers/DevelopersWebhooks";
-import DevelopersEvents from "@/pages/developers/DevelopersEvents";
 import DevelopersLogs from "@/pages/developers/DevelopersLogs";
 import DevelopersDocs from "@/pages/developers/DevelopersDocs";
 import DevelopersApiKeys from "@/pages/developers/DevelopersApiKeys";
@@ -914,11 +914,11 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                 <h1 className="text-[28px] font-bold text-[#32325d]">Payment Links</h1>
                 <Button
                     onClick={onCreateClick}
-                    className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
+                    className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-lg px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
                 >
                     <Plus className="w-4 h-4" />
                     {testMode ? "Crear enlace de pago de prueba" : "Crear enlace de pago"}
-                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
+                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-lg bg-white/20 text-[11px] font-semibold">
                         N
                     </span>
                 </Button>
@@ -942,11 +942,11 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                             }
                                         }}
                                         className={cn(
-                                            "inline-flex items-center gap-2 rounded-full border border-dashed border-gray-200 px-2.5 py-1 text-[12px] text-[#4f5b76] hover:border-[#cbd5f5] transition-colors",
+                                            "inline-flex items-center gap-2 rounded-full border border-gray-200 px-2.5 py-1 text-[12px] text-[#4f5b76] hover:border-[#cbd5f5] transition-colors",
                                             ((label === "Estado" && showStatusFilter) || (label === "Fecha de creación" && showDateFilter)) && "bg-gray-50 border-[#cbd5f5]"
                                         )}
                                     >
-                                        <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-200 text-[11px] text-[#8792a2]">
+                                        <span className="inline-flex items-center justify-center w-4 h-4 rounded-lg border border-gray-200 text-[11px] text-[#8792a2]">
                                             +
                                         </span>
                                         {label}
@@ -1019,7 +1019,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                                                         {opt}
                                                                     </span>
                                                                     {statusFilterValue === opt && (
-                                                                        <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                                                        <div className="w-4 h-4 rounded-lg bg-[#4f5b76] flex items-center justify-center">
                                                                             <Check className="w-2.5 h-2.5 text-white" />
                                                                         </div>
                                                                     )}
@@ -1086,7 +1086,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                                                         {opt}
                                                                     </span>
                                                                     {dateFilterValue === opt && (
-                                                                        <div className="w-4 h-4 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                                                        <div className="w-4 h-4 rounded-lg bg-[#4f5b76] flex items-center justify-center">
                                                                             <Check className="w-2.5 h-2.5 text-white" />
                                                                         </div>
                                                                     )}
@@ -1721,7 +1721,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                             <Badge
                                                 variant="outline"
                                                 className={cn(
-                                                    "rounded-full border text-[11px]",
+                                                    "rounded-lg border text-[11px]",
                                                     PAYMENT_LINK_STATUS_STYLES[link.status] || "bg-slate-50 text-slate-700 border-slate-200"
                                                 )}
                                             >
@@ -1739,7 +1739,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                                     {paymentMethodsValue.map((method) => (
                                                         <span
                                                             key={method}
-                                                            className="inline-flex items-center rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[12px] font-semibold text-[#4f5b76]"
+                                                            className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-2 py-0.5 text-[12px] font-semibold text-[#4f5b76]"
                                                         >
                                                             {method}
                                                         </span>
@@ -1836,7 +1836,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                             </p>
                             <Button
                                 onClick={onCreateClick}
-                                className="mt-6 bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-5 py-2.5 shadow-sm"
+                                className="mt-6 bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-lg px-5 py-2.5 shadow-sm"
                             >
                                 Crea un enlace de pago de prueba
                             </Button>
@@ -1858,18 +1858,18 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                         <div className="flex-1 space-y-4">
                                             <div className="h-3 w-28 bg-[#0f172a] rounded-sm" />
                                             <div className="space-y-2">
-                                                <div className="h-2 w-36 bg-gray-100 rounded-full" />
-                                                <div className="h-2 w-32 bg-gray-100 rounded-full" />
-                                                <div className="h-2 w-28 bg-gray-100 rounded-full" />
+                                                <div className="h-2 w-36 bg-gray-100 rounded-lg" />
+                                                <div className="h-2 w-32 bg-gray-100 rounded-lg" />
+                                                <div className="h-2 w-28 bg-gray-100 rounded-lg" />
                                             </div>
-                                            <div className="h-2 w-24 bg-[#0f8f7e] rounded-full" />
+                                            <div className="h-2 w-24 bg-[#0f8f7e] rounded-lg" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-4 sm:mt-0 sm:absolute sm:-right-6 sm:top-12 bg-white rounded-xl shadow-lg border border-gray-100 px-4 py-3 max-w-[220px]">
                                     <div className="text-[11px] text-[#635bff] font-semibold truncate">buy.antillapay.com/EaUa24H</div>
-                                    <div className="mt-2 h-2 w-24 bg-[#635bff] rounded-full" />
+                                    <div className="mt-2 h-2 w-24 bg-[#635bff] rounded-lg" />
                                 </div>
                             </div>
                         </div>
@@ -2122,7 +2122,7 @@ const PaymentLinksView = ({ onCreateClick, paymentLinks, onRenameLink, onToggleS
                                 </button>
                             </div>
                             <div className="px-6 py-10 flex flex-col items-center gap-4">
-                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-full animate-spin" />
+                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-lg animate-spin" />
                                 <p className="text-[14px] text-[#6b7280]">Preparando exportación...</p>
                             </div>
                             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
@@ -2444,7 +2444,6 @@ export default function Dashboard() {
         }
         if (path.startsWith("/dashboard")) {
             if (path.includes("/dashboard/developers/webhooks")) setActiveView("dev_webhooks");
-            else if (path.includes("/dashboard/developers/events")) setActiveView("dev_eventos");
             else if (path.includes("/dashboard/developers/logs")) setActiveView("dev_registros");
             else if (path.includes("/dashboard/developers/docs")) setActiveView("dev_docs");
             else if (path.includes("/dashboard/developers/keys")) setActiveView("dev_keys");
@@ -2812,7 +2811,7 @@ export default function Dashboard() {
                                                         <div className="absolute left-[13px] top-[24px] bottom-[24px] w-0.5 bg-gray-100" />
 
                                                         <div className="flex gap-4 relative">
-                                                            <div className="w-[28px] h-[28px] rounded-full bg-[#635bff] text-white flex items-center justify-center text-[13px] font-bold shrink-0 z-10">1</div>
+                                                            <div className="w-[28px] h-[28px] rounded-lg bg-[#635bff] text-white flex items-center justify-center text-[13px] font-bold shrink-0 z-10">1</div>
                                                             <div className="space-y-0.5">
                                                                 <h4 className="text-[15px] font-bold text-[#32325d]">Completa tu configuración</h4>
                                                                 <p className="text-[14px] text-[#697386] leading-relaxed">
@@ -2822,7 +2821,7 @@ export default function Dashboard() {
                                                         </div>
 
                                                         <div className="flex gap-4 relative">
-                                                            <div className="w-[28px] h-[28px] rounded-full bg-[#635bff] text-white flex items-center justify-center text-[13px] font-bold shrink-0 z-10">2</div>
+                                                            <div className="w-[28px] h-[28px] rounded-lg bg-[#635bff] text-white flex items-center justify-center text-[13px] font-bold shrink-0 z-10">2</div>
                                                             <div className="space-y-0.5">
                                                                 <h4 className="text-[15px] font-bold text-[#32325d]">Cambiar a la cuenta activa</h4>
                                                                 <p className="text-[14px] text-[#697386] leading-relaxed">
@@ -2832,7 +2831,7 @@ export default function Dashboard() {
                                                         </div>
 
                                                         <div className="flex gap-4 relative">
-                                                            <div className="w-[28px] h-[28px] rounded-full bg-[#635bff] text-white flex items-center justify-center text-[13px] font-bold shrink-0 z-10">3</div>
+                                                            <div className="w-[28px] h-[28px] rounded-lg bg-[#635bff] text-white flex items-center justify-center text-[13px] font-bold shrink-0 z-10">3</div>
                                                             <div className="space-y-0.5">
                                                                 <h4 className="text-[15px] font-bold text-[#32325d]">Ya estás listo para empezar</h4>
                                                                 <p className="text-[14px] text-[#697386] leading-relaxed">
@@ -2863,7 +2862,7 @@ export default function Dashboard() {
                                                     >
                                                         Ir a mi cuenta activa ahora
                                                     </button>
-                                                    <div className="mt-2 py-1.5 px-4 bg-[#f5f3ff] text-[#635bff] text-[12px] font-bold rounded-full text-center w-fit mx-auto border border-[#e0d7ff] uppercase tracking-wider">
+                                                    <div className="mt-2 py-1.5 px-4 bg-[#f5f3ff] text-[#635bff] text-[12px] font-bold rounded-lg text-center w-fit mx-auto border border-[#e0d7ff] uppercase tracking-wider">
                                                         ¡Ya puedes empezar!
                                                     </div>
                                                 </div>
@@ -2912,15 +2911,15 @@ export default function Dashboard() {
                                                             <span className="text-[16px] font-bold text-[#32325d]">{companyName || "Nueva empresa"}</span>
                                                         </div>
                                                         <div className="space-y-3">
-                                                            <div className="h-3 w-2/3 rounded-full bg-gray-100" />
-                                                            <div className="h-3 w-1/2 rounded-full bg-gray-100" />
-                                                            <div className="h-3 w-3/4 rounded-full bg-gray-100" />
+                                                            <div className="h-3 w-2/3 rounded-lg bg-gray-100" />
+                                                            <div className="h-3 w-1/2 rounded-lg bg-gray-100" />
+                                                            <div className="h-3 w-3/4 rounded-lg bg-gray-100" />
                                                         </div>
                                                         <div className="pt-4 border-t border-gray-100">
-                                                            <div className="h-4 w-24 rounded-full bg-gray-200 mb-4" />
+                                                            <div className="h-4 w-24 rounded-lg bg-gray-200 mb-4" />
                                                             <div className="flex items-center gap-3">
-                                                                <div className="h-3 w-3 rounded-full bg-gray-200" />
-                                                                <div className="h-3 w-32 rounded-full bg-gray-100" />
+                                                                <div className="h-3 w-3 rounded-lg bg-gray-200" />
+                                                                <div className="h-3 w-32 rounded-lg bg-gray-100" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3129,17 +3128,15 @@ export default function Dashboard() {
                             label="Desarrolladores"
                             hasSubmenu={true}
                             active={activeView && activeView.startsWith("dev_")}
-                            subItems={["Webhooks", "Eventos", "Registros", "Documentación", "Claves de API"]}
+                            subItems={["Webhooks", "Registros", "Documentación", "Claves de API"]}
                             activeSubItem={
                                 activeView === "dev_webhooks" ? "Webhooks" :
-                                        activeView === "dev_eventos" ? "Eventos" :
-                                            activeView === "dev_registros" ? "Registros" :
-                                                activeView === "dev_docs" ? "Documentación" :
-                                                    activeView === "dev_keys" ? "Claves de API" : ""
+                                        activeView === "dev_registros" ? "Registros" :
+                                            activeView === "dev_docs" ? "Documentación" :
+                                                activeView === "dev_keys" ? "Claves de API" : ""
                             }
                             onSubItemClick={(item) => {
                                 if (item === "Webhooks") { setActiveView("dev_webhooks"); navigate("/dashboard/developers/webhooks"); }
-                                if (item === "Eventos") { setActiveView("dev_eventos"); navigate("/dashboard/developers/events"); }
                                 if (item === "Registros") { setActiveView("dev_registros"); navigate("/dashboard/developers/logs"); }
                                 if (item === "Documentación") { setActiveView("dev_docs"); navigate("/dashboard/developers/docs"); }
                                 if (item === "Claves de API") { setActiveView("dev_keys"); navigate("/dashboard/developers/keys"); }
@@ -3342,7 +3339,7 @@ export default function Dashboard() {
                                                                             <div key={day} className="flex items-center justify-center py-1.5">
                                                                                 <button
                                                                                     className={cn(
-                                                                                        "w-9 h-9 flex items-center justify-center rounded-full transition-all text-[13px] font-medium",
+                                                                                        "w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[13px] font-medium",
                                                                                         day === 18
                                                                                             ? "bg-[#635bff] text-white shadow-lg shadow-[#635bff40]"
                                                                                             : "text-[#32325d] hover:bg-gray-50",
@@ -3439,7 +3436,7 @@ export default function Dashboard() {
                                                                 setShowDailyDropdown(false);
                                                                 setShowCompareDropdown(false);
                                                             }}
-                                                            className="flex items-center bg-white border border-gray-200 rounded-full text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
+                                                            className="flex items-center bg-white border border-gray-200 rounded-lg text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
                                                         >
                                                             <span className="px-3 py-1.5 text-[#697386]">Intervalo de fechas</span>
                                                             <div className="w-[1px] h-4 bg-gray-200" />
@@ -3530,7 +3527,7 @@ export default function Dashboard() {
                                                                 setShowDateDropdown(false);
                                                                 setShowCompareDropdown(false);
                                                             }}
-                                                            className="flex items-center px-3 py-1.5 bg-white border border-gray-200 rounded-full text-[13px] text-[#635bff] font-semibold hover:border-gray-300 transition-colors gap-1.5 shadow-sm"
+                                                            className="flex items-center px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[13px] text-[#635bff] font-semibold hover:border-gray-300 transition-colors gap-1.5 shadow-sm"
                                                         >
                                                             {selectedDaily} <ChevronDown className="w-3.5 h-3.5 text-[#635bff]" />
                                                         </button>
@@ -3553,7 +3550,7 @@ export default function Dashboard() {
                                                                             className="w-full px-4 py-2 text-left text-[14px] text-[#32325d] hover:bg-gray-50 flex items-center justify-between"
                                                                         >
                                                                             {opt}
-                                                                            {selectedDaily === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
+                                                                            {selectedDaily === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-lg flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
                                                                         </button>
                                                                     ))}
                                                                 </motion.div>
@@ -3568,10 +3565,10 @@ export default function Dashboard() {
                                                                 setShowDateDropdown(false);
                                                                 setShowDailyDropdown(false);
                                                             }}
-                                                            className="flex items-center bg-white border border-gray-200 rounded-full text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
+                                                            className="flex items-center bg-white border border-gray-200 rounded-lg text-[13px] overflow-hidden hover:border-gray-300 transition-colors shadow-sm"
                                                         >
                                                             <div className="px-3 py-1.5 flex items-center gap-2 border-r border-gray-200 bg-gray-50/30">
-                                                                <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center">
+                                                                <div className="w-4 h-4 rounded-lg bg-gray-200 flex items-center justify-center">
                                                                     <X className="w-2.5 h-2.5 text-gray-500" />
                                                                 </div>
                                                                 <span className="text-[#697386] font-medium">Compara</span>
@@ -3599,7 +3596,7 @@ export default function Dashboard() {
                                                                             className="w-full px-4 py-2 text-left text-[14px] text-[#32325d] hover:bg-gray-50 flex items-center justify-between"
                                                                         >
                                                                             {opt}
-                                                                            {selectedCompare === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
+                                                                            {selectedCompare === opt && <div className="w-4 h-4 bg-[#4a5568] rounded-lg flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
                                                                         </button>
                                                                     ))}
                                                                 </motion.div>
@@ -3646,7 +3643,19 @@ export default function Dashboard() {
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        <ProductCatalog />
+                                        <ErrorBoundary
+                                            title="No se pudo cargar el catálogo"
+                                            description="Encontramos un error al renderizar el catálogo de productos. Puedes reintentar o reiniciar los datos locales."
+                                            resetLabel="Reiniciar catálogo"
+                                            onReset={() => {
+                                                if (typeof window !== "undefined") {
+                                                    window.localStorage.removeItem("antillapay_products");
+                                                    window.location.reload();
+                                                }
+                                            }}
+                                        >
+                                            <ProductCatalog />
+                                        </ErrorBoundary>
                                     </motion.div>
                                 ) : activeView === "product_detail" ? (
                                     <motion.div
@@ -3677,16 +3686,6 @@ export default function Dashboard() {
                                         transition={{ duration: 0.2 }}
                                     >
                                         <DevelopersWebhooks />
-                                    </motion.div>
-                                ) : activeView === "dev_eventos" ? (
-                                    <motion.div
-                                        key="dev_eventos_view"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <DevelopersEvents />
                                     </motion.div>
                                 ) : activeView === "dev_registros" ? (
                                     <motion.div
@@ -3792,15 +3791,15 @@ export default function Dashboard() {
                                 </div>
                                 {isGuideCollapsed ? (
                                     <div className="px-4 py-4">
-                                        <div className="w-full h-1 bg-gray-200 rounded-full mb-3 relative">
+                                        <div className="w-full h-1 bg-gray-200 rounded-lg mb-3 relative">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${progressPercent}%` }}
-                                                className="absolute left-0 top-0 h-full bg-[#635bff] rounded-full"
+                                                className="absolute left-0 top-0 h-full bg-[#635bff] rounded-lg"
                                             />
                                             <motion.div
                                                 animate={{ left: `${progressPercent}%` }}
-                                                className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-full border-2 border-white"
+                                                className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-lg border-2 border-white"
                                             />
                                         </div>
                                         <div className="text-[13px] text-[#4f5b76]">
@@ -3827,15 +3826,15 @@ export default function Dashboard() {
                                     </div>
                                 ) : (
                                     <div className="px-4 py-5">
-                                        <div className="w-full h-1 bg-gray-200 rounded-full mb-5 relative">
+                                        <div className="w-full h-1 bg-gray-200 rounded-lg mb-5 relative">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${progressPercent}%` }}
-                                                className="absolute left-0 top-0 h-full bg-[#635bff] rounded-full"
+                                                className="absolute left-0 top-0 h-full bg-[#635bff] rounded-lg"
                                             />
                                             <motion.div
                                                 animate={{ left: `${progressPercent}%` }}
-                                                className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-full border-2 border-white"
+                                                className="absolute top-[-3px] w-2 h-2 bg-[#635bff] rounded-lg border-2 border-white"
                                             />
                                         </div>
 
@@ -3850,7 +3849,7 @@ export default function Dashboard() {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
-                                                        "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                        "w-3.5 h-3.5 rounded-lg flex items-center justify-center transition-colors border",
                                                         completedTasks.includes("customize_account") ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
                                                     )}>
                                                         {completedTasks.includes("customize_account") && <Check className="w-2.5 h-2.5 text-white" />}
@@ -3859,7 +3858,7 @@ export default function Dashboard() {
                                                         Personaliza tu configuración
                                                     </span>
                                                 </div>
-                                                <div className="w-5 h-5 rounded-full bg-[#635bff] text-white flex items-center justify-center">
+                                                <div className="w-5 h-5 rounded-lg bg-[#635bff] text-white flex items-center justify-center">
                                                     <ChevronRight className="w-3.5 h-3.5" />
                                                 </div>
                                             </button>
@@ -3871,7 +3870,7 @@ export default function Dashboard() {
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
-                                                        "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                        "w-3.5 h-3.5 rounded-lg flex items-center justify-center transition-colors border",
                                                         verificationState.currentStep > 5 ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
                                                     )}>
                                                         {verificationState.currentStep > 5 && <Check className="w-2.5 h-2.5 text-white" />}
@@ -3912,7 +3911,7 @@ export default function Dashboard() {
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <div className={cn(
-                                                                "w-3.5 h-3.5 rounded-full flex items-center justify-center transition-colors border",
+                                                                "w-3.5 h-3.5 rounded-lg flex items-center justify-center transition-colors border",
                                                                 isItemCompleted ? "bg-[#635bff] border-[#635bff]" : "bg-gray-50 border-gray-100"
                                                             )}>
                                                                 {isItemCompleted && <Check className="w-2.5 h-2.5 text-white" />}

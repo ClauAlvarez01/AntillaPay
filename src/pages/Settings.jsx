@@ -160,9 +160,9 @@ export default function Settings() {
               {completedSections}/{totalSections} secciones
             </span>
           </div>
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-gray-100 rounded-lg overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-500 ease-out"
+              className="h-full rounded-lg transition-all duration-500 ease-out"
               style={{
                 width: `${progressPercent}%`,
                 background: progressPercent === 100
@@ -186,7 +186,7 @@ export default function Settings() {
 
         {noData && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 text-center">
-            <div className="w-16 h-16 bg-[#f6f9fc] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-[#f6f9fc] rounded-lg flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="w-8 h-8 text-[#8792a2]" />
             </div>
             <h3 className="text-[18px] font-semibold text-[#32325d] mb-2">No hay datos de verificación</h3>

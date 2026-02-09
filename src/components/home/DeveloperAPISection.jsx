@@ -89,8 +89,8 @@ export default function DeveloperAPISection() {
     <section className="py-16 md:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-500 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500 rounded-lg blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-violet-500 rounded-lg blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
@@ -119,7 +119,7 @@ export default function DeveloperAPISection() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-full transition-all shadow-lg shadow-cyan-500/25"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-white font-semibold rounded-lg transition-all shadow-lg shadow-cyan-500/25"
             >
               {t('home.developerAPI.cta')}
               <ArrowRight className="w-4 h-4" />
@@ -141,9 +141,9 @@ export default function DeveloperAPISection() {
               <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-700">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                    <div className="w-3 h-3 rounded-lg bg-red-500" />
+                    <div className="w-3 h-3 rounded-lg bg-yellow-500" />
+                    <div className="w-3 h-3 rounded-lg bg-green-500" />
                   </div>
                   <span className="ml-3 text-xs text-slate-400 font-mono">
                     {CODE_SNIPPETS[currentSnippet].language}

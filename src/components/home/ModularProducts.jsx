@@ -349,7 +349,7 @@ export default function ModularProducts() {
                       className="flex flex-col items-center justify-center p-3 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all h-28"
                     >
                       <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center mb-2"
+                        className="w-10 h-10 rounded-lg flex items-center justify-center mb-2"
                         style={{ backgroundColor: `${tile.color}10` }}
                       >
                         <tile.icon className="w-5 h-5" style={{ color: tile.color }} />
@@ -364,7 +364,7 @@ export default function ModularProducts() {
               <div className="flex items-center justify-center mt-4 space-x-4">
                 <button
                   onClick={prevSlide}
-                  className="p-2 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors"
+                  className="p-2 rounded-lg bg-white shadow-md hover:bg-gray-50 transition-colors"
                   aria-label="Anterior"
                 >
                   <ChevronLeft className="w-5 h-5 text-gray-700" />
@@ -378,7 +378,7 @@ export default function ModularProducts() {
                         setDirection(index > currentSlide ? 1 : -1);
                         setCurrentSlide(index);
                       }}
-                      className={`w-2 h-2 rounded-full transition-colors ${
+                      className={`w-2 h-2 rounded-lg transition-colors ${
                         index === currentSlide ? 'bg-gray-800' : 'bg-gray-300'
                       }`}
                       aria-label={`Ir a slide ${index + 1}`}
@@ -388,7 +388,7 @@ export default function ModularProducts() {
                 
                 <button
                   onClick={nextSlide}
-                  className="p-2 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors"
+                  className="p-2 rounded-lg bg-white shadow-md hover:bg-gray-50 transition-colors"
                   aria-label="Siguiente"
                 >
                   <ChevronRight className="w-5 h-5 text-gray-700" />

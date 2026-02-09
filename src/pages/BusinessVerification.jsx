@@ -627,13 +627,13 @@ const PublicDataStep = ({ publicData, updatePublicData, errors }) => {
                     <button
                         onClick={() => updatePublicData('mostrarTelefonoRecibos', !publicData.mostrarTelefonoRecibos)}
                         className={cn(
-                            "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                            "relative inline-flex h-6 w-11 items-center rounded-lg transition-colors",
                             publicData.mostrarTelefonoRecibos ? "bg-[#635bff]" : "bg-gray-200"
                         )}
                     >
                         <span
                             className={cn(
-                                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                                "inline-block h-4 w-4 transform rounded-lg bg-white transition-transform",
                                 publicData.mostrarTelefonoRecibos ? "translate-x-6" : "translate-x-1"
                             )}
                         />
@@ -853,7 +853,7 @@ const ManualBankModal = ({ isOpen, onClose, bankData, updateBankData, onSave }) 
                         </div>
                         <span className="text-[15px] font-bold text-[#32325d]">AntillaPay</span>
                     </div>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-lg transition-colors">
                         <X className="w-5 h-5 text-[#4f5b76]" />
                     </button>
                 </div>
@@ -1176,7 +1176,7 @@ const ExitConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
         <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
             <div className="bg-white rounded-lg shadow-xl w-[95%] max-w-md p-6 animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-yellow-50 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center flex-shrink-0">
                         <AlertCircle className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
@@ -1270,7 +1270,7 @@ const EmailVerificationModal = ({ isOpen, onClose, securityData, updateSecurityD
                         {step === 2 && 'Verificar token'}
                         {step === 3 && 'Códigos de recuperación'}
                     </h3>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors">
+                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-lg transition-colors">
                         <X className="w-5 h-5 text-[#4f5b76]" />
                     </button>
                 </div>
@@ -1453,15 +1453,15 @@ const SidebarNavigation = ({ currentStep, completedSteps, onStepClick, maxReache
                                     className="flex items-center gap-3 px-3 py-2 text-[13px] text-[#32325d] cursor-pointer hover:bg-gray-50 rounded-md transition-colors relative z-10"
                                 >
                                     <div className={cn(
-                                        "w-[18px] h-[18px] rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-white",
+                                        "w-[18px] h-[18px] rounded-lg border-2 flex-shrink-0 flex items-center justify-center bg-white",
                                         getStepStatus(step.id) === 'current' ? "border-[#635bff] border-t-transparent animate-spin duration-700" : (getStepStatus(step.id) === 'completed' ? "bg-[#635bff] border-[#635bff]" : "border-gray-200")
                                     )}>
                                         {getStepStatus(step.id) === 'completed' && <Check className="w-2.5 h-2.5 text-white" />}
-                                        {getStepStatus(step.id) === 'current' && <div className="w-1 h-1 rounded-full bg-[#635bff] animate-none" />}
+                                        {getStepStatus(step.id) === 'current' && <div className="w-1 h-1 rounded-lg bg-[#635bff] animate-none" />}
                                     </div>
                                     {/* Static progress ring for "current" state to avoid spinning the check icon if it was completed but still the "current" section */}
                                     {getStepStatus(step.id) === 'current' && (
-                                        <div className="absolute left-[15px] w-[18px] h-[18px] rounded-full border-2 border-[#635bff] border-t-transparent animate-spin duration-1000 pointer-events-none" />
+                                        <div className="absolute left-[15px] w-[18px] h-[18px] rounded-lg border-2 border-[#635bff] border-t-transparent animate-spin duration-1000 pointer-events-none" />
                                     )}
 
                                     <span className={cn("text-[14px]", getStepStatus(step.id) === 'current' ? "font-bold text-[#32325d]" : "font-semibold text-[#4f5b76]")}>
@@ -1487,7 +1487,7 @@ const SidebarNavigation = ({ currentStep, completedSteps, onStepClick, maxReache
                                                     )}
                                                 >
                                                     <div className={cn(
-                                                        "w-[14px] h-[14px] rounded-full flex-shrink-0 flex items-center justify-center",
+                                                        "w-[14px] h-[14px] rounded-lg flex-shrink-0 flex items-center justify-center",
                                                         status === 'completed' ? "bg-[#635bff]" : (status === 'current' ? "border-2 border-[#635bff]" : "border-2 border-gray-200")
                                                     )}>
                                                         {status === 'completed' && <Check className="w-2.5 h-2.5 text-white" />}
@@ -1514,11 +1514,11 @@ const SidebarNavigation = ({ currentStep, completedSteps, onStepClick, maxReache
                                 )}
                             >
                                 <div className={cn(
-                                    "w-[18px] h-[18px] rounded-full border-2 flex-shrink-0 flex items-center justify-center bg-white",
+                                    "w-[18px] h-[18px] rounded-lg border-2 flex-shrink-0 flex items-center justify-center bg-white",
                                     getStepStatus(step.stepId) === 'completed' ? "bg-[#635bff] border-[#635bff]" : (getStepStatus(step.stepId) === 'current' ? "border-[#635bff]" : "border-gray-200 border-dashed")
                                 )}>
                                     {getStepStatus(step.stepId) === 'completed' && <Check className="w-2.5 h-2.5 text-white" />}
-                                    {getStepStatus(step.stepId) === 'current' && <div className="w-1 h-1 rounded-full bg-[#635bff]" />}
+                                    {getStepStatus(step.stepId) === 'current' && <div className="w-1 h-1 rounded-lg bg-[#635bff]" />}
                                 </div>
 
                                 <span className={cn(
@@ -1681,12 +1681,12 @@ export default function BusinessVerification() {
                         </div>
                         <button
                             onClick={handleClose}
-                            className="text-gray-400 hover:text-gray-600 p-1 bg-gray-50 rounded-full"
+                            className="text-gray-400 hover:text-gray-600 p-1 bg-gray-50 rounded-lg"
                         >
                             <X className="w-5 h-5" />
                         </button>
                     </div>
-                    <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-1 w-full bg-gray-100 rounded-lg overflow-hidden">
                         <div
                             className="h-full bg-[#635bff] transition-all duration-300 ease-out"
                             style={{ width: `${(currentStep / 8) * 100}%` }}

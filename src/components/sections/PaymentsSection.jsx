@@ -87,15 +87,15 @@ export default function PaymentsSection() {
                   transition={{ delay: i * 0.1 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-blue-600" />
+                  <div className="w-5 h-5 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-lg bg-blue-600" />
                   </div>
                   <span className="text-gray-700">{feature}</span>
                 </motion.li>
               ))}
             </ul>
 
-            <Button className="rounded-full bg-blue-600 hover:bg-blue-700 mb-6">
+            <Button className="rounded-lg bg-blue-600 hover:bg-blue-700 mb-6">
               {t('paymentsSection.cta')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
@@ -183,7 +183,7 @@ export default function PaymentsSection() {
             </div>
 
             {/* Decorative Elements */}
-            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-br from-blue-50 via-transparent to-purple-50 rounded-full blur-3xl opacity-50" />
+            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-br from-blue-50 via-transparent to-purple-50 rounded-lg blur-3xl opacity-50" />
           </motion.div>
         </div>
       </div>

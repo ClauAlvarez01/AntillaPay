@@ -305,7 +305,7 @@ export default function PaymentLinksCreate() {
                             />
                         </div>
                         {customerNameOptional && (
-                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-lg px-2 py-0.5">
                                 Opcional
                             </span>
                         )}
@@ -322,7 +322,7 @@ export default function PaymentLinksCreate() {
                             />
                         </div>
                         {companyNameOptional && (
-                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-lg px-2 py-0.5">
                                 Opcional
                             </span>
                         )}
@@ -342,7 +342,7 @@ export default function PaymentLinksCreate() {
                                 <div className="flex items-center justify-between text-[12px] text-[#4f5b76]">
                                     <span>{labelText}</span>
                                     {field.isOptional && (
-                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">
+                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-lg px-2 py-0.5">
                                             Opcional
                                         </span>
                                     )}
@@ -639,7 +639,7 @@ export default function PaymentLinksCreate() {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <label className="text-[12px] font-semibold text-[#32325d]">Descripción</label>
-                                <span className="text-[10px] text-[#8792a2] border border-gray-200 rounded-full px-2 py-0.5">
+                                <span className="text-[10px] text-[#8792a2] border border-gray-200 rounded-lg px-2 py-0.5">
                                     Opcional
                                 </span>
                             </div>
@@ -755,7 +755,7 @@ export default function PaymentLinksCreate() {
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <label className="text-[12px] font-semibold text-[#32325d]">Moneda</label>
-                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Requerido</span>
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-lg px-2 py-0.5">Requerido</span>
                         </div>
                         <div className="relative" ref={currencyMenuRef}>
                             <button
@@ -859,7 +859,7 @@ export default function PaymentLinksCreate() {
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
                             <div className="text-[13px] font-semibold text-[#32325d]">Métodos de pago</div>
-                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Requerido</span>
+                            <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-lg px-2 py-0.5">Requerido</span>
                         </div>
                         <div className="space-y-2">
                             <label className="flex items-center gap-2 text-[13px] text-[#4f5b76] cursor-pointer">
@@ -1048,15 +1048,15 @@ export default function PaymentLinksCreate() {
                         >
                             {previewMode === "mobile" && (
                                 <div className="w-full h-6 bg-gray-800 flex items-center justify-center">
-                                    <div className="w-12 h-1 bg-gray-700 rounded-full" />
+                                    <div className="w-12 h-1 bg-gray-700 rounded-lg" />
                                 </div>
                             )}
                             <div className={`${previewMode === "mobile" ? "p-6" : ""}`}>
                                 <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center text-[10px] text-[#94a3b8]">
                                     <div className="flex items-center gap-1">
-                                        <span className="w-2 h-2 rounded-full bg-[#e2e8f0]" />
-                                        <span className="w-2 h-2 rounded-full bg-[#e2e8f0]" />
-                                        <span className="w-2 h-2 rounded-full bg-[#e2e8f0]" />
+                                        <span className="w-2 h-2 rounded-lg bg-[#e2e8f0]" />
+                                        <span className="w-2 h-2 rounded-lg bg-[#e2e8f0]" />
+                                        <span className="w-2 h-2 rounded-lg bg-[#e2e8f0]" />
                                     </div>
                                     <div className="flex items-center gap-2 text-[#64748b]">
                                         <div className="flex items-center gap-1 font-semibold">
@@ -1139,10 +1139,10 @@ export default function PaymentLinksCreate() {
                                         <div className={`grid gap-8 ${previewMode === "mobile" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 md:gap-0 md:divide-x md:divide-gray-100"}`}>
                                         <div className="space-y-5 md:pl-6 md:pr-10">
                                             <div className="flex items-center gap-2">
-                                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-[#94a3b8]">
+                                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-gray-200 bg-white text-[#94a3b8]">
                                                     <Link className="w-3.5 h-3.5" />
                                                 </span>
-                                                <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-full">
+                                                <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-lg">
                                                     TEST MODE
                                                 </span>
                                             </div>
@@ -1172,7 +1172,7 @@ export default function PaymentLinksCreate() {
                                         </div>
 
                                         <div className="flex flex-col items-center text-center gap-3 md:pl-10 md:pr-6">
-                                            <div className="w-11 h-11 rounded-full border border-[#bbf7d0] bg-[#ecfdf3] flex items-center justify-center">
+                                            <div className="w-11 h-11 rounded-lg border border-[#bbf7d0] bg-[#ecfdf3] flex items-center justify-center">
                                                 <Check className="w-5 h-5 text-[#22c55e]" />
                                             </div>
                                             <div className="text-[15px] font-semibold text-[#1a1f36]">
@@ -1193,7 +1193,7 @@ export default function PaymentLinksCreate() {
                                     </div>
                                 )) : isInactivePreview ? (
                                     <div className="min-h-[420px] flex flex-col items-center justify-center text-center gap-3 text-[#6b7280]">
-                                        <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center">
                                             <AlertCircle className="w-5 h-5 text-[#6b7280]" />
                                         </div>
                                         <div className="text-[15px] font-semibold text-[#32325d] whitespace-pre-line">
@@ -1205,10 +1205,10 @@ export default function PaymentLinksCreate() {
                                     {/* Product Section */}
                                     <div className="space-y-5 md:pl-6 md:pr-10">
                                         <div className="flex items-center gap-2">
-                                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-gray-200 bg-white text-[#94a3b8]">
+                                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-gray-200 bg-white text-[#94a3b8]">
                                                 <Link className="w-3.5 h-3.5" />
                                             </span>
-                                            <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-full">
+                                            <span className="inline-flex items-center gap-2 text-[10px] font-semibold text-[#b45309] bg-[#fef3c7] px-2 py-0.5 rounded-lg">
                                                 TEST MODE
                                             </span>
                                         </div>
@@ -1292,9 +1292,9 @@ export default function PaymentLinksCreate() {
                                                                 onClick={() => setSelectedCheckoutPaymentMethod("bank")}
                                                                 className={`w-full flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors ${paymentMethodAntilla ? "border-b border-gray-100" : ""}`}
                                                             >
-                                                                <div className={`w-4 h-4 rounded-full border ${selectedCheckoutPaymentMethod === "bank" ? "border-[#635bff]" : "border-gray-400"} flex items-center justify-center`}>
+                                                                <div className={`w-4 h-4 rounded-lg border ${selectedCheckoutPaymentMethod === "bank" ? "border-[#635bff]" : "border-gray-400"} flex items-center justify-center`}>
                                                                     {selectedCheckoutPaymentMethod === "bank" && (
-                                                                        <div className="w-2 h-2 rounded-full bg-[#635bff]" />
+                                                                        <div className="w-2 h-2 rounded-lg bg-[#635bff]" />
                                                                     )}
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
@@ -1311,9 +1311,9 @@ export default function PaymentLinksCreate() {
                                                                 onClick={() => setSelectedCheckoutPaymentMethod("antilla")}
                                                                 className="w-full flex items-center gap-3 px-3.5 py-3 bg-white hover:bg-gray-50 transition-colors"
                                                             >
-                                                                <div className={`w-4 h-4 rounded-full border ${selectedCheckoutPaymentMethod === "antilla" ? "border-[#635bff]" : "border-gray-400"} flex items-center justify-center`}>
+                                                                <div className={`w-4 h-4 rounded-lg border ${selectedCheckoutPaymentMethod === "antilla" ? "border-[#635bff]" : "border-gray-400"} flex items-center justify-center`}>
                                                                     {selectedCheckoutPaymentMethod === "antilla" && (
-                                                                        <div className="w-2 h-2 rounded-full bg-[#635bff]" />
+                                                                        <div className="w-2 h-2 rounded-lg bg-[#635bff]" />
                                                                     )}
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
@@ -1354,7 +1354,7 @@ export default function PaymentLinksCreate() {
                                                                         />
                                                                     </div>
                                                                     {customerNameOptional && (
-                                                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Opcional</span>
+                                                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-lg px-2 py-0.5">Opcional</span>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -1369,7 +1369,7 @@ export default function PaymentLinksCreate() {
                                                                         />
                                                                     </div>
                                                                     {companyNameOptional && (
-                                                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-full px-2 py-0.5">Opcional</span>
+                                                                        <span className="text-[10px] text-[#6b7280] border border-gray-200 rounded-lg px-2 py-0.5">Opcional</span>
                                                                     )}
                                                                 </div>
                                                             )}
@@ -1381,7 +1381,7 @@ export default function PaymentLinksCreate() {
                                                     <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                                                         {antillaVerified ? (
                                                             <div className="p-4 flex items-center gap-3">
-                                                                <div className="w-8 h-8 rounded-full bg-green-50 border border-green-200 flex items-center justify-center">
+                                                                <div className="w-8 h-8 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center">
                                                                     <Check className="w-4 h-4 text-green-600" />
                                                                 </div>
                                                                 <div>
@@ -1441,7 +1441,7 @@ export default function PaymentLinksCreate() {
                                                                 >
                                                                     {antillaLoading ? (
                                                                         <span className="flex items-center justify-center gap-2">
-                                                                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-lg animate-spin" />
                                                                             Verificando...
                                                                         </span>
                                                                     ) : "Siguiente"}
@@ -1482,7 +1482,7 @@ export default function PaymentLinksCreate() {
                                                                 >
                                                                     {antillaLoading ? (
                                                                         <span className="flex items-center justify-center gap-2">
-                                                                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                                            <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-lg animate-spin" />
                                                                             Verificando...
                                                                         </span>
                                                                     ) : "Verificar"}
@@ -1592,7 +1592,7 @@ export default function PaymentLinksCreate() {
                                 )}
                                 {previewMode === "mobile" && (
                                     <div className="mt-8 flex justify-center pb-4">
-                                        <div className="w-10 h-10 rounded-full border-4 border-gray-100" />
+                                        <div className="w-10 h-10 rounded-lg border-4 border-gray-100" />
                                     </div>
                                 )}
                             </div>
