@@ -52,7 +52,7 @@ export default function Identity() {
           <div className="flex justify-end sm:hidden mb-4">
             <Link
               to="/?section=modular&slide=2#soluciones-modulares"
-              className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
               aria-label="Volver a la sección interactiva del inicio"
             >
               <ArrowLeft className="w-6 h-6 text-blue-900" />
@@ -65,7 +65,7 @@ export default function Identity() {
             </h1>
             <Link
               to="/?section=modular&slide=2#soluciones-modulares"
-              className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
+              className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
               aria-label="Volver a la sección interactiva del inicio"
             >
               <ArrowLeft className="w-6 h-6 text-blue-900" />

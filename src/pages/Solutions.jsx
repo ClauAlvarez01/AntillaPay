@@ -231,7 +231,7 @@ export default function Solutions() {
                     <p className="text-sm text-gray-600 italic">"{active.caseStudy}"</p>
                   </div>
 
-                  <Button className="rounded-full bg-gray-900 hover:bg-gray-800">
+                  <Button className="rounded-lg bg-gray-900 hover:bg-gray-800">
                     Explorar solución
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>

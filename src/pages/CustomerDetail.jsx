@@ -355,7 +355,7 @@ export default function CustomerDetail({ customerId }) {
                                         </TableCell>
                                         <TableCell className="py-3">
                                             <span className={cn(
-                                                "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                "inline-flex rounded-lg border px-2 py-0.5 text-[11px] font-semibold",
                                                 PAYMENT_STATUS_STYLES[payment.status] || "bg-gray-50 text-gray-600 border-gray-200"
                                             )}>
                                                 {payment.status}

@@ -65,7 +65,7 @@ export default function DevelopersSection() {
             <Button 
               onClick={() => navigate(createPageUrl('Developers'))}
               size="lg"
-              className="bg-cyan-500 hover:bg-cyan-600 text-white rounded-full"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg"
             >
               {t('home.developers.cta')}
               <ArrowRight className="ml-2 w-5 h-5" />

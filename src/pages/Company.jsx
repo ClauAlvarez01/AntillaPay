@@ -201,7 +201,7 @@ export default function Company() {
         </div>
 
         <div className="text-center">
-          <Button className="rounded-full bg-gray-900 hover:bg-gray-800">
+          <Button className="rounded-lg bg-gray-900 hover:bg-gray-800">
             Ver todas las posiciones
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>

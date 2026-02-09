@@ -190,7 +190,7 @@ export default function UseCasesSection() {
                     <p className="text-gray-300">
                       {useCases.find(u => u.id === activeCase)?.desc}
                     </p>
-                    <Button className="mt-6 rounded-full bg-white text-gray-900 hover:bg-gray-100">
+                    <Button className="mt-6 rounded-lg bg-white text-gray-900 hover:bg-gray-100">
                       {t('common.learnMore')}
                       <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
@@ -208,7 +208,7 @@ export default function UseCasesSection() {
                       >
                         <p className="text-xl sm:text-3xl font-bold mb-1">{kpi.value}</p>
                         <p className="text-xs text-gray-400 mb-2">{kpi.label}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        <span className={`text-xs px-2 py-0.5 rounded-lg ${
                           kpi.change.startsWith('+') 
                             ? 'bg-green-900/50 text-green-400' 
                             : 'bg-red-900/50 text-red-400'

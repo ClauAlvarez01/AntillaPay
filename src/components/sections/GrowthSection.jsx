@@ -36,7 +36,7 @@ export default function GrowthSection() {
               {t('growth.subtitle')}
             </p>
 
-            <Button className="rounded-full bg-orange-600 hover:bg-orange-700">
+            <Button className="rounded-lg bg-orange-600 hover:bg-orange-700">
               {t('common.learnMore')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>

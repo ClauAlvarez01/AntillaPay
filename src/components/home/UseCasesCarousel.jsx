@@ -110,14 +110,14 @@ export default function UseCasesCarousel() {
           <div className="flex gap-2 mt-8 justify-center">
             <button
               onClick={prev}
-              className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-lg bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
               aria-label="Previous slide"
             >
               <ChevronLeft className="w-4 h-4 text-violet-600" />
             </button>
             <button
               onClick={next}
-              className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-lg bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
               aria-label="Next slide"
             >
               <ChevronRight className="w-4 h-4 text-violet-600" />
@@ -178,7 +178,7 @@ export default function UseCasesCarousel() {
               <button
                 key={i}
                 onClick={() => setCurrentIndex(i)}
-                className={`h-1.5 rounded-full transition-all ${
+                className={`h-1.5 rounded-lg transition-all ${
                   i === currentIndex ? 'w-8 bg-violet-600' : 'w-1.5 bg-gray-300'
                 }`}
               />

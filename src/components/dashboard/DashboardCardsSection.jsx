@@ -104,7 +104,7 @@ const CardDelta = ({ delta }) => {
 const CardState = ({ title, description, actionLabel, onAction, icon: Icon }) => (
     <div className="flex flex-1 flex-col items-center justify-center text-center text-[#4f5b76] gap-2">
         {Icon && (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f4f5f7]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f4f5f7]">
                 <Icon className="h-4 w-4 text-[#aab2c4]" />
             </div>
         )}
@@ -116,7 +116,7 @@ const CardState = ({ title, description, actionLabel, onAction, icon: Icon }) =>
                 size="sm"
                 variant="outline"
                 onClick={onAction}
-                className="rounded-full border-gray-200 text-[12px]"
+                className="rounded-lg border-gray-200 text-[12px]"
             >
                 {actionLabel}
             </Button>
@@ -274,9 +274,9 @@ const ListCard = ({
                             <div key={item.label} className="flex items-center justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <div className="text-[13px] font-semibold text-[#32325d] truncate" title={item.label}>{item.label}</div>
-                                    <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                    <div className="mt-2 h-1.5 w-full rounded-lg bg-gray-100 overflow-hidden">
                                         <div
-                                            className="h-full rounded-full bg-[#635bff]"
+                                            className="h-full rounded-lg bg-[#635bff]"
                                             style={{
                                                 width: `${maxValue ? (item.rawValue / maxValue) * 100 : 0}%`
                                             }}
@@ -358,14 +358,14 @@ const ErrorBreakdownCard = ({
                     {errors.breakdown.map((reason) => (
                         <div key={reason.id} className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: reason.color }} />
+                                <span className="h-2.5 w-2.5 rounded-lg" style={{ backgroundColor: reason.color }} />
                                 <span className="text-[13px] text-[#32325d]">{reason.label}</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-[12px] text-[#697386] font-medium">{formatCount(reason.count)}</span>
-                                <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="w-24 h-1.5 bg-gray-100 rounded-lg overflow-hidden">
                                     <div
-                                        className="h-full rounded-full"
+                                        className="h-full rounded-lg"
                                         style={{ width: `${reason.percent}%`, backgroundColor: reason.color }}
                                     />
                                 </div>
@@ -399,7 +399,7 @@ const TopProductsCard = ({
                 tooltip={tooltip}
                 action={
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center rounded-full border border-gray-200 bg-gray-50/60 text-[11px] font-semibold">
+                        <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50/60 text-[11px] font-semibold">
                             {[
                                 { id: "always", label: "Siempre" },
                                 { id: "30d", label: "30 dias" }
@@ -409,7 +409,7 @@ const TopProductsCard = ({
                                     type="button"
                                     onClick={() => onRangeChange(item.id)}
                                     className={cn(
-                                        "px-2.5 py-1 rounded-full transition-colors",
+                                        "px-2.5 py-1 rounded-lg transition-colors",
                                         range === item.id
                                             ? "bg-white text-[#32325d] shadow-sm"
                                             : "text-[#8792a2] hover:text-[#32325d]"
@@ -463,9 +463,9 @@ const TopProductsCard = ({
                                         <span className="shrink-0">{formatUsd(item.total)}</span>
                                     </div>
                                     <div className="mt-2 flex items-center gap-3">
-                                        <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                        <div className="h-1.5 w-full rounded-lg bg-gray-100 overflow-hidden">
                                             <div
-                                                className="h-full rounded-full bg-[#635bff]"
+                                                className="h-full rounded-lg bg-[#635bff]"
                                                 style={{
                                                     width: `${maxValue ? (item.total / maxValue) * 100 : 0}%`
                                                 }}

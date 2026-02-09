@@ -186,7 +186,7 @@ export default function Companies() {
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className={`inline-block px-4 py-1.5 text-sm font-medium text-black rounded-full mb-6 bg-gradient-to-r ${activeGradient} shadow-md`}
+            className={`inline-block px-4 py-1.5 text-sm font-medium text-black rounded-lg mb-6 bg-gradient-to-r ${activeGradient} shadow-md`}
           >
             Nuestro Alcance
           </motion.span>
@@ -227,7 +227,7 @@ export default function Companies() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveCategory(index)}
-                className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
                   isActive 
                     ? `text-gray-800 bg-gradient-to-r ${gradient} border border-gray-200 shadow-md hover:shadow-lg`
                     : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300'
@@ -263,10 +263,10 @@ export default function Companies() {
         
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 -z-10">
-          <div className="bg-gradient-to-br from-indigo-100 to-blue-50 rounded-full w-96 h-96 opacity-50 blur-3xl"></div>
+          <div className="bg-gradient-to-br from-indigo-100 to-blue-50 rounded-lg w-96 h-96 opacity-50 blur-3xl"></div>
         </div>
         <div className="absolute bottom-0 left-0 -z-10">
-          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full w-96 h-96 opacity-50 blur-3xl"></div>
+          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-lg w-96 h-96 opacity-50 blur-3xl"></div>
         </div>
       </div>
     </div>

@@ -78,7 +78,7 @@ export default function Atlas() {
           <div className="flex justify-end sm:hidden mb-4">
             <Link
               to="/?section=modular&slide=2#soluciones-modulares"
-              className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors"
               aria-label="Volver a la sección interactiva del inicio"
             >
               <ArrowLeft className="w-6 h-6 text-blue-900" />
@@ -91,7 +91,7 @@ export default function Atlas() {
             </h1>
             <Link
               to="/?section=modular&slide=2#soluciones-modulares"
-              className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
+              className="hidden sm:inline-flex items-center justify-center w-11 h-11 rounded-lg border border-gray-200 bg-white text-blue-900 shadow-sm hover:bg-gray-50 hover:text-blue-900 transition-colors absolute right-0 top-1/2 -translate-y-1/2"
               aria-label="Volver a la sección interactiva del inicio"
             >
               <ArrowLeft className="w-6 h-6 text-blue-900" />
@@ -149,7 +149,7 @@ export default function Atlas() {
                 transition={{ delay: 0.3 + i * 0.1 }}
                 className={`p-6 rounded-xl border-t-4 ${step.borderColor} bg-white shadow-sm hover:shadow-md transition-shadow`}
               >
-                <div className={`w-10 h-10 ${step.iconColor} rounded-full flex items-center justify-center text-lg font-bold mb-4`}>
+                <div className={`w-10 h-10 ${step.iconColor} rounded-lg flex items-center justify-center text-lg font-bold mb-4`}>
                   {step.icon}
                 </div>
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">{step.title}</h3>

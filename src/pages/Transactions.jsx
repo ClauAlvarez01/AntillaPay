@@ -272,10 +272,10 @@ const FilterPill = ({ label, active, onClick }) => (
             "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
             active
                 ? "border-[#635bff] bg-[#635bff] text-white"
-                : "border-dashed border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
+                : "border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
         )}
     >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-400">
+        <span className="flex h-5 w-5 items-center justify-center rounded-lg border border-gray-400">
             <Plus className="h-3 w-3" />
         </span>
         {label}
@@ -1133,7 +1133,7 @@ export default function TransactionsPage() {
                                     value={searchQuery}
                                     onChange={(event) => setSearchQuery(event.target.value)}
                                     placeholder="Buscar por cliente, email"
-                                    className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                                    className="h-9 rounded-lg border-gray-200 bg-white pl-10 text-[13px]"
                                 />
                             </div>
                         </div>
@@ -1160,7 +1160,7 @@ export default function TransactionsPage() {
                                 {chipFilters.status && (
                                     <div className="min-w-[180px]">
                                         <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
-                                            <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                            <SelectTrigger className="h-8 rounded-lg border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
                                                 <SelectValue placeholder="Seleccione Estado" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1268,7 +1268,7 @@ export default function TransactionsPage() {
                                                         <TableCell className="pr-6 py-4">
                                                             <span
                                                                 className={cn(
-                                                                    "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                                    "inline-flex rounded-lg border px-2 py-0.5 text-[11px] font-semibold",
                                                                     PAYMENT_STATUS_STYLES[payment.status] || "bg-gray-50 text-gray-600 border-gray-200"
                                                                 )}
                                                             >
@@ -1310,7 +1310,7 @@ export default function TransactionsPage() {
                                         <Badge
                                             variant="outline"
                                             className={cn(
-                                                "w-fit text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full",
+                                                "w-fit text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg",
                                                 TRANSFER_STATUS_STYLES[selectedTransfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
                                             )}
                                         >
@@ -1644,7 +1644,7 @@ export default function TransactionsPage() {
                                 </button>
                             </div>
                             <div className="px-6 py-10 flex flex-col items-center gap-4">
-                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-full animate-spin" />
+                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-lg animate-spin" />
                                 <p className="text-[14px] text-[#6b7280]">Preparando exportación...</p>
                             </div>
                             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">

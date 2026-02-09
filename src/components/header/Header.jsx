@@ -197,7 +197,7 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild className="lg:hidden">
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button variant="ghost" size="icon" className="rounded-lg">
           <Menu className="w-6 h-6" />
         </Button>
       </SheetTrigger>
@@ -382,7 +382,7 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
                 <button
                   key={code}
                   onClick={() => changeLanguage(code)}
-                  className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
                     language === code 
                       ? 'bg-violet-600 text-white' 
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -397,14 +397,14 @@ function MobileMenu({ navItems, productsMenu, solutionsMenu, developersMenu, res
                 setIsOpen(false);
                 setTimeout(() => navigate(createPageUrl('Contact')), 100);
               }}
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-full"
+              className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-lg"
             >
               {t('nav.contactSales')}
             </Button>
             <Button 
               onClick={() => navigate('/login')}
               variant="outline" 
-              className="w-full rounded-full"
+              className="w-full rounded-lg"
             >
               {t('nav.login')}
             </Button>
@@ -853,7 +853,7 @@ export default function Header() {
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item)}
-                className={`flex items-center gap-1 px-4 py-2 text-[15px] font-medium rounded-full transition-all duration-200
+                className={`flex items-center gap-1 px-4 py-2 text-[15px] font-medium rounded-lg transition-all duration-200
                   ${activeMenu === item.id 
                     ? 'text-violet-600 bg-violet-50' 
                     : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100/60'
@@ -876,7 +876,7 @@ export default function Header() {
             <div className="relative">
               <button 
                 onClick={() => setShowLangMenu(!showLangMenu)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors rounded-full hover:bg-gray-100/60 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100/60 focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <Globe className="w-4 h-4" />
                 <span className="hidden xl:inline">{languageNames[language]}</span>
@@ -900,7 +900,7 @@ export default function Header() {
 
             <button 
               onClick={() => navigate('/login')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors rounded-full hover:bg-gray-100/60 focus:outline-none focus:ring-2 focus:ring-violet-500 flex items-center gap-1"
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-violet-600 transition-colors rounded-lg hover:bg-gray-100/60 focus:outline-none focus:ring-2 focus:ring-violet-500 flex items-center gap-1"
             >
               {t('nav.login')}
               <ChevronRight className="w-4 h-4" />
@@ -908,7 +908,7 @@ export default function Header() {
             
             <Button 
               onClick={() => navigate(createPageUrl('Contact'))}
-              className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-5 py-2 text-sm font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30 active:scale-[0.98]"
+              className="bg-violet-600 hover:bg-violet-700 text-white rounded-lg px-5 py-2 text-sm font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30 active:scale-[0.98]"
             >
               {t('nav.contactSales')}
             </Button>

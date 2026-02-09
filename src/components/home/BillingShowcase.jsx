@@ -158,7 +158,7 @@ export default function BillingShowcase({ onLoginClick }) {
             <Button 
               onClick={onLoginClick}
               size="lg"
-              className="bg-violet-600 hover:bg-violet-700 rounded-full px-8 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className="bg-violet-600 hover:bg-violet-700 rounded-lg px-8 transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
               {t('home.billing.cta')}
               <ArrowRight className="ml-2 w-5 h-5" />
@@ -251,7 +251,7 @@ export default function BillingShowcase({ onLoginClick }) {
                             <div>
                               {plan.badge && (
                                 <div className="text-center mb-1">
-                                  <span className="text-[8px] px-2 py-0.5 bg-violet-500 text-white rounded-full">{t('plans.popular')}</span>
+                                  <span className="text-[8px] px-2 py-0.5 bg-violet-500 text-white rounded-lg">{t('plans.popular')}</span>
                                 </div>
                               )}
                               <div className="text-center mb-2">
@@ -376,7 +376,7 @@ export default function BillingShowcase({ onLoginClick }) {
                             <div>
                               {plan.badge && (
                                 <div className="text-center mb-2">
-                                  <span className="text-[9px] px-2 py-1 bg-indigo-500 text-white rounded-full">{t('plans.popular')}</span>
+                                  <span className="text-[9px] px-2 py-1 bg-indigo-500 text-white rounded-lg">{t('plans.popular')}</span>
                                 </div>
                               )}
                               <div className="text-center mb-2">
@@ -495,7 +495,7 @@ export default function BillingShowcase({ onLoginClick }) {
                         <div>
                           {plan.badge && (
                             <div className="text-center mb-1">
-                              <span className="text-[8px] px-2 py-0.5 bg-violet-500 text-white rounded-full">{t('plans.popular')}</span>
+                              <span className="text-[8px] px-2 py-0.5 bg-violet-500 text-white rounded-lg">{t('plans.popular')}</span>
                             </div>
                           )}
                           <div className="text-center mb-2">

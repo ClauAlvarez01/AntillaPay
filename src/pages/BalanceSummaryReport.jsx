@@ -591,7 +591,7 @@ export default function BalanceSummaryReport({ onBack }) {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onBack}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5 text-[#4f5b76]" />
                     </button>
@@ -637,7 +637,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                         {option}
                                     </span>
                                     {rangeFilter === option && (
-                                        <div className="w-5 h-5 rounded-full bg-[#4f5b76] flex items-center justify-center">
+                                        <div className="w-5 h-5 rounded-lg bg-[#4f5b76] flex items-center justify-center">
                                             <span className="text-[11px] text-white">✓</span>
                                         </div>
                                     )}
@@ -685,7 +685,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                 setStartCalendarMonth(nextMonth);
                                                 setStartCalendarYear(nextYear);
                                             }}
-                                            className="p-1 rounded-full hover:bg-gray-100"
+                                            className="p-1 rounded-lg hover:bg-gray-100"
                                         >
                                             <ChevronLeft className="w-5 h-5 text-[#4f5b76]" />
                                         </button>
@@ -704,7 +704,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                 setStartCalendarMonth(nextMonth);
                                                 setStartCalendarYear(nextYear);
                                             }}
-                                            className="p-1 rounded-full hover:bg-gray-100"
+                                            className="p-1 rounded-lg hover:bg-gray-100"
                                         >
                                             <ChevronRight className="w-5 h-5 text-[#4f5b76]" />
                                         </button>
@@ -728,7 +728,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                     key={`start-day-${day}-${idx}`}
                                                     onClick={() => selectStartDate(day)}
                                                     className={cn(
-                                                        "w-9 h-9 mx-auto rounded-full transition-colors",
+                                                        "w-9 h-9 mx-auto rounded-lg transition-colors",
                                                         isSelected ? "bg-[#635bff] text-white font-semibold" : "hover:bg-gray-100"
                                                     )}
                                                 >
@@ -768,7 +768,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                 setEndCalendarMonth(nextMonth);
                                                 setEndCalendarYear(nextYear);
                                             }}
-                                            className="p-1 rounded-full hover:bg-gray-100"
+                                            className="p-1 rounded-lg hover:bg-gray-100"
                                         >
                                             <ChevronLeft className="w-5 h-5 text-[#4f5b76]" />
                                         </button>
@@ -787,7 +787,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                 setEndCalendarMonth(nextMonth);
                                                 setEndCalendarYear(nextYear);
                                             }}
-                                            className="p-1 rounded-full hover:bg-gray-100"
+                                            className="p-1 rounded-lg hover:bg-gray-100"
                                         >
                                             <ChevronRight className="w-5 h-5 text-[#4f5b76]" />
                                         </button>
@@ -811,7 +811,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                     key={`end-day-${day}-${idx}`}
                                                     onClick={() => selectEndDate(day)}
                                                     className={cn(
-                                                        "w-9 h-9 mx-auto rounded-full transition-colors",
+                                                        "w-9 h-9 mx-auto rounded-lg transition-colors",
                                                         isSelected ? "bg-[#635bff] text-white font-semibold" : "hover:bg-gray-100"
                                                     )}
                                                 >
@@ -1024,7 +1024,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                                         <Badge
                                                             variant="outline"
                                                             className={cn(
-                                                                "rounded-full border text-[11px] font-semibold capitalize",
+                                                                "rounded-lg border text-[11px] font-semibold capitalize",
                                                                 STATUS_STYLES[transfer.status]
                                                             )}
                                                         >
@@ -1235,7 +1235,7 @@ export default function BalanceSummaryReport({ onBack }) {
                                 </button>
                             </div>
                             <div className="px-6 py-10 flex flex-col items-center gap-4">
-                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-full animate-spin" />
+                                <div className="w-8 h-8 border-2 border-gray-200 border-t-[#635bff] rounded-lg animate-spin" />
                                 <p className="text-[14px] text-[#6b7280]">Preparando exportación...</p>
                             </div>
                             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">

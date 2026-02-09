@@ -117,7 +117,7 @@ export default function Products() {
                 <ul className="space-y-2 mb-6">
                   {product.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm text-gray-500">
-                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                      <div className="w-1.5 h-1.5 rounded-lg bg-gray-400" />
                       {feature}
                     </li>
                   ))}

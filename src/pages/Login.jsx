@@ -31,7 +31,7 @@ export default function LoginPage() {
       {/* Back button */}
       <button
         onClick={() => navigate(-1)}
-        className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 z-10"
+        className="absolute top-6 right-6 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 z-10"
         aria-label="Volver atrás"
       >
         <ArrowLeft className="w-6 h-6 text-gray-600" />
@@ -126,7 +126,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
+            className="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t('nav.login', 'Iniciar Sesión')}
           </Button>
@@ -148,7 +148,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 rounded-full border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="w-full h-12 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -162,7 +162,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-12 rounded-full border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="w-full h-12 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50"
             >
               {t('login.ssoLogin', 'Iniciar sesión con SSO')}
             </Button>

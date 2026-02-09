@@ -100,7 +100,7 @@ export default function HeroDashboard() {
           <div className="w-8 h-8 bg-blue-600 rounded transform -rotate-45 flex items-center justify-center">
             <div className="w-6 h-6 border-2 border-white rounded transform rotate-45"></div>
           </div>
-          <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
             <span className="text-white text-xs font-bold">red</span>
           </div>
         </div>

@@ -170,7 +170,7 @@ export default function ConnectShowcase({ onLoginClick }) {
             <Button 
               onClick={onLoginClick}
               size="lg"
-              className="bg-violet-600 hover:bg-violet-700 rounded-full px-8 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+              className="bg-violet-600 hover:bg-violet-700 rounded-lg px-8 transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
               {t('home.connect.cta')}
               <ArrowRight className="ml-2 w-5 h-5" />
@@ -244,9 +244,9 @@ export default function ConnectShowcase({ onLoginClick }) {
                     <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                       <h3 className="text-xl font-bold text-gray-900">Pedidos</h3>
                       <div className="flex gap-1">
-                        <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                        <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                        <div className="w-1 h-1 rounded-full bg-indigo-600" />
+                        <div className="w-1 h-1 rounded-lg bg-indigo-600" />
+                        <div className="w-1 h-1 rounded-lg bg-indigo-600" />
+                        <div className="w-1 h-1 rounded-lg bg-indigo-600" />
                       </div>
                     </div>
 
@@ -345,7 +345,7 @@ export default function ConnectShowcase({ onLoginClick }) {
                     </div>
 
                     {/* Compradores */}
-                    <div className="bg-blue-600 text-white px-8 py-2 rounded-full shadow-lg font-bold text-sm">
+                    <div className="bg-blue-600 text-white px-8 py-2 rounded-lg shadow-lg font-bold text-sm">
                       Compradores
                     </div>
 
@@ -360,7 +360,7 @@ export default function ConnectShowcase({ onLoginClick }) {
 
                     {/* Plataforma with amount */}
                     <div className="relative">
-                      <div className="bg-cyan-400 text-white px-8 py-2 rounded-full shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">
+                      <div className="bg-cyan-400 text-white px-8 py-2 rounded-lg shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">
                         Plataforma
                       </div>
                       <div className="absolute -right-12 top-1/2 -translate-y-1/2 bg-white px-2 py-1 rounded-lg shadow-md border border-gray-200">
@@ -378,7 +378,7 @@ export default function ConnectShowcase({ onLoginClick }) {
                     </div>
 
                     {/* Vendedores */}
-                    <div className="bg-cyan-400 text-white px-4 py-2 rounded-full shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300 flex items-center gap-1.5">
+                    <div className="bg-cyan-400 text-white px-4 py-2 rounded-lg shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300 flex items-center gap-1.5">
                       <Check className="w-4 h-4" />
                       <span>Vendedores o proveedores de servicios</span>
                     </div>
@@ -419,7 +419,7 @@ export default function ConnectShowcase({ onLoginClick }) {
                     </div>
 
                     {/* Compradores */}
-                    <div className="bg-blue-600 text-white px-8 py-2 rounded-full shadow-lg font-bold text-sm">
+                    <div className="bg-blue-600 text-white px-8 py-2 rounded-lg shadow-lg font-bold text-sm">
                       Compradores
                     </div>
 
@@ -433,7 +433,7 @@ export default function ConnectShowcase({ onLoginClick }) {
                     </div>
 
                     {/* Plataforma */}
-                    <div className="bg-cyan-400 text-white px-8 py-2 rounded-full shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">
+                    <div className="bg-cyan-400 text-white px-8 py-2 rounded-lg shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">
                       Plataforma
                     </div>
 
@@ -447,7 +447,7 @@ export default function ConnectShowcase({ onLoginClick }) {
                     </div>
 
                     {/* Vendedores */}
-                    <div className="bg-cyan-400 text-white px-4 py-2 rounded-full shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300">
+                    <div className="bg-cyan-400 text-white px-4 py-2 rounded-lg shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300">
                       Vendedores o proveedores de servicios
                     </div>
                   </motion.div>
@@ -528,9 +528,9 @@ export default function ConnectShowcase({ onLoginClick }) {
                   <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                     <h3 className="text-xl font-bold text-gray-900">Pedidos</h3>
                     <div className="flex gap-1">
-                      <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                      <div className="w-1 h-1 rounded-full bg-indigo-600" />
-                      <div className="w-1 h-1 rounded-full bg-indigo-600" />
+                      <div className="w-1 h-1 rounded-lg bg-indigo-600" />
+                      <div className="w-1 h-1 rounded-lg bg-indigo-600" />
+                      <div className="w-1 h-1 rounded-lg bg-indigo-600" />
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 font-medium mt-3 mb-2">HOY</div>
@@ -576,11 +576,11 @@ export default function ConnectShowcase({ onLoginClick }) {
                   transition={{ duration: 0.55, ease: 'easeInOut' }}
                   className="absolute inset-0 flex flex-col items-center justify-center space-y-3 px-4"
                 >
-                  <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg font-bold text-sm">Compradores</div>
+                  <div className="bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg font-bold text-sm">Compradores</div>
                   <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12l-5-5h10l-5 5z" /></svg>
-                  <div className="bg-cyan-400 text-white px-6 py-2 rounded-full shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">Plataforma</div>
+                  <div className="bg-cyan-400 text-white px-6 py-2 rounded-lg shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">Plataforma</div>
                   <svg className="w-4 h-4 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12l-5-5h10l-5 5z" /></svg>
-                  <div className="bg-cyan-400 text-white px-4 py-2 rounded-full shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300 flex items-center gap-1.5"><Check className="w-4 h-4" /><span>Vendedores</span></div>
+                  <div className="bg-cyan-400 text-white px-4 py-2 rounded-lg shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300 flex items-center gap-1.5"><Check className="w-4 h-4" /><span>Vendedores</span></div>
                 </motion.div>
 
                 {/* Slide 3 - Flow Diagram (variant) */}
@@ -605,11 +605,11 @@ export default function ConnectShowcase({ onLoginClick }) {
                     </div>
                   </div>
                   <svg className="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" /></svg>
-                  <div className="bg-blue-600 text-white px-8 py-2 rounded-full shadow-lg font-bold text-sm">Compradores</div>
+                  <div className="bg-blue-600 text-white px-8 py-2 rounded-lg shadow-lg font-bold text-sm">Compradores</div>
                   <svg className="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" /></svg>
-                  <div className="bg-cyan-400 text-white px-8 py-2 rounded-full shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">Plataforma</div>
+                  <div className="bg-cyan-400 text-white px-8 py-2 rounded-lg shadow-lg font-bold text-sm border-2 border-dashed border-cyan-300">Plataforma</div>
                   <svg className="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" /></svg>
-                  <div className="bg-cyan-400 text-white px-4 py-2 rounded-full shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300">Vendedores</div>
+                  <div className="bg-cyan-400 text-white px-4 py-2 rounded-lg shadow-lg font-bold text-xs border-2 border-dashed border-cyan-300">Vendedores</div>
                 </motion.div>
               </div>
             </motion.div>

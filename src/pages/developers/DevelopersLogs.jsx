@@ -1,24 +1,15 @@
-import React, { useMemo, useState } from 'react';
-import {
-    History,
-    Search,
-    User,
-    ArrowUpRight,
-    ArrowDownLeft,
-    RefreshCcw,
-    Copy,
-    Plus
-} from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Search, RefreshCcw, Copy, Plus, ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
     Sheet,
     SheetContent,
     SheetDescription,
     SheetHeader,
     SheetTitle
-} from "@/components/ui/sheet";
+} from '@/components/ui/sheet';
 import {
     Table,
     TableBody,
@@ -26,55 +17,88 @@ import {
     TableHead,
     TableHeader,
     TableRow
-} from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+} from '@/components/ui/table';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-const MockApiLogs = [
-    { id: "req_1a9f", method: "POST", path: "/v1/payment_links", status: 201, time: "2026-02-03 10:30:00", eventId: "evt_abc123", env: "live" },
-    { id: "req_2b7d", method: "GET", path: "/v1/payment_links", status: 200, time: "2026-02-03 10:29:15", eventId: "evt_def456", env: "live" },
-    { id: "req_3c2a", method: "POST", path: "/v1/payments", status: 402, time: "2026-02-03 10:25:00", eventId: "evt_ghi789", env: "live" },
-    { id: "req_4d9e", method: "POST", path: "/v1/payment_links", status: 201, time: "2026-02-03 09:10:00", eventId: "evt_jkl012", env: "test" },
-    { id: "req_5e1c", method: "GET", path: "/v1/events", status: 200, time: "2026-02-03 09:05:00", eventId: "evt_mno345", env: "test" },
+const WEBHOOK_LOGS = [
+    {
+        id: 'whlog_1a9f',
+        event: 'payin.completed',
+        endpoint: 'https://hooks.cliente.com/webhooks',
+        method: 'POST',
+        status: 'success',
+        statusCode: 200,
+        time: '2026-02-05 16:12:03',
+        response: '200 OK',
+        attempts: 1,
+        env: 'live',
+        body: '{"event":"payin.completed","data":{"id":"payin_21sd","amount":2500,"currency":"CUP"}}'
+    },
+    {
+        id: 'whlog_2b7d',
+        event: 'transfer.received',
+        endpoint: 'https://hooks.cliente.com/webhooks',
+        method: 'POST',
+        status: 'success',
+        statusCode: 200,
+        time: '2026-02-05 15:48:11',
+        response: '200 OK',
+        attempts: 1,
+        env: 'live',
+        body: '{"event":"transfer.received","data":{"id":"tr_9f2k","amount":8000,"currency":"CUP"}}'
+    },
+    {
+        id: 'whlog_3c2a',
+        event: 'payin.completed',
+        endpoint: 'https://hooks.cliente.com/webhooks',
+        method: 'POST',
+        status: 'failed',
+        statusCode: 500,
+        time: '2026-02-05 14:02:55',
+        response: '500 ERR',
+        attempts: 3,
+        env: 'test',
+        body: '{"event":"payin.completed","data":{"id":"payin_1x2y","amount":1200,"currency":"CUP"}}'
+    }
 ];
 
-const FilterPill = ({ label, active, onClick }) => (
-    <button
-        type="button"
-        onClick={onClick}
-        className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
-            active
-                ? "border-[#635bff] bg-[#635bff] text-white"
-                : "border-dashed border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
-        )}
-    >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-400">
-            <Plus className="h-3 w-3" />
-        </span>
-        {label}
-    </button>
-);
+const EVENT_FILTERS = [
+    { id: 'all', label: 'Todos' },
+    { id: 'payin.completed', label: 'payin.completed' },
+    { id: 'transfer.received', label: 'transfer.received' }
+];
+
+const STATUS_FILTERS = [
+    { id: 'all', label: 'Todos' },
+    { id: 'success', label: 'Exitosos' },
+    { id: 'error', label: 'Errores' }
+];
 
 export default function DevelopersLogs() {
-    const [query, setQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
+    const [query, setQuery] = useState('');
+    const [eventFilter, setEventFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [selectedLog, setSelectedLog] = useState(null);
+    const [eventMenuOpen, setEventMenuOpen] = useState(false);
+    const [statusMenuOpen, setStatusMenuOpen] = useState(false);
+    const eventMenuRef = useRef(null);
+    const statusMenuRef = useRef(null);
 
-    const filteredApiLogs = useMemo(() => {
+    const filteredLogs = useMemo(() => {
         const term = query.trim().toLowerCase();
-        return MockApiLogs.filter((log) => {
+        return WEBHOOK_LOGS.filter((log) => {
             const matchesQuery = !term
-                || log.path.toLowerCase().includes(term)
-                || log.method.toLowerCase().includes(term)
-                || log.id.toLowerCase().includes(term)
-                || log.eventId.toLowerCase().includes(term);
-            const matchesStatus = statusFilter === "all"
-                || (statusFilter === "success" && log.status < 400)
-                || (statusFilter === "error" && log.status >= 400);
-            return matchesQuery && matchesStatus;
+                || log.endpoint.toLowerCase().includes(term)
+                || log.event.toLowerCase().includes(term)
+                || log.id.toLowerCase().includes(term);
+            const matchesEvent = eventFilter === 'all' || log.event === eventFilter;
+            const matchesStatus = statusFilter === 'all'
+                || (statusFilter === 'success' && log.status === 'success')
+                || (statusFilter === 'error' && log.status === 'failed');
+            return matchesQuery && matchesEvent && matchesStatus;
         });
-    }, [query, statusFilter]);
+    }, [query, eventFilter, statusFilter]);
 
     const handleCopy = (value, label) => {
         if (navigator?.clipboard) {
@@ -83,30 +107,28 @@ export default function DevelopersLogs() {
         toast.success(`${label} copiado`);
     };
 
+    useEffect(() => {
+        const handleOutsideClick = (event) => {
+            if (eventMenuRef.current && !eventMenuRef.current.contains(event.target)) {
+                setEventMenuOpen(false);
+            }
+            if (statusMenuRef.current && !statusMenuRef.current.contains(event.target)) {
+                setStatusMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleOutsideClick);
+        return () => document.removeEventListener('mousedown', handleOutsideClick);
+    }, []);
+
     return (
         <div className="max-w-6xl mx-auto space-y-6">
-            {/* Header */}
             <div>
                 <h1 className="text-[24px] font-bold text-[#32325d] mb-2">Registros</h1>
                 <p className="text-[14px] text-[#697386]">
-                    Supervisa la actividad de tu integración y los cambios en la configuración de tu cuenta.
+                    Consulta las entregas recientes de webhooks y el estado de cada intento.
                 </p>
             </div>
 
-            {/* Tabs */}
-            <div className="flex items-center border-b border-gray-200">
-                <button
-                    className={cn(
-                        "px-4 py-2.5 text-[14px] font-medium border-b-2 transition-colors flex items-center gap-2",
-                        "border-[#635bff] text-[#635bff]"
-                    )}
-                >
-                    <History className="w-4 h-4" />
-                    Logs de API
-                </button>
-            </div>
-
-            {/* Content */}
             <div className="space-y-4">
                 <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-center">
                     <div className="relative w-full max-w-[420px]">
@@ -114,138 +136,252 @@ export default function DevelopersLogs() {
                         <Input
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
-                            placeholder="Buscar logs de API"
-                            className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                            placeholder="Buscar por evento o endpoint"
+                            className="h-9 rounded-lg border-gray-200 bg-white pl-10 text-[13px]"
                         />
                     </div>
                     <Button
                         variant="outline"
-                        className="border-gray-200 text-[#32325d] rounded-full"
-                        onClick={() => toast.message("Registros actualizados")}
+                        className="border-gray-200 text-[#32325d] rounded-lg"
+                        onClick={() => toast.message('Registros actualizados')}
                     >
                         <RefreshCcw className="w-4 h-4 mr-2 text-gray-500" />
                         Actualizar
                     </Button>
                 </div>
 
-                <div className="relative mt-2 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <>
-                            <FilterPill label="Todos" active={statusFilter === "all"} onClick={() => setStatusFilter("all")} />
-                            <FilterPill label="Exitosos" active={statusFilter === "success"} onClick={() => setStatusFilter("success")} />
-                            <FilterPill label="Errores" active={statusFilter === "error"} onClick={() => setStatusFilter("error")} />
-                        </>
+                <div className="flex flex-col gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-[11px] text-[#8a94a7] uppercase tracking-[0.2em]">Eventos</span>
+                        <div ref={eventMenuRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEventMenuOpen((prev) => !prev);
+                                    setStatusMenuOpen(false);
+                                }}
+                                className={cn(
+                                    'inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-[12px] font-semibold text-[#4f5b76] hover:border-gray-400 transition-colors',
+                                    eventMenuOpen && 'border-[#cbd5f5] bg-gray-50'
+                                )}
+                            >
+                                <span className="flex h-5 w-5 items-center justify-center rounded-md border border-gray-300 text-[11px] text-[#8792a2]">
+                                    <Plus className="h-3 w-3" />
+                                </span>
+                                Eventos
+                                <span className="text-[#635bff] text-[11px] font-semibold">
+                                    {EVENT_FILTERS.find((item) => item.id === eventFilter)?.label}
+                                </span>
+                                <ChevronDown className="h-3.5 w-3.5 text-[#635bff]" />
+                            </button>
+                            {eventMenuOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-[220px] rounded-xl border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
+                                    {EVENT_FILTERS.map((option) => (
+                                        <button
+                                            key={option.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setEventFilter(option.id);
+                                                setEventMenuOpen(false);
+                                            }}
+                                            className={cn(
+                                                'w-full px-4 py-2 text-left text-[13px] text-[#32325d] hover:bg-gray-50',
+                                                eventFilter === option.id && 'text-[#635bff] font-semibold'
+                                            )}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-[11px] text-[#8a94a7] uppercase tracking-[0.2em]">Estado</span>
+                        <div ref={statusMenuRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setStatusMenuOpen((prev) => !prev);
+                                    setEventMenuOpen(false);
+                                }}
+                                className={cn(
+                                    'inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-[12px] font-semibold text-[#4f5b76] hover:border-gray-400 transition-colors',
+                                    statusMenuOpen && 'border-[#cbd5f5] bg-gray-50'
+                                )}
+                            >
+                                <span className="flex h-5 w-5 items-center justify-center rounded-md border border-gray-300 text-[11px] text-[#8792a2]">
+                                    <Plus className="h-3 w-3" />
+                                </span>
+                                Estado
+                                <span className="text-[#635bff] text-[11px] font-semibold">
+                                    {STATUS_FILTERS.find((item) => item.id === statusFilter)?.label}
+                                </span>
+                                <ChevronDown className="h-3.5 w-3.5 text-[#635bff]" />
+                            </button>
+                            {statusMenuOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-[200px] rounded-xl border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
+                                    {STATUS_FILTERS.map((option) => (
+                                        <button
+                                            key={option.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setStatusFilter(option.id);
+                                                setStatusMenuOpen(false);
+                                            }}
+                                            className={cn(
+                                                'w-full px-4 py-2 text-left text-[13px] text-[#32325d] hover:bg-gray-50',
+                                                statusFilter === option.id && 'text-[#635bff] font-semibold'
+                                            )}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     <Table>
-                        <>
-                            <TableHeader className="bg-gray-50/50">
-                                <TableRow>
-                                    <TableHead className="w-1/5">Método</TableHead>
-                                    <TableHead className="w-1/5">Ruta</TableHead>
-                                    <TableHead className="w-1/5">Estado</TableHead>
-                                    <TableHead className="w-1/5">ID de Evento</TableHead>
-                                    <TableHead className="w-1/5 text-right">Fecha</TableHead>
+                        <TableHeader className="bg-gray-50/50">
+                            <TableRow>
+                                <TableHead className="w-1/5">Evento</TableHead>
+                                <TableHead className="w-2/5">Endpoint</TableHead>
+                                <TableHead className="w-1/5">Estado</TableHead>
+                                <TableHead className="w-1/5">Método</TableHead>
+                                <TableHead className="w-1/5 text-right">Fecha</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredLogs.map((log) => (
+                                <TableRow
+                                    key={log.id}
+                                    className="hover:bg-gray-50/50 cursor-pointer"
+                                    onClick={() => setSelectedLog(log)}
+                                >
+                                    <TableCell className="font-mono text-[13px] text-[#32325d]">
+                                        {log.event}
+                                    </TableCell>
+                                    <TableCell className="font-mono text-[12px] text-[#4f5b76] truncate max-w-[260px]">
+                                        {log.endpoint}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            className={cn(
+                                                'shadow-none',
+                                                log.status === 'success'
+                                                    ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                                    : 'bg-red-50 text-red-700 hover:bg-red-100'
+                                            )}
+                                        >
+                                            {log.statusCode}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className="font-mono bg-white">
+                                            {log.method}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right text-[13px] text-[#697386]">
+                                        {log.time}
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredApiLogs.map((log) => (
-                                    <TableRow key={log.id} className="hover:bg-gray-50/50 cursor-pointer" onClick={() => setSelectedLog({ type: "api", data: log })}>
-                                        <TableCell>
-                                            <Badge variant="outline" className="font-mono bg-white">
-                                                {log.method}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="font-mono text-[13px] text-[#32325d]">
-                                            {log.path}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                className={cn(
-                                                    "shadow-none",
-                                                    log.status >= 200 && log.status < 300
-                                                        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                                        : "bg-red-50 text-red-700 hover:bg-red-100"
-                                                )}
-                                            >
-                                                {log.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="font-mono text-[13px] text-[#32325d]">
-                                            {log.eventId}
-                                        </TableCell>
-                                        <TableCell className="text-right text-[13px] text-[#697386]">
-                                            {log.time}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {filteredApiLogs.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center text-[13px] text-[#9aa3b2] py-10">
-                                            No hay registros que coincidan con tu búsqueda.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </>
+                            ))}
+                            {filteredLogs.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center text-[13px] text-[#9aa3b2] py-10">
+                                        No hay registros que coincidan con tu búsqueda.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
                     </Table>
                 </div>
             </div>
 
             <Sheet open={Boolean(selectedLog)} onOpenChange={(open) => !open && setSelectedLog(null)}>
                 <SheetContent className="w-[400px] sm:w-[520px] overflow-y-auto">
-                    {selectedLog?.type === "api" && (
+                    {selectedLog && (
                         <div className="space-y-6">
                             <SheetHeader>
                                 <div className="flex items-center gap-2 mb-1">
                                     <Badge
                                         variant="outline"
                                         className={cn(
-                                            "font-mono border-0",
-                                            selectedLog.data.status < 400
-                                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20"
-                                                : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20"
+                                            'font-mono border-0',
+                                            selectedLog.status === 'success'
+                                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20'
+                                                : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'
                                         )}
                                     >
-                                        {selectedLog.data.status}
+                                        {selectedLog.statusCode}
                                     </Badge>
-                                    <span className="text-[12px] text-[#697386]">{selectedLog.data.time}</span>
+                                    <span className="text-[12px] text-[#697386]">{selectedLog.time}</span>
                                 </div>
-                                <SheetTitle className="font-mono text-[18px] break-all">{selectedLog.data.method} {selectedLog.data.path}</SheetTitle>
+                                <SheetTitle className="font-mono text-[18px] break-all">
+                                    {selectedLog.event}
+                                </SheetTitle>
                                 <SheetDescription className="font-mono text-[12px]">
-                                    ID: {selectedLog.data.id}
+                                    ID: {selectedLog.id}
                                 </SheetDescription>
                             </SheetHeader>
 
                             <div className="flex gap-2">
-                                <Button size="sm" variant="outline" className="flex-1 border-gray-200 rounded-full" onClick={() => handleCopy(selectedLog.data.id, "ID")}>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 border-gray-200 rounded-lg"
+                                    onClick={() => handleCopy(selectedLog.id, 'ID')}
+                                >
                                     <Copy className="w-4 h-4 mr-2" />
                                     Copiar ID
                                 </Button>
-                                <Button size="sm" variant="outline" className="flex-1 border-gray-200 rounded-full" onClick={() => handleCopy(selectedLog.data.eventId, "ID de Evento")}>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1 border-gray-200 rounded-lg"
+                                    onClick={() => handleCopy(selectedLog.endpoint, 'Endpoint')}
+                                >
                                     <Copy className="w-4 h-4 mr-2" />
-                                    Copiar Evento
-                                </Button>
-                                <Button size="sm" variant="outline" className="border-gray-200 rounded-full" onClick={() => handleCopy(selectedLog.data.path, "Ruta")}>
-                                    Copiar ruta
+                                    Copiar endpoint
                                 </Button>
                             </div>
 
                             <div className="space-y-2 text-[13px] text-[#4f5b76]">
                                 <div className="flex justify-between">
-                                    <span>ID de Evento</span>
-                                    <span className="font-mono text-[#32325d]">{selectedLog.data.eventId}</span>
+                                    <span>Endpoint</span>
+                                    <span className="font-mono text-[#32325d] truncate max-w-[260px]" title={selectedLog.endpoint}>
+                                        {selectedLog.endpoint}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Método</span>
+                                    <span className="font-mono text-[#32325d]">{selectedLog.method}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span>Entorno</span>
-                                    <span className="font-mono text-[#32325d]">{selectedLog.data.env}</span>
+                                    <span className="font-mono text-[#32325d]">{selectedLog.env}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Intentos</span>
+                                    <span className="font-mono text-[#32325d]">{selectedLog.attempts}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Respuesta</span>
+                                    <span className="font-mono text-[#32325d]">{selectedLog.response}</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-[12px] text-[#8a94a7] uppercase tracking-[0.18em]">Body enviado</p>
+                                <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-3 font-mono text-[12px] text-[#32325d] whitespace-pre-wrap">
+                                    {selectedLog.body}
                                 </div>
                             </div>
                         </div>
                     )}
-
                 </SheetContent>
             </Sheet>
         </div>

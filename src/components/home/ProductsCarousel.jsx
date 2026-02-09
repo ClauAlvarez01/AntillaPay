@@ -115,14 +115,14 @@ export default function ProductsCarousel() {
           <div className="flex gap-2 mt-8 justify-center">
             <button
               onClick={prev}
-              className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-lg bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
               aria-label="Anterior"
             >
               <ChevronLeft className="w-4 h-4 text-violet-600" />
             </button>
             <button
               onClick={next}
-              className="w-10 h-10 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-lg bg-violet-50 hover:bg-violet-100 flex items-center justify-center transition-all"
               aria-label="Siguiente"
             >
               <ChevronRight className="w-4 h-4 text-violet-600" />
@@ -189,7 +189,7 @@ export default function ProductsCarousel() {
                         <ul className="space-y-2 mt-4">
                           {product.features.map((feature) => (
                             <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
-                              <div className="w-1.5 h-1.5 rounded-full bg-gray-300 flex-shrink-0" />>
+                              <div className="w-1.5 h-1.5 rounded-lg bg-gray-300 flex-shrink-0" />>
                               <span>{feature}</span>
                             </li>
                           ))}
@@ -208,7 +208,7 @@ export default function ProductsCarousel() {
               <button
                 key={i}
                 onClick={() => setCurrentIndex(i)}
-                className={`h-1.5 rounded-full transition-all ${
+                className={`h-1.5 rounded-lg transition-all ${
                   i === currentIndex ? 'w-8 bg-violet-600' : 'w-1.5 bg-gray-300'
                 }`}
               />

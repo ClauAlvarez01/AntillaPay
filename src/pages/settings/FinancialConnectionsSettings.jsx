@@ -59,7 +59,7 @@ export default function FinancialConnectionsSettings() {
                 {connectedInstitutions.map((institution, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center">
                         <Link2 className="h-5 w-5 text-indigo-600" />
                       </div>
                       <div>

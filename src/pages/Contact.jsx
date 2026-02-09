@@ -94,7 +94,7 @@ export default function Contact() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-6">
             <Check className="w-10 h-10 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">{t('contact.successTitle')}</h1>
@@ -208,13 +208,13 @@ export default function Contact() {
                   type="button"
                   variant="outline"
                   onClick={() => navigate(createPageUrl('Home'))}
-                  className="flex-1 h-12 rounded-full border-gray-300"
+                  className="flex-1 h-12 rounded-lg border-gray-300"
                 >
                   {t('common.back', 'Volver')}
                 </Button>
                 <Button 
                   type="submit"
-                  className="flex-1 h-12 bg-violet-600 hover:bg-violet-700 rounded-full shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
+                  className="flex-1 h-12 bg-violet-600 hover:bg-violet-700 rounded-lg shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
                 >
                   {t('contact.continueButton')}
                 </Button>
@@ -315,13 +315,13 @@ export default function Contact() {
                   type="button"
                   variant="outline"
                   onClick={() => setStep(1)}
-                  className="flex-1 h-12 rounded-full border-gray-300"
+                  className="flex-1 h-12 rounded-lg border-gray-300"
                 >
                   {t('common.back', 'Volver')}
                 </Button>
                 <Button 
                   type="submit"
-                  className="flex-1 h-12 bg-violet-600 hover:bg-violet-700 rounded-full shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
+                  className="flex-1 h-12 bg-violet-600 hover:bg-violet-700 rounded-lg shadow-md shadow-violet-600/20 transition-all hover:shadow-lg hover:shadow-violet-600/30"
                 >
                   {t('contact.submitButton')}
                 </Button>

@@ -99,10 +99,10 @@ const FilterPill = ({ label, active, onClick }) => (
             "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
             active
                 ? "border-[#635bff] bg-[#635bff] text-white"
-                : "border-dashed border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
+                : "border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
         )}
     >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-400">
+        <span className="flex h-5 w-5 items-center justify-center rounded-lg border border-gray-400">
             <Plus className="h-3 w-3" />
         </span>
         {label}
@@ -237,11 +237,11 @@ export default function TransfersPage() {
                 <button
                     type="button"
                     onClick={() => setShowTransferModal(true)}
-                    className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-full px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
+                    className="bg-[#635bff] hover:bg-[#5851e0] text-white font-semibold rounded-lg px-4 py-2 flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
                 >
                     <Plus className="w-4 h-4" />
                     Crear transferencia
-                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-[11px] font-semibold">
+                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-lg bg-white/20 text-[11px] font-semibold">
                         N
                     </span>
                 </button>
@@ -255,7 +255,7 @@ export default function TransfersPage() {
                             value={searchQuery}
                             onChange={(event) => setSearchQuery(event.target.value)}
                             placeholder="Buscar por cliente o ID"
-                            className="h-9 rounded-full border-gray-200 bg-white pl-10 text-[13px]"
+                            className="h-9 rounded-lg border-gray-200 bg-white pl-10 text-[13px]"
                         />
                     </div>
                 </div>
@@ -283,7 +283,7 @@ export default function TransfersPage() {
                         {chipFilters.status && (
                             <div className="min-w-[200px]">
                                 <Select value={statusFilter === "all" ? "" : statusFilter} onValueChange={setStatusFilter}>
-                                    <SelectTrigger className="h-8 rounded-full border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
+                                    <SelectTrigger className="h-8 rounded-lg border-gray-200 bg-white text-[12px] [&>svg]:text-[#635bff]">
                                         <SelectValue placeholder="Seleccione Estado" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -350,7 +350,7 @@ export default function TransfersPage() {
                                             <TableCell className="pr-6 py-4">
                                                 <span
                                                     className={cn(
-                                                        "inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                                        "inline-flex rounded-lg border px-2 py-0.5 text-[11px] font-semibold",
                                                         TRANSFER_STATUS_STYLES[transfer.status] || "bg-gray-50 text-gray-600 border-gray-200"
                                                     )}
                                                 >

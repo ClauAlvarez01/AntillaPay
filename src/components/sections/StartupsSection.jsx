@@ -13,8 +13,8 @@ export default function StartupsSection() {
     <section className="py-20 lg:py-32 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white overflow-hidden relative">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-lg blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/20 rounded-lg blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -25,7 +25,7 @@ export default function StartupsSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+            <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-sm rounded-lg text-sm font-medium mb-6">
               <Rocket className="w-4 h-4" />
               {t('startups.eyebrow')}
             </span>
@@ -38,7 +38,7 @@ export default function StartupsSection() {
               {t('startups.subtitle')}
             </p>
 
-            <Button className="rounded-full bg-white text-gray-900 hover:bg-white/90 shadow-lg">
+            <Button className="rounded-lg bg-white text-gray-900 hover:bg-white/90 shadow-lg">
               {t('startups.cta')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>

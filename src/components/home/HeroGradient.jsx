@@ -59,12 +59,12 @@ export default function HeroGradient({ onLoginClick }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('home.hero.emailPlaceholder')}
-                  className="flex-1 px-4 py-2.5 rounded-full text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 bg-white shadow-lg h-12 text-sm"
+                  className="flex-1 px-4 py-2.5 rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 bg-white shadow-lg h-12 text-sm"
                 />
                 <Button 
                   type="submit"
                   size="lg"
-                  className="bg-violet-600 hover:bg-violet-700 text-white rounded-full px-6 whitespace-nowrap shadow-lg h-12 text-sm"
+                  className="bg-violet-600 hover:bg-violet-700 text-white rounded-lg px-6 whitespace-nowrap shadow-lg h-12 text-sm"
                 >
                   {t('home.hero.cta')}
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -127,7 +127,7 @@ export default function HeroGradient({ onLoginClick }) {
                     <div key={i} className="flex-1 bg-violet-100 rounded-t-sm" style={{ height: `${h}%` }} />
                   ))}
                   <div className="flex-1 flex flex-col items-center">
-                    <div className="w-1.5 h-1.5 bg-violet-600 rounded-full mb-0.5" />
+                    <div className="w-1.5 h-1.5 bg-violet-600 rounded-lg mb-0.5" />
                     <div className="flex-1 bg-violet-600 rounded-t-sm w-full" style={{ height: '70%' }} />
                   </div>
                 </div>
@@ -182,8 +182,8 @@ export default function HeroGradient({ onLoginClick }) {
                       <div className="text-white text-[10px] font-bold mb-0.5">Issue 001</div>
                       <div className="w-10 h-10 bg-white/90 rounded-lg mx-auto flex items-center justify-center">
                         <div className="space-y-0.5">
-                          <div className="w-6 h-1.5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full" />
-                          <div className="w-6 h-2 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full" />
+                          <div className="w-6 h-1.5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-lg" />
+                          <div className="w-6 h-2 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-lg" />
                         </div>
                       </div>
                     </div>
