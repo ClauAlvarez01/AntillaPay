@@ -2619,6 +2619,7 @@ export default function Dashboard() {
 
     const handleAddProduct = () => handleQuickAction("Agregar producto");
     const handleCreatePaymentLink = () => navigate("/dashboard/payment-links/create");
+    const handleCreateTransfer = () => navigate("/dashboard/transfers", { state: { openTransferModal: true } });
     const handleHelp = () => handleQuickAction("Ayuda");
     const handleSettings = () => navigate("/dashboard/settings");
     const handleGuide = () => setShowOnboarding(true);
@@ -3151,6 +3152,7 @@ export default function Dashboard() {
                         onLogoClick={() => navigate("/dashboard")}
                         onAddProduct={handleAddProduct}
                         onCreatePaymentLink={handleCreatePaymentLink}
+                        onCreateTransfer={handleCreateTransfer}
                         onHelp={handleHelp}
                         onSettings={handleSettings}
                         onGuide={handleGuide}

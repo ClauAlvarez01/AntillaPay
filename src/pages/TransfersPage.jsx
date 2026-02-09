@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Upload } from "lucide-react";
+import { Plus, Search, Upload, ChevronDown } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -96,16 +97,15 @@ const FilterPill = ({ label, active, onClick }) => (
         type="button"
         onClick={onClick}
         className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
-            active
-                ? "border-[#635bff] bg-[#635bff] text-white"
-                : "border-gray-300 bg-white text-[#4f5b76] hover:border-gray-400"
+            "inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-[#4f5b76] hover:border-[#cbd5f5] transition-colors",
+            active && "border-[#cbd5f5] bg-gray-50"
         )}
     >
-        <span className="flex h-5 w-5 items-center justify-center rounded-lg border border-gray-400">
+        <span className="inline-flex h-4 w-4 items-center justify-center rounded-lg border border-gray-200 text-[11px] text-[#8792a2]">
             <Plus className="h-3 w-3" />
         </span>
-        {label}
+        <span>{label}</span>
+        <ChevronDown className="h-3.5 w-3.5 text-[#635bff]" />
     </button>
 );
 
@@ -115,6 +115,8 @@ const TRANSFER_FILTERS = [
 ];
 
 export default function TransfersPage() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [transfers, setTransfers] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [chipFilters, setChipFilters] = useState(() => ({
@@ -125,6 +127,12 @@ export default function TransfersPage() {
     const [createdDate, setCreatedDate] = useState(undefined);
     const [isCreatedCalendarOpen, setIsCreatedCalendarOpen] = useState(false);
     const [showTransferModal, setShowTransferModal] = useState(false);
+
+    useEffect(() => {
+        if (!location.state?.openTransferModal) return;
+        setShowTransferModal(true);
+        navigate(location.pathname, { replace: true, state: null });
+    }, [location.pathname, location.state, navigate]);
 
     const loadTransfersFromStorage = () => {
         if (typeof window === "undefined") return;

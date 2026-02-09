@@ -46,7 +46,7 @@ const IconButton = ({ label, onClick, children }) => (
     </button>
 );
 
-const ActionMenu = ({ onAddProduct, onCreatePaymentLink }) => (
+const ActionMenu = ({ onAddProduct, onCreatePaymentLink, onCreateTransfer }) => (
     <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button
@@ -61,6 +61,7 @@ const ActionMenu = ({ onAddProduct, onCreatePaymentLink }) => (
             <DropdownMenuLabel>Acciones rapidas</DropdownMenuLabel>
             <DropdownMenuItem onSelect={onAddProduct}>Agregar producto</DropdownMenuItem>
             <DropdownMenuItem onSelect={onCreatePaymentLink}>Crear Payment Link</DropdownMenuItem>
+            <DropdownMenuItem onSelect={onCreateTransfer}>Realizar transferencia</DropdownMenuItem>
         </DropdownMenuContent>
     </DropdownMenu>
 );
@@ -191,6 +192,7 @@ export default function DashboardHeader({
     onLogoClick,
     onAddProduct,
     onCreatePaymentLink,
+    onCreateTransfer,
     onHelp,
     onSettings,
     onGuide,
@@ -218,7 +220,11 @@ export default function DashboardHeader({
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <ActionMenu onAddProduct={onAddProduct} onCreatePaymentLink={onCreatePaymentLink} />
+                    <ActionMenu
+                        onAddProduct={onAddProduct}
+                        onCreatePaymentLink={onCreatePaymentLink}
+                        onCreateTransfer={onCreateTransfer}
+                    />
                     <div className="hidden md:flex items-center gap-2">
                         <IconButton label="Información de mi cuenta" onClick={onSettings}>
                             <Info className="h-5 w-5" />

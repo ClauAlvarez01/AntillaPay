@@ -75,6 +75,25 @@ const STATUS_FILTERS = [
     { id: 'error', label: 'Errores' }
 ];
 
+const WEBHOOK_STATUS_STYLES = {
+    success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    failed: 'bg-red-50 text-red-700 border-red-200'
+};
+
+const formatDate = (dateString) => {
+    if (!dateString) return '—';
+    const normalized = dateString.includes(' ') && !dateString.includes('T')
+        ? dateString.replace(' ', 'T')
+        : dateString;
+    const date = new Date(normalized);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    });
+};
+
 export default function DevelopersLogs() {
     const [query, setQuery] = useState('');
     const [eventFilter, setEventFilter] = useState('all');
@@ -150,96 +169,90 @@ export default function DevelopersLogs() {
                     </Button>
                 </div>
 
-                <div className="flex flex-col gap-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[11px] text-[#8a94a7] uppercase tracking-[0.2em]">Eventos</span>
-                        <div ref={eventMenuRef} className="relative">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setEventMenuOpen((prev) => !prev);
-                                    setStatusMenuOpen(false);
-                                }}
-                                className={cn(
-                                    'inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-[12px] font-semibold text-[#4f5b76] hover:border-gray-400 transition-colors',
-                                    eventMenuOpen && 'border-[#cbd5f5] bg-gray-50'
-                                )}
-                            >
-                                <span className="flex h-5 w-5 items-center justify-center rounded-md border border-gray-300 text-[11px] text-[#8792a2]">
-                                    <Plus className="h-3 w-3" />
-                                </span>
-                                Eventos
-                                <span className="text-[#635bff] text-[11px] font-semibold">
-                                    {EVENT_FILTERS.find((item) => item.id === eventFilter)?.label}
-                                </span>
-                                <ChevronDown className="h-3.5 w-3.5 text-[#635bff]" />
-                            </button>
-                            {eventMenuOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-[220px] rounded-xl border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
-                                    {EVENT_FILTERS.map((option) => (
-                                        <button
-                                            key={option.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setEventFilter(option.id);
-                                                setEventMenuOpen(false);
-                                            }}
-                                            className={cn(
-                                                'w-full px-4 py-2 text-left text-[13px] text-[#32325d] hover:bg-gray-50',
-                                                eventFilter === option.id && 'text-[#635bff] font-semibold'
-                                            )}
-                                        >
-                                            {option.label}
-                                        </button>
-                                    ))}
-                                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                    <div ref={eventMenuRef} className="relative">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEventMenuOpen((prev) => !prev);
+                                setStatusMenuOpen(false);
+                            }}
+                            className={cn(
+                                'inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-[#4f5b76] hover:border-[#cbd5f5] transition-colors',
+                                eventMenuOpen && 'border-[#cbd5f5] bg-gray-50'
                             )}
-                        </div>
+                        >
+                            <span className="inline-flex h-4 w-4 items-center justify-center rounded-lg border border-gray-200 text-[11px] text-[#8792a2]">
+                                <Plus className="h-3 w-3" />
+                            </span>
+                            Eventos
+                            <span className="ml-1 text-[#635bff] text-[11px] font-semibold">
+                                {EVENT_FILTERS.find((item) => item.id === eventFilter)?.label}
+                            </span>
+                            <ChevronDown className="h-3.5 w-3.5 text-[#635bff]" />
+                        </button>
+                        {eventMenuOpen && (
+                            <div className="absolute top-full left-0 mt-2 w-[220px] rounded-xl border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
+                                {EVENT_FILTERS.map((option) => (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setEventFilter(option.id);
+                                            setEventMenuOpen(false);
+                                        }}
+                                        className={cn(
+                                            'w-full px-4 py-2 text-left text-[13px] text-[#32325d] hover:bg-gray-50',
+                                            eventFilter === option.id && 'text-[#635bff] font-semibold'
+                                        )}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[11px] text-[#8a94a7] uppercase tracking-[0.2em]">Estado</span>
-                        <div ref={statusMenuRef} className="relative">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setStatusMenuOpen((prev) => !prev);
-                                    setEventMenuOpen(false);
-                                }}
-                                className={cn(
-                                    'inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-[12px] font-semibold text-[#4f5b76] hover:border-gray-400 transition-colors',
-                                    statusMenuOpen && 'border-[#cbd5f5] bg-gray-50'
-                                )}
-                            >
-                                <span className="flex h-5 w-5 items-center justify-center rounded-md border border-gray-300 text-[11px] text-[#8792a2]">
-                                    <Plus className="h-3 w-3" />
-                                </span>
-                                Estado
-                                <span className="text-[#635bff] text-[11px] font-semibold">
-                                    {STATUS_FILTERS.find((item) => item.id === statusFilter)?.label}
-                                </span>
-                                <ChevronDown className="h-3.5 w-3.5 text-[#635bff]" />
-                            </button>
-                            {statusMenuOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-[200px] rounded-xl border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
-                                    {STATUS_FILTERS.map((option) => (
-                                        <button
-                                            key={option.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setStatusFilter(option.id);
-                                                setStatusMenuOpen(false);
-                                            }}
-                                            className={cn(
-                                                'w-full px-4 py-2 text-left text-[13px] text-[#32325d] hover:bg-gray-50',
-                                                statusFilter === option.id && 'text-[#635bff] font-semibold'
-                                            )}
-                                        >
-                                            {option.label}
-                                        </button>
-                                    ))}
-                                </div>
+                    <div ref={statusMenuRef} className="relative">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setStatusMenuOpen((prev) => !prev);
+                                setEventMenuOpen(false);
+                            }}
+                            className={cn(
+                                'inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-[#4f5b76] hover:border-[#cbd5f5] transition-colors',
+                                statusMenuOpen && 'border-[#cbd5f5] bg-gray-50'
                             )}
-                        </div>
+                        >
+                            <span className="inline-flex h-4 w-4 items-center justify-center rounded-lg border border-gray-200 text-[11px] text-[#8792a2]">
+                                <Plus className="h-3 w-3" />
+                            </span>
+                            Estado
+                            <span className="ml-1 text-[#635bff] text-[11px] font-semibold">
+                                {STATUS_FILTERS.find((item) => item.id === statusFilter)?.label}
+                            </span>
+                            <ChevronDown className="h-3.5 w-3.5 text-[#635bff]" />
+                        </button>
+                        {statusMenuOpen && (
+                            <div className="absolute top-full left-0 mt-2 w-[200px] rounded-xl border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
+                                {STATUS_FILTERS.map((option) => (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setStatusFilter(option.id);
+                                            setStatusMenuOpen(false);
+                                        }}
+                                        className={cn(
+                                            'w-full px-4 py-2 text-left text-[13px] text-[#32325d] hover:bg-gray-50',
+                                            statusFilter === option.id && 'text-[#635bff] font-semibold'
+                                        )}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -251,7 +264,7 @@ export default function DevelopersLogs() {
                                 <TableHead className="w-2/5">Endpoint</TableHead>
                                 <TableHead className="w-1/5">Estado</TableHead>
                                 <TableHead className="w-1/5">Método</TableHead>
-                                <TableHead className="w-1/5 text-right">Fecha</TableHead>
+                                <TableHead className="w-1/5 text-right whitespace-nowrap">Fecha</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -269,11 +282,10 @@ export default function DevelopersLogs() {
                                     </TableCell>
                                     <TableCell>
                                         <Badge
+                                            variant="outline"
                                             className={cn(
-                                                'shadow-none',
-                                                log.status === 'success'
-                                                    ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                                    : 'bg-red-50 text-red-700 hover:bg-red-100'
+                                                'rounded-full border text-[11px] shadow-none',
+                                                WEBHOOK_STATUS_STYLES[log.status] || 'bg-slate-50 text-slate-700 border-slate-200'
                                             )}
                                         >
                                             {log.statusCode}
@@ -284,8 +296,8 @@ export default function DevelopersLogs() {
                                             {log.method}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right text-[13px] text-[#697386]">
-                                        {log.time}
+                                    <TableCell className="text-right text-[13px] text-[#697386] whitespace-nowrap">
+                                        {formatDate(log.time)}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -310,10 +322,8 @@ export default function DevelopersLogs() {
                                     <Badge
                                         variant="outline"
                                         className={cn(
-                                            'font-mono border-0',
-                                            selectedLog.status === 'success'
-                                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20'
-                                                : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'
+                                            'rounded-full border text-[11px] font-mono',
+                                            WEBHOOK_STATUS_STYLES[selectedLog.status] || 'bg-slate-50 text-slate-700 border-slate-200'
                                         )}
                                     >
                                         {selectedLog.statusCode}
