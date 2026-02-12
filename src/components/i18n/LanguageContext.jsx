@@ -9,7 +9,6 @@ const STORAGE_KEY = 'antillapay_lang';
 const detectBrowserLanguage = () => {
   const browserLang = navigator.language || navigator.userLanguage;
   if (browserLang.startsWith('es')) return 'es';
-  if (browserLang.startsWith('zh')) return 'zh-Hans';
   return 'en';
 };
 
